@@ -1,0 +1,120 @@
+\documentclass[a4paper,11pt]{article}
+
+% ---------- Кодировка и язык ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian,english]{babel}
+
+% ---------- Геометрия страницы ----------
+\usepackage[margin=2.5cm]{geometry}
+
+% ---------- Математика ----------
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{bm}          % жирные символы в формулах: \bm{x}
+
+% ---------- Картинки ----------
+\usepackage{graphicx}
+\graphicspath{{figures/}}   % картинки лежат в latex/figures/
+\usepackage{float}          % позиция [H] для картинок
+\usepackage{subcaption}     % несколько картинок рядом
+
+% ---------- Оформление ----------
+\usepackage{enumitem}
+\usepackage{booktabs}       % красивые таблицы
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+\usepackage{cleveref}       % \cref{...} для умных ссылок
+
+% ---------- Теоремы и окружения ----------
+\theoremstyle{plain}
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{proposition}[theorem]{Утверждение}
+\newtheorem{corollary}[theorem]{Следствие}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Определение}
+\newtheorem{example}[theorem]{Пример}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Замечание}
+
+% ---------- Полезные макросы ----------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Cx}{\mathbb{C}}   % \C занят babel-russian
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\newcommand{\set}[1]{\left\{ #1 \right\}}
+\DeclareMathOperator{\argmin}{arg\,min}
+\DeclareMathOperator{\argmax}{arg\,max}
+
+% Заметка на полях / TODO
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{TODO:} #1}}
+
+\begin{document}
+\section{Заметки}
+\begin{definition}[Неоклассические Функции]
+    Пусть $n\in\mathbb{N}$
+    Будем называть функцию $f:\mathbb{R}_+^n\to\mathbb{R}_+$ \textit{неоклассической}, если она \textit{непрерывна}, \textit{вогнута} и однородна степени~1.\\
+    Будем обозначать класс неоклассических функций $n$ переменных как $\Phi_n$.
+\end{definition}
+
+\begin{definition}
+    Пусть $\{\hat p_t \in \mathbb{R}^{2}_{++}\}_{t\in[T]}$ --- некоторый конечный набор цен.
+    Будем говорить, что вектор выпусков $y\in\mathbb{R}^{T}_{++}$ выполним при этих ценах, если
+    существует такая неоклассическая функция $h\in\Phi_{2}$ и такие окрестности
+    $\{U_t\ni\hat p_t\}_{t\in[T]}$, что для каждого набора $\{p_t\in U_t\}_{t\in[T]}$
+    существует полная неотрицательная абсолютно непрерывная мера $\mu$ на $\mathbb{R}^{2}_{+}$, что $\forall t\in[T]\Rightarrow\mu(A_t)=y_t$, где $A_t=\{x\in\mathbb{R}^{2}_{++}\mid h(p_t\circ x)<1\}.$
+\end{definition}
+
+\begin{proposition}
+    $\exists q\in conv\{p_{1},p_{3}\}:q\leq p_{2}\Rightarrow A_{2}\subset A_{1}\cup A_{3}$.
+\end{proposition}
+
+\begin{example}
+    При ценах $\{\hat{p}_{1} = (4, 1), \hat{p}_{2} = (3, 3), \hat{p}_{3} = (1, 4)\}$ вектор выпусков $y=(1, 5, 3)$ не выполним.
+    Более того, для случая $CES$ функций, критическая эластичность замещения $\rho_{crit}\approx -2$, а значит ромбический тайлинг будет иметь вид $\lambda$-гекса независимо от эластичности замещения. Вектору выпусков $y=(1, 5, 3)$ соответствует змейка $(0,\xi_{2},\xi_{2}+\xi_{3},\xi_{1}+\xi_{2}+\xi_{3})$ которая лежит внутри зоногона $Z_{3}$ но не содержится в $\lambda$-гексе. 
+\end{example}
+
+\begin{remark}
+    Кажется, для $T=3$ не существует примера, для которого переход от $CES$ функций к неоклассическим дал бы больше выполнимых случаев.
+\end{remark}
+
+\begin{proposition} Функция $h(x):=\sqrt{x^{1}x^{2}}\exp(\frac{1}{4}\sin\ln\frac{x^{1}}{x^{2}})$ является неоклассической.
+\end{proposition}
+
+\begin{proof}
+    Сначала покажем, что эта функция непрерывна на $\mathbb{R}^{2}_{+}$. Непрерывность на $\mathbb{R}^{2}_{++}$ выполнена в силу того, что $h$ представима как композиция непрерывных функций. Для того, чтобы показать непрерывность на $\partial\mathbb{R}^{2}_{+}$ заметим, что  для каждого $x\in\mathbb{R}^{2}_{++}$ значение функции $h(x)\in[e^{\frac{-1}{4}}\sqrt{x^{1}x^{2}}, e^{\frac{+1}{4}}\sqrt{x^{1}x^{2}}]$ а значит также как и в случае функций Кобба-Дугласса, наша функция продолжается по непрерывности на $\partial\mathbb{R}^{2}_{+}$ тождественным нулем.
+
+    Теперь покажем, что эта функция вонута. Введем $u:=\ln\frac{x^{1}}{x^{2}}$, тогда гессиан имеет вид:
+    \[
+        \nabla^{2}h(x)
+        = -\,\frac{h(x)\,\bigl(1+\sin u\bigr)\bigl(3+\sin u\bigr)}{16\,(x^{1})^{2}(x^{2})^{2}}
+        \begin{pmatrix}
+            (x^{2})^{2} & -x^{1}x^{2}\\[2pt]
+            -x^{1}x^{2} & (x^{1})^{2}
+        \end{pmatrix}.
+    \]
+    Множитель перед матрицей неположителен, а сама матрица имеет собственные числа $0$ и $(x^{1})^{2}+(x^{2})^{2}$, а значит сам гессиан отрицательно полуопределен и функция $h$ вогнута.
+\end{proof}
+
+\begin{proposition}
+    Пусть $h(x)=\sqrt{x^{1}x^{2}}\exp(\frac{1}{4}\sin\ln\frac{x^{1}}{x^{2}})$ и $p\in\mathbb{R}^{2}_{++}$, тогда если выполнено неравенство $|\ln p^{1} + \ln p^{2}|<|\sin\frac{\ln p^{1} - \ln p^{2}}{2}|$ то кривые $h(x)=1$ и $h(p\circ x)=1$ пересекаются счетное число раз.
+\end{proposition}
+
+\begin{proof}
+    Введем замену координат $\theta:= \ln x^{1} + \ln x^{2}$ и $\eta := \ln x^{1} - \ln x^{2}$, в этих координатах кривая $h(x)=1$ имеет простой параметрический вид $\theta =  -\frac{\sin\eta}{2}$ и определена для любого $\eta$.
+
+    Помимо равенства $h(x)=1$ для точки пересечения также требуется $h(x)=h(p\circ x)$.
+    Полагая, что $h(x)>0$ в координатах $(\theta,\eta)$ это уравнение представимо в следующем виде:
+    \[
+    2\ln\frac{h(p\circ x)}{h(x)}
+    = (\ln p^{1} + \ln p^{2})
+    + \sin\frac{\ln p^{1} - \ln p^{2}}{2}\,\cos\left(\eta + \frac{\ln p^{1} - \ln p^{2}}{2}\right) = 0.
+    \]
+    Это уравнение зависит от $\theta$ и имеет $0$ корней при $|\ln p^{1} + \ln p^{2}|>|\sin\frac{\ln p^{1} - \ln p^{2}}{2}|$, континуум решений в вырожденных случаях $p = (\exp(\pi z), \exp(-\pi z))$ для $z\in\mathbb{Z}$ и счетное кол-во в остальных случаях в том числе при $|\ln p^{1} + \ln p^{2}|<|\sin\frac{\ln p^{1} - \ln p^{2}}{2}|$. Для любого $\eta$ существует единственная $\theta$, которая задает точку на $h(x)=1$, что дает счетное кол-во пересечений.
+\end{proof}
+
+\end{document}

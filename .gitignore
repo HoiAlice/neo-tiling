@@ -1,0 +1,9 @@
+# LaTeX build artifacts
+latex/build/
+latex/*.synctex.gz
+latex/*.aux
+latex/*.log
+latex/*.out
+latex/*.fls
+latex/*.fdb_latexmk
+.venv/
