@@ -1,100 +1,38 @@
-import NeoTiling.BddNeoclassical
+import NeoTiling.Profile
 
 /-!
-# Finitely many intersections for generic parameters
+# Generic transversality for the profile equation
 
 Let `f` be a profile (see `IsProfile`). For a parameter `p = (α, β)` with `α > 1 > β > 0`
 consider the equation `α * f y = f (β * y)` on `y ∈ [0, 1]`. The condition `β < 1` makes
-`β * y ∈ [0, 1]`, so that `f (β * y)` refers to the meaningful part of `f`.
+`β * y ∈ [0, 1]`, so that `f (β * y)` refers to the meaningful part of `f`. In `LevelCurves`
+this equation describes the intersections of the level curves `h x = 1` and `h (p ∘ x) = 1` of
+a strictly positive neoclassical `h` with profile `f`.
 
-Main result (`IsProfile.exists_finite_solutions`): every open set of parameters contains a
-parameter for which the equation has only finitely many solutions. Equivalently, the good
-parameters are dense in `Param = (1, ∞) × (0, 1)`.
+For a convex `f` on `[0, 1]` the *subdifferential* `subdiff f y` is the set of slopes of
+supporting lines at `y`. A solution `y` is *transversal* if the scaled subdifferentials
+`α • ∂f(y)` and `β • ∂f(βy)` are disjoint (`Transversal`, `transversal_iff_disjoint`).
 
-The proof does not use smoothness of `f`. For fixed `β` the solutions are the level set
-`{y | F y = α}` of `F y = f (β * y) / f y`, which is Lipschitz on the compact set where the
-solutions live. If a level set is infinite it has an accumulation point, at which `F` either is
-not differentiable or has derivative `0`. By Rademacher's theorem the first set is null, and
-Lipschitz maps preserve null sets; by Sard's lemma the image of the second set is null. Hence
-the set of bad `α` is null and cannot contain an interval.
+Main results:
+
+* `IsProfile.finite_of_transversal`: transversal solutions are isolated, so a parameter with
+  only transversal solutions has finitely many of them;
+* `IsProfile.exists_open_transversal`: every open set of parameters contains a nonempty open set
+  of parameters with only transversal solutions.
+
+The proof is a Sard-type argument with the derivative of `y ↦ f (β y) / f y` replaced by the
+*mixed* subdifferential condition `IsCritical`: some `a ∈ ∂f(βy)` and `b ∈ ∂f(y)`, chosen
+independently, satisfy `β a f y = f (β y) b`. Unlike the derivative, this condition has a
+closed graph (`IsProfile.isCompact_critical`), which makes the set of good parameters open.
+For fixed `β` the critical values form a null set (`IsProfile.volume_image_critical_slice`): at
+points where `f` is differentiable this is Sard's lemma, the remaining points are null by
+Rademacher's theorem, and Lipschitz maps preserve null sets. No differentiability of `f` is
+assumed.
 -/
 
 open Real Set Filter Topology MeasureTheory
 
 namespace NeoTiling
-
-/-! ### The one-variable measure-theoretic core -/
-
-/-- For a Lipschitz function on a compact set, the set of values whose level set is infinite
-has measure zero. This is the only place where measure theory is used. -/
-theorem volume_infinite_level_eq_zero {F : ℝ → ℝ} {K : Set ℝ} {L : NNReal}
-    (hK : IsCompact K) (hF : LipschitzOnWith L F K) :
-    volume {α : ℝ | (K ∩ F ⁻¹' {α}).Infinite} = 0 := by
-  -- `A`: points of `K` which are accumulation points of their own level set.
-  set A : Set ℝ := {y | y ∈ K ∧ AccPt y (𝓟 (K ∩ F ⁻¹' {F y}))} with hA
-  -- `D`: points of `K` where `F` is differentiable within `K`.
-  set D : Set ℝ := {y | y ∈ K ∧ DifferentiableWithinAt ℝ F K y} with hD
-  -- Every bad value is the value of `F` at a point of `A`.
-  have hsub : {α : ℝ | (K ∩ F ⁻¹' {α}).Infinite} ⊆ F '' A := by
-    intro α hα
-    obtain ⟨y, hyK, hacc⟩ := hα.exists_accPt_of_subset_isCompact hK inter_subset_left
-    have hclosed : IsClosed (K ∩ F ⁻¹' {α}) :=
-      hF.continuousOn.preimage_isClosed_of_isClosed hK.isClosed isClosed_singleton
-    have hy : y ∈ K ∩ F ⁻¹' {α} :=
-      hclosed.closure_subset (mem_closure_iff_clusterPt.mpr hacc.clusterPt)
-    have hFy : F y = α := hy.2
-    refine ⟨y, ⟨hyK, ?_⟩, hFy⟩
-    rw [hFy]
-    exact hacc
-  -- At a point of `A ∩ D` the derivative within `K` vanishes.
-  have hderiv : ∀ y ∈ A ∩ D, HasDerivWithinAt F 0 K y := by
-    rintro y ⟨⟨hyK, hacc⟩, -, hdiff⟩
-    have h := hdiff.hasDerivWithinAt
-    set d := derivWithin F K y
-    rw [hasDerivWithinAt_iff_tendsto_slope] at h ⊢
-    set T := (K ∩ F ⁻¹' {F y}) \ {y} with hT
-    have hne : (𝓝[T] y).NeBot := accPt_principal_iff_clusterPt.mp hacc
-    have hle : 𝓝[T] y ≤ 𝓝[K \ {y}] y :=
-      nhdsWithin_mono _ (diff_subset_diff_left inter_subset_left)
-    have h1 : Tendsto (slope F y) (𝓝[T] y) (𝓝 d) := h.mono_left hle
-    have h2 : Tendsto (slope F y) (𝓝[T] y) (𝓝 0) := by
-      refine tendsto_const_nhds.congr' (eventually_nhdsWithin_of_forall fun z hz => ?_)
-      have hz' : F z = F y := hz.1.2
-      simp [slope_def_field, hz']
-    have hd : d = 0 := tendsto_nhds_unique h1 h2
-    rw [← hd]
-    exact h
-  -- Sard: the image of `A ∩ D` is null.
-  have hAD : volume (F '' (A ∩ D)) = 0 := by
-    refine addHaar_image_eq_zero_of_det_fderivWithin_eq_zero (μ := volume)
-      (f' := fun _ => ContinuousLinearMap.toSpanSingleton ℝ (0 : ℝ)) ?_ ?_
-    · intro y hy
-      exact ((hderiv y hy).mono fun z hz => hz.1.1).hasFDerivWithinAt
-    · intro y _
-      simp [ContinuousLinearMap.det]
-  -- Rademacher: the non-differentiability set is null, and so is its Lipschitz image.
-  have hN : volume {y | y ∈ K ∧ ¬ DifferentiableWithinAt ℝ F K y} = 0 := by
-    have := hF.ae_differentiableWithinAt_of_mem_real
-    rw [ae_iff] at this
-    simpa [Classical.not_imp] using this
-  have hAD' : volume (F '' (A \ D)) = 0 := by
-    have hsubN : A \ D ⊆ {y | y ∈ K ∧ ¬ DifferentiableWithinAt ℝ F K y} := by
-      rintro y ⟨⟨hyK, -⟩, hyD⟩
-      exact ⟨hyK, fun h => hyD ⟨hyK, h⟩⟩
-    have hsubK : {y | y ∈ K ∧ ¬ DifferentiableWithinAt ℝ F K y} ⊆ K := fun _ h => h.1
-    apply le_antisymm _ (zero_le _)
-    calc volume (F '' (A \ D)) ≤ volume (F '' {y | y ∈ K ∧ ¬ DifferentiableWithinAt ℝ F K y}) :=
-          measure_mono (image_mono hsubN)
-      _ = μH[1] (F '' {y | y ∈ K ∧ ¬ DifferentiableWithinAt ℝ F K y}) := by
-          rw [hausdorffMeasure_real]
-      _ ≤ (L : ENNReal) ^ (1 : ℝ) * μH[1] {y | y ∈ K ∧ ¬ DifferentiableWithinAt ℝ F K y} :=
-          (hF.mono hsubK).hausdorffMeasure_image_le zero_le_one
-      _ = 0 := by rw [hausdorffMeasure_real, hN, mul_zero]
-  apply le_antisymm _ (zero_le _)
-  calc volume {α : ℝ | (K ∩ F ⁻¹' {α}).Infinite} ≤ volume (F '' A) := measure_mono hsub
-    _ = volume (F '' (A ∩ D) ∪ F '' (A \ D)) := by rw [← image_union, inter_union_diff]
-    _ ≤ volume (F '' (A ∩ D)) + volume (F '' (A \ D)) := measure_union_le _ _
-    _ = 0 := by rw [hAD, hAD', add_zero]
 
 /-! ### Parameters and solutions -/
 
@@ -116,10 +54,68 @@ theorem mul_mem_Icc_of_mem_Param {p : ℝ × ℝ} (hp : p ∈ Param) {y : ℝ} (
   obtain ⟨_, h0, h1⟩ := mem_Param.mp hp
   exact ⟨mul_nonneg h0.le hy.1, (mul_le_of_le_one_right h0.le hy.2).trans h1.le⟩
 
+/-! ### Subdifferentials, critical pairs, transversality -/
+
+/-- The subdifferential of `f : [0, 1] → ℝ` at `y`: the slopes of supporting lines. -/
+def subdiff (f : ℝ → ℝ) (y : ℝ) : Set ℝ := {t | ∀ z ∈ Icc (0 : ℝ) 1, f y + t * (z - y) ≤ f z}
+
+/-- `(y, β)` is a *critical pair*: for some subgradients `a ∈ ∂f(βy)`, `b ∈ ∂f(y)` the "derivative"
+`β a f y - f (β y) b` of `y ↦ f (β y) / f y` vanishes. -/
+def IsCritical (f : ℝ → ℝ) (y β : ℝ) : Prop :=
+  ∃ a ∈ subdiff f (β * y), ∃ b ∈ subdiff f y, β * a * f y = f (β * y) * b
+
+/-- All solutions for the parameter `p` are transversal: at every solution `y`, the scaled
+subdifferentials `p.1 • ∂f(y)` and `p.2 • ∂f(p.2 y)` are disjoint. -/
+def Transversal (f : ℝ → ℝ) (p : ℝ × ℝ) : Prop :=
+  ∀ y ∈ solutions f p, ∀ a ∈ subdiff f (p.2 * y), ∀ b ∈ subdiff f y, p.2 * a ≠ p.1 * b
+
+open scoped Pointwise in
+theorem transversal_iff_disjoint {f : ℝ → ℝ} {p : ℝ × ℝ} :
+    Transversal f p ↔
+      ∀ y ∈ solutions f p, Disjoint (p.1 • subdiff f y) (p.2 • subdiff f (p.2 * y)) := by
+  refine forall₂_congr fun y _ => ?_
+  rw [Set.disjoint_left]
+  constructor
+  · rintro h _ ⟨b, hb, rfl⟩ ⟨a, ha, hab⟩
+    exact h a ha b hb hab
+  · intro h a ha b hb hab
+    exact h ⟨b, hb, rfl⟩ ⟨a, ha, hab⟩
+
+/-! ### General lemmas -/
+
+/-- A closed subset of a compact set all of whose points are isolated is finite. -/
+theorem finite_of_isolated {s K : Set ℝ} (hK : IsCompact K) (hs : IsClosed s) (hsK : s ⊆ K)
+    (hiso : ∀ y ∈ s, ∀ᶠ z in 𝓝[≠] y, z ∉ s) : s.Finite := by
+  by_contra hinf
+  have hinf' : s.Infinite := hinf
+  obtain ⟨y, -, hacc⟩ := hinf'.exists_accPt_of_subset_isCompact hK hsK
+  have hy : y ∈ s := hs.closure_subset (mem_closure_iff_clusterPt.mpr hacc.clusterPt)
+  have hfreq := accPt_iff_frequently.mp hacc
+  have hev := eventually_nhdsWithin_iff.mp (hiso y hy)
+  obtain ⟨z, ⟨hz1, hz2⟩, hz3⟩ := (hfreq.and_eventually hev).exists
+  exact hz3 hz1 hz2
+
+/-- The image of a null set under a Lipschitz map is null. -/
+theorem volume_image_eq_zero_of_lipschitzOnWith {F : ℝ → ℝ} {K s : Set ℝ} {L : NNReal}
+    (hF : LipschitzOnWith L F K) (hs : s ⊆ K) (h : volume s = 0) : volume (F '' s) = 0 := by
+  apply le_antisymm _ (zero_le _)
+  calc volume (F '' s) = μH[1] (F '' s) := by rw [hausdorffMeasure_real]
+    _ ≤ (L : ENNReal) ^ (1 : ℝ) * μH[1] s := (hF.mono hs).hausdorffMeasure_image_le zero_le_one
+    _ = 0 := by rw [hausdorffMeasure_real, h, mul_zero]
+
+theorem mem_interior_Icc01 {y : ℝ} (hy : y ∈ Ioo (0 : ℝ) 1) : y ∈ interior (Icc (0 : ℝ) 1) := by
+  rw [interior_Icc]
+  exact hy
+
+/-- `ratio f (y, β) = f (β * y) / f y`. -/
+noncomputable def ratio (f : ℝ → ℝ) (q : ℝ × ℝ) : ℝ := f (q.2 * q.1) / f q.1
+
 namespace IsProfile
 
 variable {f : ℝ → ℝ} (hf : IsProfile f)
 include hf
+
+/-! ### Solutions -/
 
 /-- The endpoints are never solutions. -/
 theorem zero_not_mem_solutions {p : ℝ × ℝ} (hp : p ∈ Param) : (0 : ℝ) ∉ solutions f p := by
@@ -133,37 +129,23 @@ theorem one_not_mem_solutions {p : ℝ × ℝ} (hp : p ∈ Param) : (1 : ℝ) �
   rw [hf.map_one, mul_zero, mul_one] at h
   exact (hf.pos ⟨h0.le, h1⟩).ne' h.symm
 
-/-- A profile is Lipschitz on every compact subinterval of `(0, 1)`. -/
-theorem exists_lipschitzOnWith_Icc {c d : ℝ} (hc : 0 < c) (hd : d < 1) :
-    ∃ L : NNReal, LipschitzOnWith L f (Icc c d) := by
-  have hball : Metric.ball (1 / 2 : ℝ) (1 / 2) = Ioo 0 1 := by
-    rw [Real.ball_eq_Ioo]
-    norm_num
-  have hconv : ConvexOn ℝ (Metric.ball (1 / 2 : ℝ) (1 / 2)) f := by
-    rw [hball]
-    exact hf.convexOn.subset Ioo_subset_Icc_self (convex_Ioo 0 1)
-  have hmin : 0 < min c (1 - d) := lt_min hc (by linarith)
-  have hM : ∀ x, dist x (1 / 2 : ℝ) < 1 / 2 → |f x| ≤ 1 := by
-    intro x hx
-    have hx' : x ∈ Ioo (0 : ℝ) 1 := by
-      rw [← hball]
-      exact hx
-    have hx'' : x ∈ Icc (0 : ℝ) 1 := ⟨hx'.1.le, hx'.2.le⟩
-    rw [abs_of_nonneg (hf.nonneg hx'')]
-    exact hf.le_one hx''
-  refine ⟨_, (hconv.lipschitzOnWith_of_abs_le (half_pos hmin) hM).mono ?_⟩
-  intro x hx
-  rw [Real.ball_eq_Ioo]
-  have h1 := min_le_left c (1 - d)
-  have h2 := min_le_right c (1 - d)
-  constructor <;> linarith [hx.1, hx.2]
+theorem isClosed_solutions {p : ℝ × ℝ} (hp : p ∈ Param) : IsClosed (solutions f p) := by
+  have : solutions f p = Icc 0 1 ∩ (fun y => p.1 * f y - f (p.2 * y)) ⁻¹' {0} := by
+    ext y
+    simp [solutions, sub_eq_zero]
+  rw [this]
+  refine ContinuousOn.preimage_isClosed_of_isClosed ?_ isClosed_Icc isClosed_singleton
+  have h1 : ContinuousOn (fun y => f (p.2 * y)) (Icc 0 1) :=
+    hf.continuousOn.comp (by fun_prop : Continuous fun y : ℝ => p.2 * y).continuousOn
+      (fun y hy => mul_mem_Icc_of_mem_Param hp hy)
+  exact (continuousOn_const.mul hf.continuousOn).sub h1
 
-/-- All solutions for `α ∈ [a, b]` (with `a > 1`) lie in a fixed compact subinterval of
-`(0, 1)`: near `0` we have `α * f y > 1 ≥ f (β * y)`, near `1` we have
-`α * f y < f β ≤ f (β * y)`. -/
-theorem exists_Icc_solutions_subset {a b β : ℝ} (ha : 1 < a) (hab : a ≤ b)
-    (hβ : β ∈ Ioo (0 : ℝ) 1) :
-    ∃ c d : ℝ, 0 < c ∧ c ≤ d ∧ d < 1 ∧ ∀ α ∈ Icc a b, solutions f (α, β) ⊆ Icc c d := by
+/-- Solutions for parameters in a compact box lie in a fixed compact subinterval of `(0, 1)`:
+near `0` we have `α * f y > 1 ≥ f (β * y)`, near `1` we have `α * f y < f β₂ ≤ f (β * y)`. -/
+theorem exists_Icc_solutions_subset {a b β₁ β₂ : ℝ} (ha : 1 < a) (hab : a ≤ b)
+    (hβ₁ : 0 < β₁) (hβ₁₂ : β₁ ≤ β₂) (hβ₂ : β₂ < 1) :
+    ∃ c d : ℝ, 0 < c ∧ c ≤ d ∧ d < 1 ∧
+      ∀ α ∈ Icc a b, ∀ β ∈ Icc β₁ β₂, solutions f (α, β) ⊆ Icc c d := by
   have ha0 : 0 < a := by linarith
   have hb0 : 0 < b := by linarith
   have h0 := hf.continuousOn 0 (left_mem_Icc.mpr zero_le_one)
@@ -172,15 +154,17 @@ theorem exists_Icc_solutions_subset {a b β : ℝ} (ha : 1 < a) (hab : a ≤ b)
     (by have : 1 / a < 1 := (div_lt_one ha0).mpr ha; linarith)
   have h1 := hf.continuousOn 1 (right_mem_Icc.mpr zero_le_one)
   rw [Metric.continuousWithinAt_iff] at h1
-  have hfβ : 0 < f β := hf.pos ⟨hβ.1.le, hβ.2⟩
-  obtain ⟨δ₁, hδ₁, hδ₁'⟩ := h1 (f β / b) (div_pos hfβ hb0)
+  have hfβ : 0 < f β₂ := hf.pos ⟨by linarith, hβ₂⟩
+  obtain ⟨δ₁, hδ₁, hδ₁'⟩ := h1 (f β₂ / b) (div_pos hfβ hb0)
   refine ⟨min (δ₀ / 2) (1 / 2), max (1 - δ₁ / 2) (1 / 2), lt_min (half_pos hδ₀) (by norm_num),
     (min_le_right _ _).trans (le_max_right _ _), ?_, ?_⟩
   · apply max_lt <;> linarith
-  · rintro α ⟨hαa, hαb⟩ y ⟨⟨hy0, hy1⟩, hy⟩
+  · rintro α ⟨hαa, hαb⟩ β ⟨hβ₁', hβ₂'⟩ y ⟨⟨hy0, hy1⟩, hy⟩
+    have hβ0 : 0 < β := hβ₁.trans_le hβ₁'
+    have hβ1 : β < 1 := hβ₂'.trans_lt hβ₂
     have hfy0 : 0 ≤ f y := hf.nonneg ⟨hy0, hy1⟩
-    have hβy : β * y ≤ β := mul_le_of_le_one_right hβ.1.le hy1
-    have hβy' : β * y ∈ Icc (0 : ℝ) 1 := ⟨mul_nonneg hβ.1.le hy0, hβy.trans hβ.2.le⟩
+    have hβy : β * y ≤ β := mul_le_of_le_one_right hβ0.le hy1
+    have hβy' : β * y ∈ Icc (0 : ℝ) 1 := ⟨mul_nonneg hβ0.le hy0, hβy.trans hβ1.le⟩
     simp only at hy
     constructor
     · by_contra hlt
@@ -206,12 +190,40 @@ theorem exists_Icc_solutions_subset {a b β : ℝ} (ha : 1 < a) (hab : a ≤ b)
         linarith [le_max_left (1 - δ₁ / 2) (1 / 2)]
       have := hδ₁' ⟨hy0, hy1⟩ hyδ
       rw [Real.dist_eq, hf.map_one, sub_zero, abs_of_nonneg hfy0] at this
-      have h2 : f β ≤ f (β * y) := hf.strictAntiOn.antitoneOn hβy' ⟨hβ.1.le, hβ.2.le⟩ hβy
-      have h3 : α * f y < f β :=
+      have h2 : f β₂ ≤ f (β * y) :=
+        hf.strictAntiOn.antitoneOn hβy' ⟨by linarith, hβ₂.le⟩ (hβy.trans hβ₂')
+      have h3 : α * f y < f β₂ :=
         calc α * f y ≤ b * f y := mul_le_mul_of_nonneg_right hαb hfy0
-          _ < b * (f β / b) := mul_lt_mul_of_pos_left this hb0
-          _ = f β := by field_simp
+          _ < b * (f β₂ / b) := mul_lt_mul_of_pos_left this hb0
+          _ = f β₂ := by field_simp
       linarith
+
+/-! ### Lipschitz estimates -/
+
+/-- A profile is Lipschitz on every compact subinterval of `(0, 1)`. -/
+theorem exists_lipschitzOnWith_Icc {c d : ℝ} (hc : 0 < c) (hd : d < 1) :
+    ∃ L : NNReal, LipschitzOnWith L f (Icc c d) := by
+  have hball : Metric.ball (1 / 2 : ℝ) (1 / 2) = Ioo 0 1 := by
+    rw [Real.ball_eq_Ioo]
+    norm_num
+  have hconv : ConvexOn ℝ (Metric.ball (1 / 2 : ℝ) (1 / 2)) f := by
+    rw [hball]
+    exact hf.convexOn.subset Ioo_subset_Icc_self (convex_Ioo 0 1)
+  have hmin : 0 < min c (1 - d) := lt_min hc (by linarith)
+  have hM : ∀ x, dist x (1 / 2 : ℝ) < 1 / 2 → |f x| ≤ 1 := by
+    intro x hx
+    have hx' : x ∈ Ioo (0 : ℝ) 1 := by
+      rw [← hball]
+      exact hx
+    have hx'' : x ∈ Icc (0 : ℝ) 1 := ⟨hx'.1.le, hx'.2.le⟩
+    rw [abs_of_nonneg (hf.nonneg hx'')]
+    exact hf.le_one hx''
+  refine ⟨_, (hconv.lipschitzOnWith_of_abs_le (half_pos hmin) hM).mono ?_⟩
+  intro x hx
+  rw [Real.ball_eq_Ioo]
+  have h1 := min_le_left c (1 - d)
+  have h2 := min_le_right c (1 - d)
+  constructor <;> linarith [hx.1, hx.2]
 
 /-- `y ↦ f (β * y) / f y` is Lipschitz on compact subintervals of `(0, 1)`. -/
 theorem exists_lipschitzOnWith_ratio {β c d : ℝ} (hβ : β ∈ Ioo (0 : ℝ) 1) (hc : 0 < c)
@@ -279,140 +291,22 @@ theorem exists_lipschitzOnWith_ratio {β c d : ℝ} (hβ : β ∈ Ioo (0 : ℝ) 
         apply mul_le_mul_of_nonneg_left hprod
         positivity
 
-/-- **Main theorem.** Every open set of parameters contains a parameter for which the
-equation `p.1 * f y = f (p.2 * y)` has finitely many solutions on `[0, 1]`. -/
-theorem exists_finite_solutions {U : Set (ℝ × ℝ)} (hU : IsOpen U) (hne : (U ∩ Param).Nonempty) :
-    ∃ p ∈ U ∩ Param, (solutions f p).Finite := by
-  obtain ⟨⟨α₀, β⟩, hpU, hpP⟩ := hne
-  have hpP' : 1 < α₀ ∧ 0 < β ∧ β < 1 := mem_Param.mp hpP
-  obtain ⟨hα₀, hβ0, hβ1⟩ := hpP'
-  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.mp hU _ hpU
-  -- an interval of `α`'s around `α₀`, inside the ball and inside `(1, ∞)`
-  set r := min ε ((α₀ - 1) / 2) with hr
-  have hr0 : 0 < r := lt_min hε (by linarith)
-  have hrε : r ≤ ε := min_le_left _ _
-  have hr1 : r ≤ (α₀ - 1) / 2 := min_le_right _ _
-  have ha : 1 < α₀ - r := by linarith
-  have hab : α₀ - r ≤ α₀ + r := by linarith
-  obtain ⟨c, d, hc, hcd, hd, hsol⟩ := hf.exists_Icc_solutions_subset ha hab ⟨hβ0, hβ1⟩
-  obtain ⟨L, hL⟩ := hf.exists_lipschitzOnWith_ratio ⟨hβ0, hβ1⟩ hc hcd hd
-  have hnull := volume_infinite_level_eq_zero isCompact_Icc hL
-  -- a null set cannot contain the interval of `α`'s
-  have hnot : ¬ Ioo (α₀ - r) (α₀ + r) ⊆
-      {α : ℝ | (Icc c d ∩ (fun y => f (β * y) / f y) ⁻¹' {α}).Infinite} := by
-    intro hsub
-    have hle := measure_mono (μ := volume) hsub
-    rw [hnull, Real.volume_Ioo] at hle
-    have h0 : ENNReal.ofReal (α₀ + r - (α₀ - r)) = 0 := le_antisymm hle (zero_le _)
-    rw [ENNReal.ofReal_eq_zero] at h0
-    linarith
-  obtain ⟨α, hαI, hαgood⟩ := not_subset.mp hnot
-  simp only [mem_setOf_eq, not_infinite] at hαgood
-  refine ⟨(α, β), ⟨hball ?_, mem_Param.mpr ⟨ha.trans hαI.1, hβ0, hβ1⟩⟩, ?_⟩
-  · rw [Metric.mem_ball, Prod.dist_eq, dist_self, Real.dist_eq]
-    have : |α - α₀| < r := abs_sub_lt_iff.mpr ⟨by linarith [hαI.2], by linarith [hαI.1]⟩
-    exact max_lt (this.trans_le hrε) hε
-  · apply hαgood.subset
-    intro y hy
-    have hyK : y ∈ Icc c d := hsol α ⟨hαI.1.le, hαI.2.le⟩ hy
-    refine ⟨hyK, ?_⟩
-    obtain ⟨⟨hy0, hy1⟩, hy⟩ := hy
-    have hfy : 0 < f y := hf.pos ⟨hy0, by linarith [hyK.2]⟩
-    simp only [mem_preimage, mem_singleton_iff]
-    rw [div_eq_iff hfy.ne']
-    simpa using hy.symm
+theorem continuousOn_ratio {c d β₁ β₂ : ℝ} (hc : 0 < c) (hd : d < 1) (hβ₁ : 0 < β₁)
+    (hβ₂ : β₂ < 1) : ContinuousOn (ratio f) (Icc c d ×ˢ Icc β₁ β₂) := by
+  have hm1 : MapsTo (fun q : ℝ × ℝ => q.2 * q.1) (Icc c d ×ˢ Icc β₁ β₂) (Icc 0 1) := by
+    intro q hq
+    have h1 : 0 ≤ q.1 := by linarith [hq.1.1]
+    exact ⟨mul_nonneg (by linarith [hq.2.1]) h1,
+      (mul_le_of_le_one_left h1 (by linarith [hq.2.2])).trans (by linarith [hq.1.2])⟩
+  have hm2 : MapsTo (fun q : ℝ × ℝ => q.1) (Icc c d ×ˢ Icc β₁ β₂) (Icc 0 1) :=
+    fun q hq => ⟨by linarith [hq.1.1], by linarith [hq.1.2]⟩
+  have h0 : ∀ q ∈ Icc c d ×ˢ Icc β₁ β₂, f q.1 ≠ 0 := fun q hq =>
+    (hf.pos ⟨by linarith [hq.1.1], by linarith [hq.1.2]⟩).ne'
+  show ContinuousOn (fun q : ℝ × ℝ => f (q.2 * q.1) / f q.1) _
+  exact (hf.continuousOn.comp (by fun_prop : Continuous fun q : ℝ × ℝ => q.2 * q.1).continuousOn
+    hm1).div (hf.continuousOn.comp continuous_fst.continuousOn hm2) h0
 
-/-- **Density form.** Good parameters are dense in `Param`. -/
-theorem exists_finite_solutions_near {p : ℝ × ℝ} (hp : p ∈ Param) {ε : ℝ} (hε : 0 < ε) :
-    ∃ q ∈ Param, dist q p < ε ∧ (solutions f q).Finite := by
-  obtain ⟨q, ⟨hqU, hqP⟩, hfin⟩ :=
-    hf.exists_finite_solutions Metric.isOpen_ball ⟨p, Metric.mem_ball_self hε, hp⟩
-  exact ⟨q, hqP, Metric.mem_ball.mp hqU, hfin⟩
-
-end IsProfile
-
-/-! ### Subdifferentials, transversality, and generic transversality
-
-For a convex `f` on `[0, 1]` the *subdifferential* `subdiff f y` is the set of slopes of
-supporting lines at `y`. An intersection `y` of the curves `α f` and `f (β ·)` is *transversal*
-if the scaled subdifferentials `α • ∂f(y)` and `β • ∂f(βy)` are disjoint.
-
-Main results:
-
-* `IsProfile.finite_of_transversal`: transversal intersections are isolated, so a parameter with
-  only transversal intersections has finitely many of them;
-* `IsProfile.exists_open_transversal`: every open set of parameters contains a nonempty open set
-  of parameters with only transversal intersections. Equivalently
-  (`IsProfile.Param_subset_closure_interior_transversalParams`) the transversal parameters
-  contain an open dense subset of `Param`.
-
-The proof is the Sard argument of the previous section with the derivative of
-`y ↦ f (β y) / f y` replaced by the *mixed* subdifferential condition `IsCritical`: some
-`a ∈ ∂f(βy)` and `b ∈ ∂f(y)`, chosen independently, satisfy `β a f y = f (β y) b`. Unlike the
-derivative, this condition has a closed graph, which makes the set of good parameters open.
-No differentiability of `f` is assumed. -/
-
-/-- A closed subset of a compact set all of whose points are isolated is finite. -/
-theorem finite_of_isolated {s K : Set ℝ} (hK : IsCompact K) (hs : IsClosed s) (hsK : s ⊆ K)
-    (hiso : ∀ y ∈ s, ∀ᶠ z in 𝓝[≠] y, z ∉ s) : s.Finite := by
-  by_contra hinf
-  have hinf' : s.Infinite := hinf
-  obtain ⟨y, -, hacc⟩ := hinf'.exists_accPt_of_subset_isCompact hK hsK
-  have hy : y ∈ s := hs.closure_subset (mem_closure_iff_clusterPt.mpr hacc.clusterPt)
-  have hfreq := accPt_iff_frequently.mp hacc
-  have hev := eventually_nhdsWithin_iff.mp (hiso y hy)
-  obtain ⟨z, ⟨hz1, hz2⟩, hz3⟩ := (hfreq.and_eventually hev).exists
-  exact hz3 hz1 hz2
-
-/-- The image of a null set under a Lipschitz map is null. -/
-theorem volume_image_eq_zero_of_lipschitzOnWith {F : ℝ → ℝ} {K s : Set ℝ} {L : NNReal}
-    (hF : LipschitzOnWith L F K) (hs : s ⊆ K) (h : volume s = 0) : volume (F '' s) = 0 := by
-  apply le_antisymm _ (zero_le _)
-  calc volume (F '' s) = μH[1] (F '' s) := by rw [hausdorffMeasure_real]
-    _ ≤ (L : ENNReal) ^ (1 : ℝ) * μH[1] s := (hF.mono hs).hausdorffMeasure_image_le zero_le_one
-    _ = 0 := by rw [hausdorffMeasure_real, h, mul_zero]
-
-theorem mem_interior_Icc01 {y : ℝ} (hy : y ∈ Ioo (0 : ℝ) 1) : y ∈ interior (Icc (0 : ℝ) 1) := by
-  rw [interior_Icc]
-  exact hy
-
-/-- `ratio f (y, β) = f (β * y) / f y`. -/
-noncomputable def ratio (f : ℝ → ℝ) (q : ℝ × ℝ) : ℝ := f (q.2 * q.1) / f q.1
-
-/-- The subdifferential of `f : [0, 1] → ℝ` at `y`: the slopes of supporting lines. -/
-def subdiff (f : ℝ → ℝ) (y : ℝ) : Set ℝ := {t | ∀ z ∈ Icc (0 : ℝ) 1, f y + t * (z - y) ≤ f z}
-
-/-- `(y, β)` is a *critical pair*: for some subgradients `a ∈ ∂f(βy)`, `b ∈ ∂f(y)` the "derivative"
-`β a f y - f (β y) b` of `y ↦ f (β y) / f y` vanishes. -/
-def IsCritical (f : ℝ → ℝ) (y β : ℝ) : Prop :=
-  ∃ a ∈ subdiff f (β * y), ∃ b ∈ subdiff f y, β * a * f y = f (β * y) * b
-
-/-- All intersections for the parameter `p` are transversal: at every solution `y`, the scaled
-subdifferentials `p.1 • ∂f(y)` and `p.2 • ∂f(p.2 y)` are disjoint. -/
-def Transversal (f : ℝ → ℝ) (p : ℝ × ℝ) : Prop :=
-  ∀ y ∈ solutions f p, ∀ a ∈ subdiff f (p.2 * y), ∀ b ∈ subdiff f y, p.2 * a ≠ p.1 * b
-
-open scoped Pointwise in
-theorem transversal_iff_disjoint {f : ℝ → ℝ} {p : ℝ × ℝ} :
-    Transversal f p ↔
-      ∀ y ∈ solutions f p, Disjoint (p.1 • subdiff f y) (p.2 • subdiff f (p.2 * y)) := by
-  refine forall₂_congr fun y _ => ?_
-  rw [Set.disjoint_left]
-  constructor
-  · rintro h _ ⟨b, hb, rfl⟩ ⟨a, ha, hab⟩
-    exact h a ha b hb hab
-  · intro h a ha b hb hab
-    exact h ⟨b, hb, rfl⟩ ⟨a, ha, hab⟩
-
-/-- The transversal parameters. -/
-def transversalParams (f : ℝ → ℝ) : Set (ℝ × ℝ) := {p | p ∈ Param ∧ Transversal f p}
-
-namespace IsProfile
-
-variable {f : ℝ → ℝ} (hf : IsProfile f)
-include hf
-
-/-! #### Subdifferentials of a profile -/
+/-! ### Subdifferentials of a profile -/
 
 /-- The right derivative is a subgradient. -/
 theorem rightDeriv_mem_subdiff {y : ℝ} (hy : y ∈ Ioo (0 : ℝ) 1) :
@@ -487,7 +381,7 @@ theorem eq_deriv_of_mem_subdiff {y t : ℝ} (hy : y ∈ Ioo (0 : ℝ) 1) (hd : D
     rw [slope_def_field, div_le_iff_of_neg (sub_neg.mpr hz.2)]
     linarith
 
-/-! #### Transversal intersections are isolated -/
+/-! ### Transversal solutions are isolated -/
 
 /-- If solutions accumulate at a solution `y`, then `(y, β)` is a critical pair. -/
 theorem isCritical_of_frequently {p : ℝ × ℝ} (hp : p ∈ Param) {y : ℝ} (hy : y ∈ solutions f p)
@@ -540,18 +434,7 @@ theorem isCritical_of_frequently {p : ℝ × ℝ} (hp : p ∈ Param) {y : ℝ} (
     rw [← hsol]
     linear_combination f y * this
 
-theorem isClosed_solutions {p : ℝ × ℝ} (hp : p ∈ Param) : IsClosed (solutions f p) := by
-  have : solutions f p = Icc 0 1 ∩ (fun y => p.1 * f y - f (p.2 * y)) ⁻¹' {0} := by
-    ext y
-    simp [solutions, sub_eq_zero]
-  rw [this]
-  refine ContinuousOn.preimage_isClosed_of_isClosed ?_ isClosed_Icc isClosed_singleton
-  have h1 : ContinuousOn (fun y => f (p.2 * y)) (Icc 0 1) :=
-    hf.continuousOn.comp (by fun_prop : Continuous fun y : ℝ => p.2 * y).continuousOn
-      (fun y hy => mul_mem_Icc_of_mem_Param hp hy)
-  exact (continuousOn_const.mul hf.continuousOn).sub h1
-
-/-- A parameter with only transversal intersections has finitely many of them. -/
+/-- A parameter with only transversal solutions has finitely many of them. -/
 theorem finite_of_transversal {p : ℝ × ℝ} (hp : p ∈ Param) (ht : Transversal f p) :
     (solutions f p).Finite := by
   refine finite_of_isolated isCompact_Icc (hf.isClosed_solutions hp) (fun y hy => hy.1)
@@ -567,79 +450,7 @@ theorem finite_of_transversal {p : ℝ × ℝ} (hp : p ∈ Param) (ht : Transver
   rw [← hsol] at hab
   exact mul_right_cancel₀ hfy.ne' (show p.2 * a * f y = p.1 * b * f y by linear_combination hab)
 
-/-! #### Analytic ingredients: continuity, compactness, Sard -/
-
-theorem continuousOn_ratio {c d β₁ β₂ : ℝ} (hc : 0 < c) (hd : d < 1) (hβ₁ : 0 < β₁)
-    (hβ₂ : β₂ < 1) : ContinuousOn (ratio f) (Icc c d ×ˢ Icc β₁ β₂) := by
-  have hm1 : MapsTo (fun q : ℝ × ℝ => q.2 * q.1) (Icc c d ×ˢ Icc β₁ β₂) (Icc 0 1) := by
-    intro q hq
-    have h1 : 0 ≤ q.1 := by linarith [hq.1.1]
-    exact ⟨mul_nonneg (by linarith [hq.2.1]) h1,
-      (mul_le_of_le_one_left h1 (by linarith [hq.2.2])).trans (by linarith [hq.1.2])⟩
-  have hm2 : MapsTo (fun q : ℝ × ℝ => q.1) (Icc c d ×ˢ Icc β₁ β₂) (Icc 0 1) :=
-    fun q hq => ⟨by linarith [hq.1.1], by linarith [hq.1.2]⟩
-  have h0 : ∀ q ∈ Icc c d ×ˢ Icc β₁ β₂, f q.1 ≠ 0 := fun q hq =>
-    (hf.pos ⟨by linarith [hq.1.1], by linarith [hq.1.2]⟩).ne'
-  show ContinuousOn (fun q : ℝ × ℝ => f (q.2 * q.1) / f q.1) _
-  exact (hf.continuousOn.comp (by fun_prop : Continuous fun q : ℝ × ℝ => q.2 * q.1).continuousOn
-    hm1).div (hf.continuousOn.comp continuous_fst.continuousOn hm2) h0
-
-/-- Solutions for parameters in a compact box lie in a fixed compact subinterval of `(0, 1)`. -/
-theorem exists_Icc_solutions_subset' {a b β₁ β₂ : ℝ} (ha : 1 < a) (hab : a ≤ b)
-    (hβ₁ : 0 < β₁) (hβ₁₂ : β₁ ≤ β₂) (hβ₂ : β₂ < 1) :
-    ∃ c d : ℝ, 0 < c ∧ c ≤ d ∧ d < 1 ∧
-      ∀ α ∈ Icc a b, ∀ β ∈ Icc β₁ β₂, solutions f (α, β) ⊆ Icc c d := by
-  have ha0 : 0 < a := by linarith
-  have hb0 : 0 < b := by linarith
-  have h0 := hf.continuousOn 0 (left_mem_Icc.mpr zero_le_one)
-  rw [Metric.continuousWithinAt_iff] at h0
-  obtain ⟨δ₀, hδ₀, hδ₀'⟩ := h0 (1 - 1 / a)
-    (by have : 1 / a < 1 := (div_lt_one ha0).mpr ha; linarith)
-  have h1 := hf.continuousOn 1 (right_mem_Icc.mpr zero_le_one)
-  rw [Metric.continuousWithinAt_iff] at h1
-  have hfβ : 0 < f β₂ := hf.pos ⟨by linarith, hβ₂⟩
-  obtain ⟨δ₁, hδ₁, hδ₁'⟩ := h1 (f β₂ / b) (div_pos hfβ hb0)
-  refine ⟨min (δ₀ / 2) (1 / 2), max (1 - δ₁ / 2) (1 / 2), lt_min (half_pos hδ₀) (by norm_num),
-    (min_le_right _ _).trans (le_max_right _ _), ?_, ?_⟩
-  · apply max_lt <;> linarith
-  · rintro α ⟨hαa, hαb⟩ β ⟨hβ₁', hβ₂'⟩ y ⟨⟨hy0, hy1⟩, hy⟩
-    have hβ0 : 0 < β := hβ₁.trans_le hβ₁'
-    have hβ1 : β < 1 := hβ₂'.trans_lt hβ₂
-    have hfy0 : 0 ≤ f y := hf.nonneg ⟨hy0, hy1⟩
-    have hβy : β * y ≤ β := mul_le_of_le_one_right hβ0.le hy1
-    have hβy' : β * y ∈ Icc (0 : ℝ) 1 := ⟨mul_nonneg hβ0.le hy0, hβy.trans hβ1.le⟩
-    simp only at hy
-    constructor
-    · by_contra hlt
-      push_neg at hlt
-      have hyδ : dist y 0 < δ₀ := by
-        rw [Real.dist_eq, sub_zero, abs_of_nonneg hy0]
-        linarith [min_le_left (δ₀ / 2) (1 / 2)]
-      have := hδ₀' ⟨hy0, hy1⟩ hyδ
-      rw [Real.dist_eq, hf.map_zero] at this
-      have hfy : 1 / a < f y := by
-        have := (abs_lt.mp this).1
-        linarith
-      have h2 : f (β * y) ≤ 1 := hf.le_one hβy'
-      have h3 : 1 < α * f y :=
-        calc 1 = a * (1 / a) := by field_simp
-          _ < a * f y := mul_lt_mul_of_pos_left hfy ha0
-          _ ≤ α * f y := mul_le_mul_of_nonneg_right hαa hfy0
-      linarith
-    · by_contra hlt
-      push_neg at hlt
-      have hyδ : dist y 1 < δ₁ := by
-        rw [Real.dist_eq, abs_sub_comm, abs_of_nonneg (by linarith : (0 : ℝ) ≤ 1 - y)]
-        linarith [le_max_left (1 - δ₁ / 2) (1 / 2)]
-      have := hδ₁' ⟨hy0, hy1⟩ hyδ
-      rw [Real.dist_eq, hf.map_one, sub_zero, abs_of_nonneg hfy0] at this
-      have h2 : f β₂ ≤ f (β * y) :=
-        hf.strictAntiOn.antitoneOn hβy' ⟨by linarith, hβ₂.le⟩ (hβy.trans hβ₂')
-      have h3 : α * f y < f β₂ :=
-        calc α * f y ≤ b * f y := mul_le_mul_of_nonneg_right hαb hfy0
-          _ < b * (f β₂ / b) := mul_lt_mul_of_pos_left this hb0
-          _ = f β₂ := by field_simp
-      linarith
+/-! ### Compactness of the critical set and Sard -/
 
 /-- The critical pairs in a compact box form a compact set. This is where the closed graph of
 the subdifferential is used; the subdifferential conditions are written with the clamped `f`,
@@ -803,10 +614,10 @@ theorem volume_image_critical_slice {c d β₀ : ℝ} (hc : 0 < c) (hcd : c ≤ 
     _ ≤ volume (F₀ '' (S ∩ D)) + volume (F₀ '' (S \ D)) := measure_union_le _ _
     _ = 0 := by rw [h1, h2, add_zero]
 
-/-! #### Main theorems -/
+/-! ### Main theorem -/
 
 /-- **Generic transversality.** Every open set of parameters contains a nonempty open set of
-parameters all of whose intersections are transversal. -/
+parameters all of whose solutions are transversal. -/
 theorem exists_open_transversal {U : Set (ℝ × ℝ)} (hU : IsOpen U) (hne : (U ∩ Param).Nonempty) :
     ∃ V : Set (ℝ × ℝ), IsOpen V ∧ V.Nonempty ∧ V ⊆ U ∩ Param ∧ ∀ p ∈ V, Transversal f p := by
   obtain ⟨⟨α₀, β₀⟩, hpU, hpP⟩ := hne
@@ -825,7 +636,7 @@ theorem exists_open_transversal {U : Set (ℝ × ℝ)} (hU : IsOpen U) (hne : (U
   have hβ₁₂ : β₁ ≤ β₂ := by linarith [hβ₁, hβ₂]
   have hβ₂1 : β₂ < 1 := by linarith [hβ₂]
   have hβ₀I : β₀ ∈ Ioo β₁ β₂ := ⟨by linarith [hβ₁], by linarith [hβ₂]⟩
-  obtain ⟨c, d, hc, hcd, hd, hsol⟩ := hf.exists_Icc_solutions_subset' ha hab hβ₁0 hβ₁₂ hβ₂1
+  obtain ⟨c, d, hc, hcd, hd, hsol⟩ := hf.exists_Icc_solutions_subset ha hab hβ₁0 hβ₁₂ hβ₂1
   set K : Set (ℝ × ℝ) := Icc c d ×ˢ Icc β₁ β₂ with hK
   have hratio : ContinuousOn (ratio f) K := hf.continuousOn_ratio hc hd hβ₁0 hβ₂1
   -- the critical pairs and the bad parameters
@@ -881,32 +692,6 @@ theorem exists_open_transversal {U : Set (ℝ × ℝ)} (hU : IsOpen U) (hne : (U
     · simp only [Prod.mk.injEq, ratio, and_true]
       rw [div_eq_iff hfy.ne']
       exact hsol'.symm
-
-/-- Every open set of parameters contains a nonempty open set of parameters with finitely many
-intersections. -/
-theorem exists_open_finite_solutions {U : Set (ℝ × ℝ)} (hU : IsOpen U)
-    (hne : (U ∩ Param).Nonempty) :
-    ∃ V : Set (ℝ × ℝ), IsOpen V ∧ V.Nonempty ∧ V ⊆ U ∩ Param ∧
-      ∀ p ∈ V, (solutions f p).Finite := by
-  obtain ⟨V, hVo, hVne, hVU, hVt⟩ := hf.exists_open_transversal hU hne
-  exact ⟨V, hVo, hVne, hVU, fun p hp => hf.finite_of_transversal (hVU hp).2 (hVt p hp)⟩
-
-/-- Near every parameter there is one with only transversal intersections. -/
-theorem exists_transversal_near {p : ℝ × ℝ} (hp : p ∈ Param) {ε : ℝ} (hε : 0 < ε) :
-    ∃ q ∈ Param, dist q p < ε ∧ Transversal f q := by
-  obtain ⟨V, -, ⟨q, hq⟩, hVU, hVt⟩ :=
-    hf.exists_open_transversal Metric.isOpen_ball ⟨p, Metric.mem_ball_self hε, hp⟩
-  exact ⟨q, (hVU hq).2, Metric.mem_ball.mp (hVU hq).1, hVt q hq⟩
-
-/-- The transversal parameters contain an open dense subset of `Param`. -/
-theorem Param_subset_closure_interior_transversalParams :
-    Param ⊆ closure (interior (transversalParams f)) := by
-  intro p hp
-  rw [_root_.mem_closure_iff]
-  intro U hU hpU
-  obtain ⟨V, hVo, ⟨q, hq⟩, hVU, hVt⟩ := hf.exists_open_transversal hU ⟨p, hpU, hp⟩
-  refine ⟨q, (hVU hq).1, interior_maximal (fun x hx => ?_) hVo hq⟩
-  exact (⟨(hVU hx).2, hVt x hx⟩ : x ∈ Param ∧ Transversal f x)
 
 end IsProfile
 
