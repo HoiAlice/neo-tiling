@@ -12,3 +12,6 @@ latex/*.fdb_latexmk
 .lake/
 .DS_Store
 .vscode/
+
+# Claude Code local permissions
+.claude/settings.local.json
