@@ -1,19 +1,19 @@
 import NeoTiling.FiniteIntersections
 
 /-!
-# Level curves of a bounded neoclassical function and their intersections
+# Level curves of a strictly positive neoclassical function and their intersections
 
-For a bounded neoclassical `h` and a price vector `p ∈ ℝ²₊₊` consider the unit level curves
-`h x = 1` and `h (p ∘ x) = 1`, where `p ∘ x` is the coordinatewise product. This file proves
-the two-variable form of generic finiteness and transversality:
+For a strictly positive neoclassical `h` and a price vector `p ∈ ℝ²₊₊` consider the unit level
+curves `h x = 1` and `h (p ∘ x) = 1`, where `p ∘ x` is the coordinatewise product. This file
+proves the main theorem:
 
-* `IsBddNeoclassical.exists_open_finite_levelIntersections`: every nonempty open set
+* `IsPosNeoclassical.exists_open_finite_levelIntersections`: every nonempty open set
   `U ⊆ ℝ²₊₊` contains a nonempty open set `V` such that for every `p ∈ V` the two curves meet in
   finitely many points, and every intersection point has *four chambers*: in every neighbourhood
   of it all four sign patterns of `(h - 1, h (p ∘ ·) - 1)` occur.
 
 The proof reduces to the one-variable results of `FiniteIntersections`. After normalising `h`
-(`IsBddNeoclassical.ofProfile_profile`) the curve `h x = 1` is the graph of the profile `f` and
+(`IsPosNeoclassical.ofProfile_profile`) the curve `h x = 1` is the graph of the profile `f` and
 the curve `h (p ∘ x) = 1` is the graph of `t ↦ f (p₁ t) / p₂`, so intersections correspond to
 solutions of `f (p₁ t) = p₂ f t`, i.e. to `solutions f (1 / p₂, 1 / p₁)`. Transversality of the
 one-variable problem (disjoint scaled subdifferentials) forces the difference of the two graphs
@@ -122,7 +122,8 @@ def onSide : Bool → ℝ → Prop
   | false, v => 1 < v
 
 /-- `x₀` has *four chambers* for `(h, p)`: every neighbourhood of `x₀` contains points of the
-quadrant realising each of the four sign patterns of `(h - 1, h (p ∘ ·) - 1)`. -/
+quadrant realising each of the four sign patterns of `(h - 1, h (p ∘ ·) - 1)`. This is the
+meaning of "transversal intersection" in the main theorem. -/
 def FourChambers (h : ℝ × ℝ → ℝ) (p x₀ : ℝ × ℝ) : Prop :=
   ∀ s₁ s₂ : Bool, ∃ᶠ x in 𝓝 x₀, x ∈ quadrant ∧ onSide s₁ (h x) ∧ onSide s₂ (h (hadamard p x))
 
@@ -192,9 +193,9 @@ theorem FourChambers.of_hinv {h : ℝ × ℝ → ℝ} {p x₀ : ℝ × ℝ} (hp 
 
 /-! ### Normalisation: transport along `x ↦ (h (1,0) x₁, h (0,1) x₂)` -/
 
-namespace IsBddNeoclassical
+namespace IsPosNeoclassical
 
-variable {h : ℝ × ℝ → ℝ} (hh : IsBddNeoclassical h)
+variable {h : ℝ × ℝ → ℝ} (hh : IsPosNeoclassical h)
 include hh
 
 /-- The normalising scaling. -/
@@ -237,7 +238,7 @@ theorem fourChambers_of_ofProfile {p x₀ : ℝ × ℝ} (hp : p ∈ quadrant)
   · rwa [hh.eq_ofProfile_hadamard hx']
   · rwa [hh.eq_ofProfile_hadamard (hadamard_mem_quadrant hp hx'), hadamard_comm]
 
-end IsBddNeoclassical
+end IsPosNeoclassical
 
 /-! ### One-sided slopes and signs -/
 
@@ -309,11 +310,11 @@ include hf
 
 theorem one_lt_ofProfile_iff {u : ℝ × ℝ} (hu : u ∈ quadrant) (hu1 : u.1 ≤ 1) :
     1 < ofProfile f u ↔ f u.1 < u.2 := by
-  rw [ofProfile_eq_of_mem hu, hf.lt_ofProfile₀_iff hu hu1, one_mul, div_one]
+  rw [hf.lt_ofProfile_iff hu hu1, one_mul, div_one]
 
 theorem ofProfile_lt_one_iff {u : ℝ × ℝ} (hu : u ∈ quadrant) (hu1 : u.1 ≤ 1) :
     ofProfile f u < 1 ↔ u.2 < f u.1 := by
-  rw [ofProfile_eq_of_mem hu, hf.ofProfile₀_lt_iff hu hu1, one_mul, div_one]
+  rw [hf.ofProfile_lt_iff hu hu1, one_mul, div_one]
 
 theorem ofProfile_eq_one_iff {u : ℝ × ℝ} (hu : u ∈ quadrant) (hu1 : u.1 ≤ 1) :
     ofProfile f u = 1 ↔ f u.1 = u.2 := by
@@ -336,9 +337,8 @@ theorem ofProfile_eq_one_iff {u : ℝ × ℝ} (hu : u ∈ quadrant) (hu1 : u.1 �
     exact le_antisymm (not_lt.mp h1) (not_lt.mp h2)
 
 theorem one_lt_ofProfile_of_one_lt {u : ℝ × ℝ} (hu : u ∈ quadrant) (hu1 : 1 < u.1) :
-    1 < ofProfile f u := by
-  rw [ofProfile_eq_of_mem hu]
-  exact hu1.trans_le (hf.fst_le_ofProfile₀ hu)
+    1 < ofProfile f u :=
+  hu1.trans_le (hf.fst_le_ofProfile hu)
 
 /-- Parametrisation of the intersections by the solutions of the profile equation
 `f (p₁ t) = p₂ f t`, written as `(1 / p₂) f y = f ((1 / p₁) y)` with `y = p₁ t`. -/
@@ -585,14 +585,6 @@ theorem fourChambers_ofProfile {p : ℝ × ℝ} (hp1 : 1 < p.1) (hp2 : 0 < p.2) 
     · rw [hadamard_mk]
       exact hf.one_lt_ofProfile_iff hpu hpt
   have hpt₀ : p.1 * t₀ ≤ 1 := by rw [hy₀t]; exact hy₀I.2.le
-  -- a point on the wrong side of both graphs, from a sign of `φ` along a filter `l`
-  have hmixed : ∀ l : Filter ℝ, l.NeBot → l ≤ 𝓝 t₀ →
-      ∀ ε > 0, ∃ t, (∀ᶠ s in l, s = t → True) ∧ (|t - t₀| < ε ∧ |f t - f t₀| < ε ∧
-        |f (p.1 * t) / p.2 - f t₀| < ε ∧ 0 < t ∧ p.1 * t < 1) ∧ True := by
-    intro l hl hle ε hε
-    haveI := hl
-    obtain ⟨t, ht⟩ := ((hev ε hε).filter_mono hle).exists
-    exact ⟨t, by simp, ht, trivial⟩
   intro s₁ s₂
   cases s₁ <;> cases s₂
   · -- `1 < F u`, `1 < F (p ∘ u)`: above both graphs
@@ -697,9 +689,9 @@ theorem continuousOn_tau : ContinuousOn tau orthant := by
 
 /-! ### Main theorem -/
 
-namespace IsBddNeoclassical
+namespace IsPosNeoclassical
 
-variable {h : ℝ × ℝ → ℝ} (hh : IsBddNeoclassical h)
+variable {h : ℝ × ℝ → ℝ} (hh : IsPosNeoclassical h)
 include hh
 
 /-- The main case `p₁ > 1 > p₂`. -/
@@ -746,10 +738,10 @@ theorem exists_open_aux {U : Set (ℝ × ℝ)} (hU : IsOpen U) {p₀ : ℝ × �
       rw [hh.levelIntersections_eq_preimage (orthant_subset_quadrant hpo)] at hx₀
       exact hx₀
 
-/-- **Generic finiteness and transversality of level-curve intersections.** For a bounded
-neoclassical `h`, every nonempty open set `U ⊆ ℝ²₊₊` of prices contains a nonempty open set `V`
-such that for every `p ∈ V` the curves `h x = 1` and `h (p ∘ x) = 1` meet in finitely many
-points, each of which has four chambers. -/
+/-- **Generic finiteness and transversality of level-curve intersections.** For a strictly
+positive neoclassical `h`, every nonempty open set `U ⊆ ℝ²₊₊` of prices contains a nonempty open
+set `V` such that for every `p ∈ V` the curves `h x = 1` and `h (p ∘ x) = 1` meet in finitely
+many points, each of which has four chambers. -/
 theorem exists_open_finite_levelIntersections {U : Set (ℝ × ℝ)} (hU : IsOpen U)
     (hne : (U ∩ orthant).Nonempty) :
     ∃ V : Set (ℝ × ℝ), IsOpen V ∧ V.Nonempty ∧ V ⊆ U ∩ orthant ∧
@@ -822,6 +814,6 @@ theorem exists_open_finite_levelIntersections {U : Set (ℝ × ℝ)} (hU : IsOpe
     rw [hh.levelIntersections_eq_empty_of_one_lt hp1 hp2]
     exact ⟨finite_empty, fun x hx => hx.elim⟩
 
-end IsBddNeoclassical
+end IsPosNeoclassical
 
 end NeoTiling
