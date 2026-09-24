@@ -7,3 +7,8 @@ latex/*.out
 latex/*.fls
 latex/*.fdb_latexmk
 .venv/
+
+# Lean / Lake
+.lake/
+.DS_Store
+.vscode/
