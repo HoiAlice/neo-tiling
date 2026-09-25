@@ -22,9 +22,6 @@ namespace NeoTiling
 
 /-! ### Normal cones -/
 
-/-- Inner product on `ℝ × ℝ`. -/
-def ip (v w : ℝ × ℝ) : ℝ := v.1 * w.1 + v.2 * w.2
-
 /-- Fréchet (regular) normal cone of `A` at `x₀`. -/
 def frechetNormal (A : Set (ℝ × ℝ)) (x₀ : ℝ × ℝ) : Set (ℝ × ℝ) :=
   {v | ∀ ε > 0, ∀ᶠ x in 𝓝[A] x₀, ip v (x - x₀) ≤ ε * dist x x₀}
@@ -752,10 +749,6 @@ theorem transversal_graphs_iff {φ ψ : ℝ → ℝ} {a b c d : ℝ} (hφ : Conv
   simp only [SetTransversal, hφc, hψc]
 
 /-! ### Level curves of strictly positive neoclassical functions -/
-
-/-- Superdifferential of `h` at `x₀`, relative to the closed quadrant. -/
-def superdiff (h : ℝ × ℝ → ℝ) (x₀ : ℝ × ℝ) : Set (ℝ × ℝ) :=
-  {ξ | ∀ x ∈ quadrant, h x ≤ h x₀ + ip ξ (x - x₀)}
 
 /-- The unit level curve of `h` in the closed quadrant. -/
 def levelCurve (h : ℝ × ℝ → ℝ) : Set (ℝ × ℝ) := {x | x ∈ quadrant ∧ h x = 1}
