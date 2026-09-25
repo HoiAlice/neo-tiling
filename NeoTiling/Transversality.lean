@@ -989,4 +989,294 @@ theorem transversal_levelCurves_iff {h g : ℝ × ℝ → ℝ} (hh : IsPosNeocla
   rw [← hx₀e] at this
   exact this
 
+/-! ### Boundary points are never transversal
+
+At a point `x₀` on an axis both level curves end. At the right endpoint of the graph of a
+convex function which attains its minimum there, the left derivative is finite (slopes of
+chords to the endpoint are monotone and nonpositive), and the closed half-plane
+`{v₁ + s v₂ ≥ 0}` consists of Fréchet normals. Two closed half-planes always share a nonzero
+vector, so transversality fails. The other axis is handled by swapping the coordinates. -/
+
+/-- Two closed half-planes `{v₁ + s₁ v₂ ≥ 0}` and `{v₁ + s₂ v₂ ≤ 0}` share a nonzero vector. -/
+theorem exists_ne_zero_of_halfplanes (s₁ s₂ : ℝ) :
+    ∃ v : ℝ × ℝ, v ≠ 0 ∧ 0 ≤ v.1 + s₁ * v.2 ∧ v.1 + s₂ * v.2 ≤ 0 := by
+  rcases le_or_gt s₂ s₁ with h | h
+  · refine ⟨(-s₁, 1), fun h0 => by simp [Prod.ext_iff] at h0, ?_, ?_⟩
+    · show 0 ≤ -s₁ + s₁ * 1
+      linarith
+    · show -s₁ + s₂ * 1 ≤ 0
+      linarith
+  · refine ⟨(s₂, -1), fun h0 => by simp [Prod.ext_iff] at h0, ?_, ?_⟩
+    · show 0 ≤ s₂ + s₁ * -1
+      linarith
+    · show s₂ + s₂ * -1 ≤ 0
+      linarith
+
+/-- A convex function attaining its minimum at the right endpoint `b` has a finite left derivative
+there: the slopes of the chords to `b` are monotone in the other endpoint and bounded above by
+`0`. -/
+theorem exists_hasDerivWithinAt_Iio_endpoint {φ : ℝ → ℝ} {a b : ℝ} (hφ : ConvexOn ℝ (Icc a b) φ)
+    (hab : a < b) (hmin : ∀ t ∈ Icc a b, φ b ≤ φ t) : ∃ s, HasDerivWithinAt φ s (Iio b) b := by
+  set S : Set ℝ := slope φ b '' Ioo a b with hS
+  have hne : S.Nonempty := ⟨_, ⟨(a + b) / 2, ⟨by linarith, by linarith⟩, rfl⟩⟩
+  have hle0 : ∀ t ∈ Ioo a b, slope φ b t ≤ 0 := by
+    intro t ht
+    rw [slope_def_field]
+    exact div_nonpos_of_nonneg_of_nonpos (by linarith [hmin t ⟨ht.1.le, ht.2.le⟩])
+      (by linarith [ht.2])
+  have hbdd : BddAbove S := ⟨0, by
+    rintro _ ⟨t, ht, rfl⟩
+    exact hle0 t ht⟩
+  have hmono : ∀ t ∈ Ioo a b, ∀ t' ∈ Ioo a b, t < t' → slope φ b t ≤ slope φ b t' := by
+    intro t ht t' ht' htt'
+    have := hφ.secant_mono_aux3 ⟨ht.1.le, ht.2.le⟩ (right_mem_Icc.mpr hab.le) htt' ht'.2
+    rw [slope_comm φ b t, slope_comm φ b t', slope_def_field, slope_def_field]
+    exact this
+  refine ⟨sSup S, ?_⟩
+  rw [hasDerivWithinAt_iff_tendsto_slope' notMem_Iio_self, tendsto_order]
+  constructor
+  · intro c hc
+    obtain ⟨_, ⟨t₁, ht₁, rfl⟩, hct₁⟩ := exists_lt_of_lt_csSup hne hc
+    filter_upwards [Ioo_mem_nhdsLT ht₁.2] with t ht
+    exact hct₁.trans_le (hmono t₁ ht₁ t ⟨ht₁.1.trans ht.1, ht.2⟩ ht.1)
+  · intro c hc
+    filter_upwards [Ioo_mem_nhdsLT hab] with t ht
+    exact (le_csSup hbdd ⟨t, ht, rfl⟩).trans_lt hc
+
+/-- At the right endpoint of the graph of `φ`, if `φ` has left derivative `s` there, every
+vector of the closed half-plane `{v₁ + s v₂ ≥ 0}` is a Fréchet normal. -/
+theorem halfplane_subset_frechet_endpoint {φ : ℝ → ℝ} {a b s : ℝ}
+    (hd : HasDerivWithinAt φ s (Iio b) b) {v : ℝ × ℝ} (hv : 0 ≤ v.1 + s * v.2) :
+    v ∈ frechetNormal (graphOn φ a b) (b, φ b) := by
+  intro ε hε
+  set ε' := ε / (|v.2| + 1) with hε'
+  have hε'0 : 0 < ε' := by positivity
+  have h := (hasDerivWithinAt_iff_tendsto_slope' notMem_Iio_self).mp hd
+  have hev : ∀ᶠ t in 𝓝[<] b, |slope φ b t - s| < ε' := by
+    have := Metric.tendsto_nhds.mp h ε' hε'0
+    simpa using this
+  rw [eventually_nhdsWithin_iff] at hev
+  have hT : Tendsto (fun x : ℝ × ℝ => x.1) (𝓝[graphOn φ a b] (b, φ b)) (𝓝 b) :=
+    (continuous_fst.tendsto _).mono_left nhdsWithin_le_nhds
+  filter_upwards [hT.eventually hev, self_mem_nhdsWithin] with x hx hxG
+  obtain ⟨hx1, hx2⟩ := hxG
+  simp only [ip, Prod.fst_sub, Prod.snd_sub]
+  rw [hx2]
+  rcases eq_or_lt_of_le hx1.2 with h1 | h1
+  · rw [h1]
+    simp only [sub_self, mul_zero, add_zero]
+    positivity
+  · have hlt := hx h1
+    rw [slope_def_field] at hlt
+    have hne : x.1 - b ≠ 0 := sub_ne_zero.mpr h1.ne
+    have hdist : |x.1 - b| ≤ dist x (b, φ b) := by
+      rw [Prod.dist_eq, Real.dist_eq]
+      exact le_max_left _ _
+    have hfac : φ x.1 - φ b - s * (x.1 - b) = ((φ x.1 - φ b) / (x.1 - b) - s) * (x.1 - b) := by
+      rw [sub_mul, div_mul_cancel₀ _ hne]
+    have hε'' : |v.2| * ε' ≤ ε := by
+      calc |v.2| * ε' = ε * (|v.2| / (|v.2| + 1)) := by rw [hε']; ring
+        _ ≤ ε * 1 := by
+          apply mul_le_mul_of_nonneg_left _ hε.le
+          rw [div_le_one (by positivity)]
+          linarith
+        _ = ε := mul_one ε
+    have key : v.2 * (φ x.1 - φ b - s * (x.1 - b)) ≤ ε * |x.1 - b| := by
+      calc v.2 * (φ x.1 - φ b - s * (x.1 - b))
+          ≤ |v.2 * (φ x.1 - φ b - s * (x.1 - b))| := le_abs_self _
+        _ = |v.2| * (|(φ x.1 - φ b) / (x.1 - b) - s| * |x.1 - b|) := by
+          rw [abs_mul, hfac, abs_mul]
+        _ ≤ |v.2| * (ε' * |x.1 - b|) :=
+          mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_right hlt.le (abs_nonneg _))
+            (abs_nonneg _)
+        _ = (|v.2| * ε') * |x.1 - b| := by ring
+        _ ≤ ε * |x.1 - b| := mul_le_mul_of_nonneg_right hε'' (abs_nonneg _)
+    calc v.1 * (x.1 - b) + v.2 * (φ x.1 - φ b)
+        = (v.1 + s * v.2) * (x.1 - b) + v.2 * (φ x.1 - φ b - s * (x.1 - b)) := by ring
+      _ ≤ 0 + ε * |x.1 - b| :=
+        add_le_add (mul_nonpos_of_nonneg_of_nonpos hv (by linarith)) key
+      _ ≤ ε * dist x (b, φ b) := by
+        rw [zero_add]
+        exact mul_le_mul_of_nonneg_left hdist hε.le
+
+namespace IsPosNeoclassical
+
+variable {h : ℝ × ℝ → ℝ} (hh : IsPosNeoclassical h)
+include hh
+
+/-- A point of the level curve on the axis `x₂ = 0` is its right endpoint `(curveEnd h, 0)`. -/
+theorem fst_eq_curveEnd_of_snd_eq_zero {x₀ : ℝ × ℝ} (hx : x₀ ∈ levelCurve h) (h2 : x₀.2 = 0) :
+    x₀.1 = curveEnd h := by
+  rw [hh.levelCurve_eq_graphOn] at hx
+  obtain ⟨⟨h0, hb⟩, hx2⟩ := hx
+  by_contra hne
+  have hlt : x₀.1 < curveEnd h := lt_of_le_of_ne hb hne
+  have := hh.curveFun_pos ⟨h0, hlt⟩
+  rw [← hx2, h2] at this
+  exact lt_irrefl _ this
+
+/-- The graph function has a finite left derivative at the right endpoint. -/
+theorem exists_hasDerivWithinAt_curveEnd :
+    ∃ s, HasDerivWithinAt (curveFun h) s (Iio (curveEnd h)) (curveEnd h) :=
+  exists_hasDerivWithinAt_Iio_endpoint hh.curveFun_convexOn hh.curveEnd_pos
+    (fun t ht => by rw [hh.curveFun_end]; exact hh.curveFun_nonneg ht)
+
+end IsPosNeoclassical
+
+/-- Boundary case on the axis `x₂ = 0`. -/
+theorem not_setTransversal_of_snd_eq_zero {h g : ℝ × ℝ → ℝ} (hh : IsPosNeoclassical h)
+    (hg : IsPosNeoclassical g) {x₀ : ℝ × ℝ} (hx₀ : x₀ ∈ quadrant) (h2 : x₀.2 = 0)
+    (h1 : h x₀ = 1) (g1 : g x₀ = 1) : ¬ SetTransversal (levelCurve h) (levelCurve g) x₀ := by
+  intro htr
+  have hxh : x₀ ∈ levelCurve h := ⟨hx₀, h1⟩
+  have hxg : x₀ ∈ levelCurve g := ⟨hx₀, g1⟩
+  have hbh := hh.fst_eq_curveEnd_of_snd_eq_zero hxh h2
+  have hbg := hg.fst_eq_curveEnd_of_snd_eq_zero hxg h2
+  have hx₀h : x₀ = (curveEnd h, curveFun h (curveEnd h)) :=
+    Prod.ext hbh (by rw [h2, hh.curveFun_end])
+  have hx₀g : x₀ = (curveEnd g, curveFun g (curveEnd g)) :=
+    Prod.ext hbg (by rw [h2, hg.curveFun_end])
+  obtain ⟨sh, hsh⟩ := hh.exists_hasDerivWithinAt_curveEnd
+  obtain ⟨sg, hsg⟩ := hg.exists_hasDerivWithinAt_curveEnd
+  obtain ⟨v, hv0, hv1, hv2⟩ := exists_ne_zero_of_halfplanes sh sg
+  apply hv0
+  apply htr v
+  · apply frechetNormal_subset_limitingNormal hxh
+    rw [hh.levelCurve_eq_graphOn, hx₀h]
+    exact halfplane_subset_frechet_endpoint hsh hv1
+  · apply frechetNormal_subset_limitingNormal hxg
+    rw [hg.levelCurve_eq_graphOn, hx₀g]
+    refine halfplane_subset_frechet_endpoint hsg ?_
+    simp only [Prod.fst_neg, Prod.snd_neg]
+    linarith
+
+/-! #### Swapping the coordinates -/
+
+/-- The coordinate swap `(x₁, x₂) ↦ (x₂, x₁)`. -/
+def sw (x : ℝ × ℝ) : ℝ × ℝ := (x.2, x.1)
+
+@[simp] theorem sw_fst (x : ℝ × ℝ) : (sw x).1 = x.2 := rfl
+
+@[simp] theorem sw_snd (x : ℝ × ℝ) : (sw x).2 = x.1 := rfl
+
+theorem sw_sw (x : ℝ × ℝ) : sw (sw x) = x := Prod.ext rfl rfl
+
+theorem sw_zero : sw 0 = 0 := Prod.ext rfl rfl
+
+theorem sw_sub (x y : ℝ × ℝ) : sw (x - y) = sw x - sw y := Prod.ext rfl rfl
+
+theorem sw_neg (x : ℝ × ℝ) : sw (-x) = -sw x := Prod.ext rfl rfl
+
+theorem sw_add (x y : ℝ × ℝ) : sw (x + y) = sw x + sw y := Prod.ext rfl rfl
+
+theorem sw_smul (t : ℝ) (x : ℝ × ℝ) : sw (t • x) = t • sw x := Prod.ext rfl rfl
+
+theorem continuous_sw : Continuous sw := by
+  unfold sw
+  fun_prop
+
+theorem sw_mem_quadrant_iff {x : ℝ × ℝ} : sw x ∈ quadrant ↔ x ∈ quadrant := by
+  simp only [mem_quadrant, sw_fst, sw_snd]
+  exact and_comm
+
+theorem ip_sw (v w : ℝ × ℝ) : ip (sw v) (sw w) = ip v w := by
+  simp only [ip, sw_fst, sw_snd]
+  ring
+
+theorem dist_sw (x y : ℝ × ℝ) : dist (sw x) (sw y) = dist x y := by
+  simp only [Prod.dist_eq, sw_fst, sw_snd]
+  exact max_comm _ _
+
+theorem sw_preimage_sw (A : Set (ℝ × ℝ)) : sw ⁻¹' (sw ⁻¹' A) = A := by
+  ext x
+  simp [sw_sw]
+
+theorem frechetNormal_sw {A : Set (ℝ × ℝ)} {x₀ v : ℝ × ℝ} (hv : v ∈ frechetNormal A x₀) :
+    sw v ∈ frechetNormal (sw ⁻¹' A) (sw x₀) := by
+  intro ε hε
+  have hT : Tendsto sw (𝓝[sw ⁻¹' A] (sw x₀)) (𝓝[A] x₀) := by
+    rw [tendsto_nhdsWithin_iff]
+    refine ⟨?_, eventually_nhdsWithin_of_forall fun y hy => hy⟩
+    have := (continuous_sw.tendsto (sw x₀)).mono_left (nhdsWithin_le_nhds (s := sw ⁻¹' A))
+    rwa [sw_sw] at this
+  filter_upwards [hT.eventually (hv ε hε)] with y hy
+  have e1 : ip v (sw y - x₀) = ip (sw v) (y - sw x₀) := by
+    rw [← ip_sw v, sw_sub, sw_sw]
+  have e2 : dist (sw y) x₀ = dist y (sw x₀) := by
+    rw [← dist_sw, sw_sw]
+  rw [e1, e2] at hy
+  exact hy
+
+theorem limitingNormal_sw {A : Set (ℝ × ℝ)} {x₀ v : ℝ × ℝ} (hv : v ∈ limitingNormal A x₀) :
+    sw v ∈ limitingNormal (sw ⁻¹' A) (sw x₀) := by
+  obtain ⟨x, w, hxA, hw, hx, hwv⟩ := hv
+  refine ⟨fun n => sw (x n), fun n => sw (w n), fun n => ?_, fun n => frechetNormal_sw (hw n),
+    (continuous_sw.tendsto _).comp hx, (continuous_sw.tendsto _).comp hwv⟩
+  show sw (sw (x n)) ∈ A
+  rw [sw_sw]
+  exact hxA n
+
+theorem SetTransversal.sw {A B : Set (ℝ × ℝ)} {x₀ : ℝ × ℝ} (h : SetTransversal A B x₀) :
+    SetTransversal (sw ⁻¹' A) (sw ⁻¹' B) (sw x₀) := by
+  intro v hv hv'
+  have h1 := limitingNormal_sw hv
+  have h2 := limitingNormal_sw hv'
+  rw [sw_preimage_sw, sw_sw] at h1 h2
+  rw [sw_neg] at h2
+  have := congrArg NeoTiling.sw (h (NeoTiling.sw v) h1 h2)
+  rwa [sw_sw, sw_zero] at this
+
+theorem IsPosNeoclassical.comp_sw {h : ℝ × ℝ → ℝ} (hh : IsPosNeoclassical h) :
+    IsPosNeoclassical (fun x => h (sw x)) := by
+  have hmem : ∀ x ∈ quadrant, sw x ∈ quadrant := fun x hx => sw_mem_quadrant_iff.mpr hx
+  refine ⟨⟨fun x hx => hh.nonneg _ (hmem x hx), ?_, ?_, ?_⟩, ?_⟩
+  · exact hh.continuousOn.comp continuous_sw.continuousOn hmem
+  · refine ⟨(convex_Ici 0).prod (convex_Ici 0), ?_⟩
+    intro p hp q hq a b ha hb hab
+    have := hh.concaveOn.2 (hmem p hp) (hmem q hq) ha hb hab
+    show a • h (sw p) + b • h (sw q) ≤ h (sw (a • p + b • q))
+    rw [sw_add, sw_smul, sw_smul]
+    exact this
+  · intro t ht p hp
+    have := hh.homogeneous t ht _ (hmem p hp)
+    show h (sw (t • p)) = t * h (sw p)
+    rw [sw_smul]
+    exact this
+  · intro x hx hx0
+    apply hh.pos _ (hmem x hx)
+    intro h0
+    apply hx0
+    have := congrArg NeoTiling.sw h0
+    rwa [sw_sw, sw_zero] at this
+
+theorem levelCurve_sw {h : ℝ × ℝ → ℝ} :
+    levelCurve (fun x => h (sw x)) = sw ⁻¹' levelCurve h := by
+  ext x
+  simp only [levelCurve, mem_setOf_eq, mem_preimage, sw_mem_quadrant_iff]
+
+/-- **Boundary points are never transversal.** If `x₀` lies on the boundary of the quadrant and
+`h x₀ = g x₀ = 1`, the level curves `h = 1` and `g = 1` are not transversal at `x₀`. -/
+theorem not_setTransversal_of_not_mem_orthant {h g : ℝ × ℝ → ℝ} (hh : IsPosNeoclassical h)
+    (hg : IsPosNeoclassical g) {x₀ : ℝ × ℝ} (hx₀ : x₀ ∈ quadrant) (hx₀' : x₀ ∉ orthant)
+    (h1 : h x₀ = 1) (g1 : g x₀ = 1) : ¬ SetTransversal (levelCurve h) (levelCurve g) x₀ := by
+  obtain ⟨hx1, hx2⟩ := mem_quadrant.mp hx₀
+  have hax : x₀.1 = 0 ∨ x₀.2 = 0 := by
+    by_contra hcon
+    push_neg at hcon
+    exact hx₀' (mem_orthant.mpr ⟨lt_of_le_of_ne hx1 (Ne.symm hcon.1),
+      lt_of_le_of_ne hx2 (Ne.symm hcon.2)⟩)
+  rcases hax with h0 | h0
+  · intro htr
+    have htr' := htr.sw
+    rw [← levelCurve_sw, ← levelCurve_sw] at htr'
+    refine not_setTransversal_of_snd_eq_zero hh.comp_sw hg.comp_sw (sw_mem_quadrant_iff.mpr hx₀)
+      (by rw [sw_snd]; exact h0) ?_ ?_ htr'
+    · show h (sw (sw x₀)) = 1
+      rw [sw_sw]
+      exact h1
+    · show g (sw (sw x₀)) = 1
+      rw [sw_sw]
+      exact g1
+  · exact not_setTransversal_of_snd_eq_zero hh hg hx₀ h0 h1 g1
+
 end NeoTiling
