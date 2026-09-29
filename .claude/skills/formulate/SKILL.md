@@ -33,10 +33,13 @@ $ARGUMENTS
    empty set, division by zero). If the text leaves a choice that changes the theorem,
    either ask the user or, when one reading is clearly intended, pick it and flag it.
 
-2. **Use Mathlib's vocabulary.** `grep -rn` under `.lake/packages/mathlib/Mathlib` for
-   the concept (`Nat.Prime`, `Finset.sum`, `IsCompact`, `MeasureTheory.Measure`,
-   `Tendsto`). Prefer Mathlib's definitions over ad hoc ones. If a new `def` is
-   unavoidable, keep it minimal and show it alongside the theorem.
+2. **Use Mathlib's vocabulary.** Ask a `mathlib-search` agent for the concepts involved
+   (`Nat.Prime`, `Finset.sum`, `IsCompact`, `MeasureTheory.Measure`, `Tendsto`) and for
+   existing `NeoTiling/` definitions, instead of grepping Mathlib in this context. Several
+   independent lookups can run in parallel. If the agent type is not found, spawn
+   `general-purpose` with model `haiku` and tell it to follow `.claude/agents/mathlib-search.md`.
+   Prefer existing definitions over ad hoc ones. If
+   a new `def` is unavoidable, keep it minimal and show it alongside the theorem.
 
 3. **Write the statement** with a Mathlib-style name and a `sorry` body.
 
@@ -52,12 +55,16 @@ $ARGUMENTS
    (ℕ, ℤ, ℚ, `Fin n`, `Bool`, lists and finsets of these); for ℝ or abstract
    structures skip it and say so.
 
-6. **Back-translate independently.** Read the final Lean statement as if you had
-   never seen the informal text and write out in plain words exactly what it says,
-   including what happens at edge cases. Compare with the original request sentence
-   by sentence. Every difference is either a deliberate choice to report or a bug to
-   fix. Also check for trivialities: an unsatisfiable hypothesis makes any conclusion
-   provable, a conclusion implied by the hypotheses alone makes the theorem empty.
+6. **Back-translate independently.** Spawn a `lean-advisor` agent (Fable) in reader mode
+   with `run_in_background: false`. Give it only the final Lean statement with any helper
+   `def`, the import it typechecks under, and the files where the definitions it uses live.
+   Do not give it the informal text, the request, or any hint of the intended meaning: its
+   value is that it cannot read the intent into the statement. If the agent type is not
+   found, spawn `general-purpose` with model `fable` and tell it to follow
+   `.claude/agents/lean-advisor.md` in reader mode.
+   Compare its reading with the original request and the discussion sentence by sentence.
+   Every difference is either a deliberate choice to report or a bug to fix. After a fix
+   that changes meaning, run the reader again on the new statement.
 
 ## Pitfalls that produce wrong statements
 
@@ -78,8 +85,9 @@ $ARGUMENTS
 ## What to show
 
 1. The Lean statement verbatim in a code block, with any helper `def`.
-2. The back-translation in words, and the list of choices made (domains, strictness,
-   edge cases, Mathlib definitions relied on).
+2. The reader's back-translation (condensed), the differences you found and how you
+   resolved them, and the list of choices made (domains, strictness, edge cases,
+   definitions relied on).
 3. Result of the typecheck and of the `plausible` check.
 4. Any discrepancy with the informal request that you could not resolve, phrased as
    a question to the user.
