@@ -1,66 +1,90 @@
 ---
 name: prove
-description: Prove a mathematical statement in Lean 4 + Mathlib inside this repo. Use when asked to prove, formalize, or fix a Lean theorem, or to close a sorry.
-argument-hint: "[statement in words or in Lean]"
-allowed-tools: "Read, Edit, Write, Grep, Glob, Bash(lake env lean:*), Bash(lake build:*)"
+description: Prove a mathematical statement in Lean 4 + Mathlib inside this repo (formalize, fix a Lean theorem, close a sorry). Runs in a fresh forked context and does not see this conversation - pass a self-contained brief as arguments - the file and theorem (or the statement), the proof idea step by step, conventions agreed in discussion, and the relevant section of latex/notes.tex.
+argument-hint: "[brief: file and theorem or statement, proof idea, conventions, notes section]"
+context: fork
+agent: general-purpose
+model: opus
+allowed-tools: "Read, Edit, Write, Grep, Glob, Agent, SendMessage, Bash(lake env lean:*), Bash(lake build:*)"
 ---
 
-Prove the following in Lean 4 with Mathlib:
+You orchestrate a Lean 4 + Mathlib proof. You plan and integrate; Sonnet workers (`lean-prover`)
+do the tactic work, a Haiku agent (`mathlib-search`) looks names up, and a Fable consultant
+(`lean-advisor`) is called only when the ladder below says so. You do not see the conversation
+that launched you, only this brief:
 
 $ARGUMENTS
 
 ## Project facts
 
 - Toolchain `v4.28.0-rc1`, Mathlib is prebuilt. `import Mathlib` works.
-- Source files live in `NeoTiling/`. Existing files: !`ls NeoTiling/`
-- Check a file with `lake env lean NeoTiling/<File>.lean`, run from the repo root.
-  One run takes 4 to 9 seconds, most of it loading Mathlib. Read the whole output.
+- Source files live in `NeoTiling/` and form one import chain. Existing files: !`ls NeoTiling/`
+- Check a file with `lake env lean NeoTiling/<File>.lean` from the repo root. One run takes 5 to
+  30 seconds. Read the whole output.
+- Read sparingly: every line you read stays in your context for all later steps. Find
+  signatures with `grep -n '^theorem\|^lemma\|^def\|^structure'` and read only the line ranges
+  you need; do not read whole files longer than about 300 lines.
+- The math is in `latex/notes.tex` (Russian). Read the section the brief points to; never edit it.
 - Never touch `lean-toolchain`, `lakefile.lean`, `lake-manifest.json`. Never run `lake update`.
 
 ## Workflow
 
-1. **State first, prove second.** If the request names an existing file and theorem
-   (typically the output of `/formulate`), prove it in place and do not change its
-   statement. Otherwise pick a file in `NeoTiling/` by topic (create one if
-   needed, starting with `import Mathlib`). Write the `theorem` with a `sorry` body and
-   run the checker. If the statement itself does not typecheck, fix the statement.
-   If the request was informal, show the user the Lean statement you chose before
-   spending effort on the proof, and say what you assumed (domain ℕ vs ℝ, strictness,
-   edge cases like `n = 0`).
+1. **Understand.** Read the brief and the relevant parts of the target file and the notes. If the
+   statement is informal, write it in Lean and typecheck it before anything else. If the brief
+   gives no proof idea and you do not see a route yourself, ask `lean-advisor` (advice mode) for
+   the plan before writing the skeleton.
 
-2. **Search Mathlib before proving.** In order: `exact?`, then `apply?`, then `rw?`,
-   then `grep -rn` under `.lake/packages/mathlib/Mathlib` for keywords and
-   Mathlib-style names (`add_comm`, `Finset.sum_range_succ`, `Real.sqrt_le_sqrt`).
-   `exact?` failing is common; it does not mean the lemma is absent.
+2. **Skeleton.** In the real file, write the theorem and its helper lemmas, each with a `sorry`
+   body, following the mathematical proof: one lemma per step, each small enough that a worker can
+   prove it in about 40 lines. Put a short proof sketch into the main theorem's docstring, after
+   the informal statement, so later sessions can read the idea from the file. Check the file (only
+   `sorry` warnings), then run `lake build` so that workers can import current modules.
 
-3. **Tactic by goal shape.**
-   - linear arithmetic over ℕ/ℤ: `omega`
-   - linear over ordered fields: `linarith`; nonlinear: `nlinarith [sq_nonneg (a - b), ...]`
-     with hints; `positivity` for `0 ≤ _` / `0 < _`
-   - numerals: `norm_num`; decidable finite facts: `decide`
-   - ring identities: `ring`; with division: `field_simp` then `ring`
-   - monotonicity of compound expressions: `gcongr`
-   - logic, sets, structural routine: `simp`, `aesop`, `tauto`
-   - sums and products over `Finset.range`: `induction n with | zero => simp | succ k ih => rw [Finset.sum_range_succ, ih]; ring`
+3. **Delegate.** For each `sorry` spawn a `lean-prover` agent. Give it the file, the declaration
+   name, the proof sketch for that step, relevant lemma names you know, and the scratch directory
+   `<your scratchpad>/prove` (your scratchpad is named in your environment info; if there is none,
+   use a directory from `mktemp -d`). Launch independent lemmas in parallel, at most 4 at a time,
+   as several Agent calls in one message with `run_in_background: false`, so you wait for all of
+   them. Never end your turn while any agent you launched is running: its report would go to the
+   main conversation instead of you. Ask `mathlib-search` for lookups instead of grepping Mathlib
+   yourself. If an agent type is not found (agent files load at session start), spawn
+   `general-purpose` with the model from that file's frontmatter and tell it to read and follow
+   `.claude/agents/<name>.md`.
 
-4. **One step, then recheck.** After each edit run the checker. The `unsolved goals`
-   block shows the exact goal state; use it instead of guessing. Do not stack several
-   blind edits between runs.
+4. **Integrate.** You are the only writer of `NeoTiling/`. Paste each `DONE` proof into the real
+   file and recheck the file. For a lemma that is not `DONE`, climb the ladder one rung at a time:
+   1. `NEED_HINT`: answer from the brief, the notes or your own mathematics and resume that worker
+      with `SendMessage` (it keeps its context). Re-split the lemma if it is badly cut.
+   2. Failed again: relaunch `lean-prover` with `model: opus` in the Agent call, passing the
+      previous report.
+   3. Opus worker failed too, or a `WRONG_STATEMENT` you cannot resolve: ask `lean-advisor`
+      (advice mode). Give it a self-contained package: the lemma, file and line range, the parent
+      proof step it serves, the goal state, and the workers' reports. Apply its plan, then relaunch
+      workers from rung 1.
+   4. Still stuck: collect the question for your `NEED_HINT` report and continue with other lemmas.
 
-5. **Split when long.** Above roughly 15 lines, extract lemmas. Leaving `sorry` in a
-   helper lemma is allowed only if the final report lists it.
+   Never change the main theorem's statement. Do not call `lean-advisor` for routine work.
 
-6. **Done** when the checker prints nothing or only warnings, the file has no `sorry`
-   (or every remaining `sorry` is listed), and `lake build` succeeds.
+5. **Verify.** Done when:
+   - the file checks with no errors and no `sorry`;
+   - `#print axioms <theorem>` (via `lake env lean --stdin` with the right import) shows only
+     `propext`, `Classical.choice`, `Quot.sound`;
+   - if the theorem existed before, `git diff` shows its statement unchanged;
+   - `lake build` succeeds.
 
 ## Do not
 
-- weaken the statement without saying so;
+- weaken the main statement, or change a statement that the brief says is fixed;
 - use `native_decide` or add axioms;
-- keep grinding a goal that has not moved in 5 attempts. Stop, report the goal state
-  and what was tried, and ask the user for a mathematical hint.
+- edit anything outside `NeoTiling/` and your scratch directory.
 
 ## Report
 
-File and theorem name, final statement, list of remaining `sorry`, Mathlib lemmas
-used, and anything that did not work and why.
+Your final message starts with one status word on its own line:
+
+- `DONE`: file, theorem name, final statement, helper lemmas added, the `#print axioms` output,
+  and which rungs of the ladder were used (Opus retries, advisor calls).
+- `NEED_HINT`: what is already proven; then for each stuck lemma its statement, the goal state,
+  what was tried (including the advisor's view), and one concrete mathematical question. End
+  with: "Answer via SendMessage to this agent; I keep my context and continue from here."
+- `FAILED`: what is proven, what is not, and why.
