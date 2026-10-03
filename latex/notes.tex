@@ -3,7 +3,7 @@
 % ---------- Кодировка и язык ----------
 \usepackage[utf8]{inputenc}
 \usepackage[T2A]{fontenc}
-\usepackage[russian,english]{babel}
+\usepackage[english,russian]{babel}
 
 % ---------- Геометрия страницы ----------
 \usepackage[margin=2.5cm]{geometry}
@@ -171,7 +171,7 @@ $v_1+\dots+v_k=0$, $v_i\in N_{A_i}(x_{0})$, следует $v_1=\dots=v_k=0$.
 \end{proposition}
 
 \begin{definition}[Общее положение]\label{def:general-position}
-    Пусть $h\in\hat\Phi_{2}$ и $P=\{p_t\in\Rpp\}_{t\in[T]}$ --- набор цен. Обозначим
+    Пусть $h\in\hat\Phi_{2}$ и $P=\{p_t\in\Rpp\}_{t\in[T]}$ --- набор цен. Для $s,t\in[T]$ обозначим через $I_{st}(P):=\set{x\in\Rp\mid h(p_s\circ x)=1,\ h(p_t\circ x)=1}$ множество точек пересечения линий уровня $h(p_s\circ x)=1$ и $h(p_t\circ x)=1$.
     Будем говорить, что пара $(h,P)$ находится \textit{в общем положении}, если
     \begin{enumerate}
         \item для любой пары различных индесов $s\neq t$ линии уровня $h(p_{s}\circ x)=1$ и $h(p_{t}\circ x)=1$ имеют конечное кол-во пересечений, причем все эти пересечения происходят трансверсально.
@@ -180,19 +180,30 @@ $v_1+\dots+v_k=0$, $v_i\in N_{A_i}(x_{0})$, следует $v_1=\dots=v_k=0$.
     \end{enumerate}
 \end{definition}
 
-\begin{lemma}\label{thm:finite} Пусть $h\in\hat{\Phi}_{2}$, $U\subset\Rpp$ -- открытое непустое множество. Тогда существует непустое открытое подмножество $V\subset U$ что $\forall p\in V$ кривые $h(x)=1$ и $h(p\circ x) = 1$ имеют конечное кол-во пересечений, причем все эти пересечения происходят трансверсально.
+\begin{lemma}\label{thm:finite} Пусть $h\in\hat{\Phi}_{2}$, и $G_h\subset\Rpp$ --- множество цен $p$, при которых кривые $h(x)=1$ и $h(p\circ x) = 1$ имеют конечное число пересечений, причём все эти пересечения происходят трансверсально. Тогда $G_h$ открыто и всюду плотно в $\Rpp$.
 \end{lemma}
 
 \begin{proposition}[Устойчивость общего положения]\label{prop:gp-stable}
-    Пусть $h\in\hat\Phi_{2}, P\in\Rpp[2\times T]$ и пара $(h,P)$, находится в общем положении.
-    Тогда существует такая окрестность $V\subset\Rpp[2\times T]$ набора $P$, что каждый набор
-    цен $Q\in V$ пара $(h,Q)$ также находится в общем положении.
+    Пусть $h\in\hat\Phi_{2}, P\in\Rpp[2\times T]$ и пара $(h,P)$ находится в общем положении.
+    Тогда существует такая окрестность $V\subset\Rpp[2\times T]$ набора $P$, что для каждого набора
+    цен $Q\in V$ пара $(h,Q)$ также в общем положении.
 \end{proposition}
+
+\begin{proof}
+Пункт~1 определения~\ref{def:general-position} сохраняется вблизи $P$ по лемме~\ref{thm:finite}: для пары $(s,t)$ он означает $p_t/p_s\in G_h$, а $G_h$ открыто.
+Пусть пункт~2 или~3 нарушается для наборов $Q_n\to P$, каждый раз для одних и тех же индексов. Напомним, что $I_{st}(Q)$ --- множество точек пересечения линий уровня $h(q_s\circ x)=1$ и $h(q_t\circ x)=1$ в $\Rp$ для набора цен $Q=\{q_t\}_{t\in[T]}$. При ценах, близких к $P$, все точки пересечения лежат в одном ограниченном множестве: из $1=h(q_s\circ x)\ge h(1,0)q_s^1x^1+h(0,1)q_s^2x^2$ следует $x^1\le1/(h(1,0)q_s^1)$ и $x^2\le1/(h(0,1)q_s^2)$, а $q_s^1,q_s^2$ отделены от нуля. Поэтому из точек $x_n\in I_{st}(Q_n)$ можно выбрать сходящуюся подпоследовательность, и её предел лежит в $I_{st}(P)$ по непрерывности $h$. Переходя к подпоследовательности, получаем при ценах $P$ либо (а) тройную точку, либо (б) две различные точки пересечения на одном луче (условие $x^1y^2=x^2y^1$ замкнуто, а по пункту~1 все точки пересечения лежат в $\Rpp$), либо (в) общий предел различных точек $x_n\in I_{st}(Q_n)$, $y_n\in I_{s't'}(Q_n)$ одного луча. В случае (в) пары $\set{s,t}$ и $\set{s',t'}$ не имеют общего индекса, так как луч пересекает каждую кривую $h(q\circ x)=1$ ровно в одной точке (однородность), и предельная точка лежит на четырёх кривых. Все три случая противоречат общему положению $(h,P)$.
+\end{proof}
 
 \begin{proposition}[Плотность общего положения]\label{prop:gp-dense}
     Пусть $h\in\hat{\Phi}_{2}$. Тогда в любом непустом открытом множестве $U\subset\Rpp[2\times T]$
     найдётся набор цен $P$, для которого пара $(h,P)$ находится в общем положении.
 \end{proposition}
+
+\begin{proof}
+Множество $W_{st}$ наборов, для которых выполнен пункт~1 определения~\ref{def:general-position} для пары $(s,t)$, открыто по доказательству утверждения~\ref{prop:gp-stable} и плотно: заменив $p_t$ на $p_s\circ r$ с $r\in G_h$, близким к $p_t/p_s$, получим сколь угодно близкий набор из $W_{st}$, а $G_h$ плотно по лемме~\ref{thm:finite}. Поэтому $U_1:=U\cap\bigcap_{s\ne t}W_{st}$ --- непустое открытое множество.
+
+Возьмём $P\in U_1$ и для $k\in[T]$ в порядке возрастания будем по очереди заменять $p_k$ на $\lambda_kp_k$ с $\lambda_k$, близким к $1$, не выходя из $U_1$; по однородности кривая $k$ при этом растягивается из начала координат в $1/\lambda_k$ раз. Пусть пункты~2 и~3 уже выполнены для кривых с номерами меньше $k$; множества $I_{st}$, $s,t<k$, конечны и от $\lambda_k$ не зависят. Новое нарушение возможно лишь в двух случаях: (а) кривая $k$ проходит через точку $x\in I_{st}$, что бывает лишь при $\lambda_k=1/h(p_k\circ x)$; (б) точка $z\in I_{kj}$, $z\ne x$, лежит на луче через $x\in I_{st}$, но тогда $z$ --- единственная точка кривой $j$ на этом луче, и кривая $k$ проходит через неё лишь при одном $\lambda_k$. Две точки из $I_{kj}$ и $I_{kj'}$ на одном луче лежат на кривой $k$ и потому совпадают, давая тройную точку из $I_{jj'}$ --- это случай (а). Значит, плохих $\lambda_k$ конечное число, и после последнего шага получаем набор из $U_1\subset U$ в общем положении.
+\end{proof}
 
 \begin{remark}
     Утверждения~\ref{prop:gp-stable} и~\ref{prop:gp-dense} показывают корректность
@@ -315,7 +326,7 @@ C_d:=W_d\cup\ell^d_-\cup\ell^d_+\quad\text{и}\quad C_e:=W_e\cup\ell^e_-\cup\ell
 
 \section{Доказательство леммы~\ref{thm:finite}}\label{app:finite}
 
-Точку пересечения кривых называем трансверсальной, если она лежит в $\Rpp$ и супердифференциалы двух функций в ней не пересекаются; по утверждению~\ref{prop:transversal} это трансверсальность в смысле предельных нормальных конусов. Растяжением координат задача сводится к случаю $h(1,0)=h(0,1)=1$, $p^1>1>p^2$ (п.~\ref{app:B1}). Линия уровня такой функции --- график её профиля $\varphi$ на $[0,1]$, и точки пересечения кривых взаимно однозначно соответствуют решениям уравнения $\alpha\varphi(y)=\varphi(\beta y)$ (п.~\ref{app:B2}). Для этого уравнения трансверсальные решения изолированы, а параметры $(\alpha,\beta)$, при которых все решения трансверсальны, содержат открытое всюду плотное множество (п.~\ref{app:B3}). Наконец, трансверсальность решения уравнения равносильна трансверсальности соответствующей точки пересечения (п.~\ref{app:B4}).
+Точку пересечения кривых называем трансверсальной, если она лежит в $\Rpp$ и супердифференциалы двух функций в ней не пересекаются; по утверждению~\ref{prop:transversal} это трансверсальность в смысле предельных нормальных конусов. Растяжением координат задача сводится к случаю $h(1,0)=h(0,1)=1$, $p^1>1>p^2$ (п.~\ref{app:B1}). Линия уровня такой функции --- график её профиля $\varphi$ на $[0,1]$, и точки пересечения кривых взаимно однозначно соответствуют решениям уравнения $\alpha\varphi(y)=\varphi(\beta y)$ (п.~\ref{app:B2}). Для этого уравнения трансверсальные решения изолированы, а параметры $(\alpha,\beta)$, при которых все решения трансверсальны, образуют открытое всюду плотное множество (п.~\ref{app:B3}). Наконец, трансверсальность решения уравнения равносильна трансверсальности соответствующей точки пересечения (п.~\ref{app:B4}).
 
 \subsection{Обозначения и сведение к основному случаю}\label{app:B1}
 
@@ -372,11 +383,11 @@ I_h(p):=\set{x\in\Rp\mid h(x)=1,\ h(p\circ x)=1}.
 \[
 B:=\set{(F(y,\beta),\beta)\mid(y,\beta)\in Z}
 \]
-компактно, и всякий параметр $(\alpha,\beta)\in[a,b]\times[\beta_1,\beta_2]$, не лежащий в $B$, трансверсален.
+компактно, и параметр $(\alpha,\beta)\in[a,b]\times[\beta_1,\beta_2]$ трансверсален тогда и только тогда, когда он не лежит в $B$.
 \end{lemma}
 
 \begin{proof}
-Субградиенты $u\in\partial\varphi(\beta y)$, $w\in\partial\varphi(y)$ для $(y,\beta)\in K$ равномерно ограничены, а график субдифференциала замкнут, поэтому условие критичности сохраняется при предельном переходе, и $Z$ замкнуто в компакте $K$. Непрерывность $F$ следует из $\varphi\ge\varphi(d)>0$ на $[c,d]$, а $B$ --- образ компакта при непрерывном отображении. Если решение $y$ параметра $(\alpha,\beta)$ не трансверсально, то $y\in[c,d]$ по лемме~\ref{lem:B-local}, пара $(y,\beta)$ критическая и $F(y,\beta)=\alpha$, то есть $(\alpha,\beta)\in B$.
+Субградиенты $u\in\partial\varphi(\beta y)$, $w\in\partial\varphi(y)$ для $(y,\beta)\in K$ равномерно ограничены, а график субдифференциала замкнут, поэтому условие критичности сохраняется при предельном переходе, и $Z$ замкнуто в компакте $K$. Непрерывность $F$ следует из $\varphi\ge\varphi(d)>0$ на $[c,d]$, а $B$ --- образ компакта при непрерывном отображении. Если решение $y$ параметра $(\alpha,\beta)$ не трансверсально, то $y\in[c,d]$ по лемме~\ref{lem:B-local}, пара $(y,\beta)$ критическая и $F(y,\beta)=\alpha$, то есть $(\alpha,\beta)\in B$. Обратно, если $(\alpha,\beta)=(F(y,\beta),\beta)$ для критической пары $(y,\beta)\in Z$, то $\alpha\varphi(y)=\varphi(\beta y)$, и $y$ --- нетрансверсальное решение.
 \end{proof}
 
 \begin{lemma}[мера критических значений на срезе]\label{lem:B-sard}
@@ -388,11 +399,11 @@ B:=\set{(F(y,\beta),\beta)\mid(y,\beta)\in Z}
 \end{proof}
 
 \begin{lemma}[общее положение для одномерной задачи]\label{lem:B-1d}
-Всякое открытое $U\subset\R^2$ с $U\cap P\ne\varnothing$ содержит непустое открытое $V\subset P$, все параметры которого трансверсальны.
+Трансверсальные параметры образуют открытое всюду плотное подмножество $P$.
 \end{lemma}
 
 \begin{proof}
-Возьмём $(\alpha_0,\beta_0)\in U\cap P$ и прямоугольник $R:=[\alpha_0-r,\alpha_0+r]\times[\beta_1,\beta_2]\subset U\cap P$ с $\beta_1<\beta_0<\beta_2$; применим к нему леммы~\ref{lem:B-local} и~\ref{lem:B-compact}. По лемме~\ref{lem:B-sard} множество $E:=\set{F(y,\beta_0)\mid(y,\beta_0)\in Z}$ имеет меру нуль и не покрывает интервал $(\alpha_0-r,\alpha_0+r)$; выберем $\alpha_1\in(\alpha_0-r,\alpha_0+r)\setminus E$, тогда $(\alpha_1,\beta_0)\notin B$. Множество $B$ замкнуто, поэтому $V:=\operatorname{int}R\setminus B$ открыто, содержит $(\alpha_1,\beta_0)$ и по лемме~\ref{lem:B-compact} состоит из трансверсальных параметров.
+Возьмём $(\alpha_0,\beta_0)\in P$ и прямоугольник $R:=[\alpha_0-r,\alpha_0+r]\times[\beta_1,\beta_2]\subset P$ с $\beta_1<\beta_0<\beta_2$, сколь угодно малый; применим к нему леммы~\ref{lem:B-local} и~\ref{lem:B-compact}. Множество $B$ замкнуто, поэтому $\operatorname{int}R\setminus B$ открыто и по лемме~\ref{lem:B-compact} состоит в точности из трансверсальных параметров прямоугольника. Если $(\alpha_0,\beta_0)$ трансверсален, то он не лежит в $B$, и $\operatorname{int}R\setminus B$ --- его окрестность из трансверсальных параметров; это даёт открытость. Для плотности воспользуемся леммой~\ref{lem:B-sard}: множество $E:=\set{F(y,\beta_0)\mid(y,\beta_0)\in Z}$ имеет меру нуль и не покрывает интервал $(\alpha_0-r,\alpha_0+r)$; для $\alpha_1\in(\alpha_0-r,\alpha_0+r)\setminus E$ имеем $(\alpha_1,\beta_0)\in\operatorname{int}R\setminus B$.
 \end{proof}
 
 \subsection{Перевод трансверсальности}\label{app:B4}
@@ -407,9 +418,9 @@ B:=\set{(F(y,\beta),\beta)\mid(y,\beta)\in Z}
 
 \subsection{Доказательство леммы~\ref{thm:finite}}\label{app:B5}
 
-Пусть $U\subset\Rpp$ открыто и непусто. Прямые $p^1=1$ и $p^2=1$ нигде не плотны, так что в $U$ есть точка $p_0$ с $p_0^1\ne1\ne p_0^2$. Если обе координаты $p_0$ больше единицы или обе меньше, берём соответственно $V:=U\cap\set{p^1,p^2>1}$ или $V:=U\cap\set{p^1,p^2<1}$: по п.~\ref{app:B1} пересечений нет вовсе. Если $p_0^1<1<p_0^2$, переходим к $p_0^{-1}$ и множеству $\set{p\mid p^{-1}\in U}$; по п.~\ref{app:B1} этот случай сводится к основному. Пусть, наконец, $p_0^1>1>p_0^2$. Отображение $\tau(p):=(1/p^2,1/p^1)$ --- инволютивный гомеоморфизм $\Rpp$, переводящий область $Q:=\set{p^1>1>p^2}$ на $P$. По лемме~\ref{lem:B-1d}, применённой к открытому множеству $\tau(U\cap Q)\ni\tau(p_0)$, найдётся непустое открытое $V'\subset\tau(U\cap Q)$ из трансверсальных параметров; положим $V:=\tau(V')\subset U$. Для $p\in V$ параметр $\tau(p)$ трансверсален, поэтому множество решений уравнения~\eqref{eq:B-profile} конечно по лемме~\ref{lem:B-finite}, множество $I_h(p)$ конечно по п.~\ref{app:B2}, а каждая его точка трансверсальна по лемме~\ref{lem:B-translate}. \qed
+Прямые $p^1=1$ и $p^2=1$ не пересекаются с $G_h$: при $p^1=1$ точка $(1/h(1,0),0)$ лежит на обеих кривых, но не в $\Rpp$, и потому не трансверсальна; так же при $p^2=1$ с точкой $(0,1/h(0,1))$. Камеры $\set{p^1,p^2>1}$ и $\set{p^1,p^2<1}$ целиком лежат в $G_h$: по п.~\ref{app:B1} пересечений нет вовсе. Пусть $Q:=\set{p^1>1>p^2}$; отображение $\tau(p):=(1/p^2,1/p^1)$ --- гомеоморфизм $Q$ на $P$. Для $p\in Q$ решения уравнения~\eqref{eq:B-profile} с параметром $\tau(p)$ взаимно однозначно соответствуют точкам $I_h(p)$ (п.~\ref{app:B2}), поэтому по леммам~\ref{lem:B-finite} и~\ref{lem:B-translate} условие $p\in G_h$ равносильно трансверсальности параметра $\tau(p)$, и по лемме~\ref{lem:B-1d} множество $G_h\cap Q$ открыто и плотно в $Q$. Замена $x\mapsto D_px$ из п.~\ref{app:B1} показывает, что $p\in G_h\iff p^{-1}\in G_h$, а инверсия $p\mapsto p^{-1}$ переводит камеру $\set{p^1<1<p^2}$ на $Q$; значит, и в этой камере $G_h$ открыто и плотно. Итак, $G_h$ --- объединение открытых плотных подмножеств четырёх открытых камер, объединение которых плотно в $\Rpp$; следовательно, $G_h$ открыто и всюду плотно. \qed
 
-{\raggedright\paragraph{Соответствие с формализацией.} Доказательство формализовано в файлах \lean{Neoclassical.lean}, \lean{Profile.lean}, \lean{FiniteIntersections.lean}, \lean{LevelCurves.lean}. Трансверсальность точки в коде~--- предикат \lean{TransversalAt}, супердифференциал~--- \lean{superdiff}; растяжения и инверсия~--- \lean{superdiff_comp_hadamard}, \lean{levelIntersections_eq_preimage}, \lean{TransversalAt.of_hinv}; вырожденные случаи~--- \lean{levelIntersections_eq_empty_of_one_lt}, \lean{levelIntersections_eq_empty_of_lt_one}; профиль и сведение к одной переменной~--- \lean{profile_isProfile}, \lean{ofProfile_profile}, \lean{levelIntersections_ofProfile}; определение~\ref{def:B-transversal}~--- \lean{Transversal}, \lean{IsCritical}; лемма~\ref{lem:B-finite}~--- \lean{isCritical_of_frequently}, \lean{finite_of_transversal}; лемма~\ref{lem:B-local}~--- \lean{exists_Icc_solutions_subset}; лемма~\ref{lem:B-compact}~--- \lean{isCompact_critical}; лемма~\ref{lem:B-sard}~--- \lean{volume_image_critical_slice} (в коде вместо счётности точек недифференцируемости использованы теорема Радемахера~\cite{Rademacher1919,EvansGariepy2015} и липшицевость $F_0$); лемма~\ref{lem:B-1d}~--- \lean{exists_open_transversal}; лемма~\ref{lem:B-translate}~--- \lean{transversalAt_ofProfile} (в коде нужная импликация доказана прямой подстановкой в опорные неравенства, без обращения к \lean{Transversality.lean}); лемма~\ref{thm:finite}~--- \lean{exists_open_finite_levelIntersections}.\par}
+{\raggedright\paragraph{Соответствие с формализацией.} Доказательство формализовано в файлах \lean{Neoclassical.lean}, \lean{Profile.lean}, \lean{FiniteIntersections.lean}, \lean{LevelCurves.lean}; части, относящиеся к открытости, --- в \lean{GeneralPosition.lean}. Трансверсальность точки в коде~--- предикат \lean{TransversalAt}, супердифференциал~--- \lean{superdiff}; растяжения и инверсия~--- \lean{superdiff_comp_hadamard}, \lean{levelIntersections_eq_preimage}, \lean{TransversalAt.of_hinv}; вырожденные случаи~--- \lean{levelIntersections_eq_empty_of_one_lt}, \lean{levelIntersections_eq_empty_of_lt_one}; профиль и сведение к одной переменной~--- \lean{profile_isProfile}, \lean{ofProfile_profile}, \lean{levelIntersections_ofProfile}; определение~\ref{def:B-transversal}~--- \lean{Transversal}, \lean{IsCritical}; лемма~\ref{lem:B-finite}~--- \lean{isCritical_of_frequently}, \lean{finite_of_transversal}; лемма~\ref{lem:B-local}~--- \lean{exists_Icc_solutions_subset}; лемма~\ref{lem:B-compact}~--- \lean{isCompact_critical}; лемма~\ref{lem:B-sard}~--- \lean{volume_image_critical_slice} (в коде вместо счётности точек недифференцируемости использованы теорема Радемахера~\cite{Rademacher1919,EvansGariepy2015} и липшицевость $F_0$); лемма~\ref{lem:B-1d}~--- \lean{exists_open_transversal} (плотность) и \lean{IsProfile.eventually_transversal} (открытость); лемма~\ref{lem:B-translate}~--- \lean{transversalAt_ofProfile} (импликация от решения к точке, прямой подстановкой в опорные неравенства) и \lean{transversal_of_isGoodPrice} (обратная импликация, через \lean{disjoint_superdiff_iff}); множество $G_h$~--- \lean{IsGoodPrice}; лемма~\ref{thm:finite}~--- \lean{exists_open_finite_levelIntersections} (плотность) и \lean{eventually_isGoodPrice} (открытость).\par}
 
 \begin{thebibliography}{9}
 \bibitem{Kruger2006} A.~Y.~Kruger, About regularity of collections of sets,
