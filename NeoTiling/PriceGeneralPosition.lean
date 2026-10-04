@@ -8,11 +8,12 @@ Notes, section "Разрешимость в общем положении": `def
 general position for some strictly positive neoclassical `h`.
 
 * Necessity (`GeneralPosition.pricesGeneralPosition`): an equal coordinate gives a common axis
-  point of two curves; two proportional incomparable pairs give two intersection points on a ray.
+  point of two curves.
 * Sufficiency (`PricesGeneralPosition.exists_generalPosition_near`): polygonal functions
   `polyMin ξ = min_j ⟨ξ_j, ·⟩`. Inscribed polygons with short edges (`exists_startLines`) have no
   line shared by two curves at a common point (`NoSharedLine`, an open condition); generic lines
-  (`GenericLines`, dense) then give general position (`generalPosition_polyMin`).
+  (`GenericLines`, dense) then give general position (`generalPosition_polyMin`); in particular
+  the triple-point condition follows from genericity.
 -/
 
 open Set Filter Topology
@@ -21,113 +22,41 @@ namespace NeoTiling
 
 /-! ### Prices in general position -/
 
-/-- Prices `p, q` are *incomparable* (crossing): `(p₁ - q₁)(p₂ - q₂) < 0`. -/
-def Crossing (p q : ℝ × ℝ) : Prop := (p.1 - q.1) * (p.2 - q.2) < 0
-
-theorem Crossing.symm {p q : ℝ × ℝ} (h : Crossing p q) : Crossing q p := by
-  unfold Crossing at *; nlinarith
-
 /-- **General position of prices** (notes, `def:prices-gp`): the prices lie in `ℝ²₊₊`, their
-first coordinates are pairwise distinct, so are the second ones, and for no `μ > 1` the set
-`P ∩ μ P` contains two incomparable prices. -/
+first coordinates are pairwise distinct, and so are the second ones. -/
 structure PricesGeneralPosition {T : ℕ} (P : Fin T → ℝ × ℝ) : Prop where
   mem_orthant : ∀ t, P t ∈ orthant
   fst_injective : Function.Injective fun t => (P t).1
   snd_injective : Function.Injective fun t => (P t).2
-  /-- no `μ > 1` such that `P ∩ μ P` contains two incomparable prices -/
-  no_crossing_dilate : ∀ μ > (1 : ℝ), ∀ s t s' t', P s = μ • P s' → P t = μ • P t' →
-    ¬ Crossing (P s) (P t)
-
-/-- Two different incomparable pairs of prices in general position are not proportional:
-`μ = 1` gives the same pair, `μ > 1` and `μ < 1` contradict condition 2. -/
-theorem PricesGeneralPosition.not_dilate {T : ℕ} {P : Fin T → ℝ × ℝ}
-    (hP : PricesGeneralPosition P) {s t s' t' : Fin T} (hd : PairsDiffer s t s' t')
-    (hc : Crossing (P s) (P t)) (hc' : Crossing (P s') (P t')) {μ : ℝ}
-    (hs : P s' = μ • P s) (ht : P t' = μ • P t) : False := by
-  have hμ : 0 < μ := pos_of_mul_pos_left (show 0 < μ * (P s).1 by
-    simpa [hs] using (hP.mem_orthant s').1) (mem_Ioi.1 (hP.mem_orthant s).1).le
-  rcases lt_trichotomy μ 1 with h | rfl | h
-  · exact hP.no_crossing_dilate μ⁻¹ ((one_lt_inv₀ hμ).mpr h) s t s' t'
-      ((eq_inv_smul_iff₀ hμ.ne').2 hs.symm) ((eq_inv_smul_iff₀ hμ.ne').2 ht.symm) hc
-  · exact hd.2.2 (.inl ⟨hP.fst_injective (by simp [hs]), hP.fst_injective (by simp [ht])⟩)
-  · exact hP.no_crossing_dilate μ h s' t' s t hs ht hc'
 
 /-! ### Curves of two prices -/
 
-/-- Common points of the curves of two prices with distinct coordinates lie in `ℝ²₊₊` (on an axis
-`h (p ∘ x) = p₁ x₁ h (1, 0)`), and the prices cross (`levelIntersections_eq_empty_of_one_lt`). -/
-theorem IsPosNeoclassical.mem_orthant_crossing {h : ℝ × ℝ → ℝ} (hh : IsPosNeoclassical h)
-    {p q : ℝ × ℝ} (hp : p ∈ orthant) (hq : q ∈ orthant) (h1 : p.1 ≠ q.1) (h2 : p.2 ≠ q.2)
-    {x : ℝ × ℝ} (hx : x ∈ pairIntersections h p q) : x ∈ orthant ∧ Crossing p q := by
-  obtain ⟨y, hy, -⟩ := (pairIntersections_eq_image hp).subset hx; obtain ⟨hxq, hgp, hgq⟩ := hx
+/-- Common points of the curves of two prices with distinct coordinates lie in `ℝ²₊₊`: on an axis
+`h (p ∘ x) = p₁ x₁ h (1, 0)`, so a common axis point forces `p₁ = q₁`. -/
+theorem IsPosNeoclassical.mem_orthant_of_mem_pairIntersections {h : ℝ × ℝ → ℝ}
+    (hh : IsPosNeoclassical h) {p q : ℝ × ℝ} (hp : p ∈ orthant) (hq : q ∈ orthant)
+    (h1 : p.1 ≠ q.1) (h2 : p.2 ≠ q.2) {x : ℝ × ℝ} (hx : x ∈ pairIntersections h p q) :
+    x ∈ orthant := by
+  obtain ⟨hxq, hgp, hgq⟩ := hx
   obtain ⟨hx1, hx2⟩ := mem_quadrant.mp hxq; obtain ⟨hp1, hp2⟩ := mem_orthant.mp hp
-  obtain ⟨hq1, hq2⟩ := mem_orthant.mp hq; simp only [hadamard, hinv, one_div_mul_eq_div] at hy
-  refine ⟨?_, not_le.1 fun hnc => ?_⟩; rotate_left; rcases h1.lt_or_gt with h1' | h1'
-  · exact (hh.levelIntersections_eq_empty_of_one_lt ((one_lt_div hp1).2 h1')
-      ((one_lt_div hp2).2 (h2.lt_of_le (by nlinarith)))).subset hy
-  · exact (hh.levelIntersections_eq_empty_of_lt_one (mem_orthant.2 ⟨div_pos hq1 hp1, div_pos hq2
-      hp2⟩) ((div_lt_one hp1).2 h1') ((div_lt_one hp2).2 (h2.lt_of_le' (by nlinarith)))).subset hy
+  obtain ⟨hq1, hq2⟩ := mem_orthant.mp hq
   refine mem_orthant.2 ⟨hx1.lt_of_ne fun e => h2 ?_, hx2.lt_of_ne fun e => h1 ?_⟩ <;>
     simp only [hadamard, ← e, mul_zero, mul_assoc, hh.fst_axis, hh.snd_axis, mul_nonneg,
       hx1, hx2, hp1.le, hq1.le, hp2.le, hq2.le] at hgp hgq <;>
     exact mul_right_cancel₀ (right_ne_zero_of_mul_eq_one hgp) (hgp.trans hgq.symm)
 
-/-- **Incomparable prices have crossing curves.** Along the segment `v ω = (1 - ω, ω)` the values
-`h (p ∘ v ω)` and `h (q ∘ v ω)` change order (intermediate value theorem), and at a point of
-equality `v ω / h (p ∘ v ω)` lies on both curves. -/
-theorem IsPosNeoclassical.pairIntersections_nonempty {h : ℝ × ℝ → ℝ} (hh : IsPosNeoclassical h)
-    {p q : ℝ × ℝ} (hp : p ∈ orthant) (hq : q ∈ orthant) (hc : Crossing p q) :
-    (pairIntersections h p q).Nonempty := by
-  wlog hlt : p.1 < q.1 generalizing p q with H
-  · exact pairIntersections_comm h p q ▸ H hq hp hc.symm
-      ((not_lt.1 hlt).lt_of_ne fun e => by simp [Crossing, e] at hc)
-  obtain ⟨hp1, hp2⟩ := mem_orthant.mp hp; obtain ⟨hq1, hq2⟩ := mem_orthant.mp hq
-  have hw {r : ℝ × ℝ} (hr : r ∈ orthant) {ω : ℝ} (hω : ω ∈ Icc (0 : ℝ) 1) :
-      hadamard r (1 - ω, ω) ∈ quadrant :=
-    hadamard_mem_quadrant (orthant_subset_quadrant hr) (mk_mem_quadrant (sub_nonneg.2 hω.2) hω.1)
-  have hC {r} (hr : r ∈ orthant) : ContinuousOn (fun ω => h (hadamard r (1 - ω, ω))) (Icc 0 1) :=
-    hh.continuousOn.comp (by simp only [hadamard_mk]; fun_prop) fun _ => hw hr
-  obtain ⟨ω, hω, hFG⟩ := isPreconnected_Icc.intermediate_value₂ (left_mem_Icc.2 zero_le_one)
-    (right_mem_Icc.2 zero_le_one) (hC hp) (hC hq)
-    (by simp [hh.fst_axis hp1.le, hh.fst_axis hq1.le]; nlinarith [hh.pos_fst])
-    (by simp [hh.snd_axis hp2.le, hh.snd_axis hq2.le]; rw [Crossing] at hc; nlinarith [hh.pos_snd])
-  have hpos : 0 < h (hadamard p (1 - ω, ω)) := hh.pos _ (hw hp hω) fun e => by
-    simp [Prod.ext_iff, hp1.ne', hp2.ne'] at e; linarith
-  refine ⟨(h (hadamard p (1 - ω, ω)))⁻¹ • (1 - ω, ω), quadrant_smul (inv_pos.2 hpos).le
-    (mem_quadrant_of_hadamard_mem hp (hw hp hω)), ?_, ?_⟩ <;> rw [hadamard_smul, hh.homogeneous _
-      (inv_pos.2 hpos), inv_mul_eq_one₀ hpos.ne'] <;> first | rfl | exact hFG | exact hw ‹_› hω
-
-/-- **Necessity** (notes, `prop:prices-gp`): if `(h, P)` is in general position, then so is `P`.
-Distinct coordinates: `p_s⁻¹ ∘ p_t` is a good price (`pairGood_iff`), so its coordinates are not
-`1` (`ne_one_of_isGoodPrice`). If `μ > 1`, `p_s = μ p_{s'}`, `p_t = μ p_{t'}` and `p_s, p_t` are
-incomparable, the curves `s', t'` meet at some `x` (`pairIntersections_nonempty`); then
-`x / μ ≠ x` is an intersection point of the curves `s, t` on the same ray. -/
+/-- **Necessity** (notes, `prop:prices-gp`): if `(h, P)` is in general position, then so is `P`:
+`p_s⁻¹ ∘ p_t` is a good price (`pairGood_iff`), so its coordinates are not `1`
+(`ne_one_of_isGoodPrice`). -/
 theorem GeneralPosition.pricesGeneralPosition {h : ℝ × ℝ → ℝ} (hh : IsPosNeoclassical h)
     {T : ℕ} {P : Fin T → ℝ × ℝ} (hG : GeneralPosition h P) : PricesGeneralPosition P := by
   have hO := hG.mem_orthant
   have hne : ∀ s t, s ≠ t → 1 / (P s).1 * (P t).1 ≠ 1 ∧ 1 / (P s).2 * (P t).2 ≠ 1 := fun s t hst =>
     hh.ne_one_of_isGoodPrice ((pairGood_iff (hO s)).mp ⟨hG.finite s t hst, hG.transversal s t hst⟩)
   refine ⟨hO, fun s t he => by_contra fun hst => (hne s t hst).1 ?_,
-    fun s t he => by_contra fun hst => (hne s t hst).2 ?_, fun μ hμ s t s' t' hs ht hc => ?_⟩
+    fun s t he => by_contra fun hst => (hne s t hst).2 ?_⟩
   · rw [← show (P s).1 = (P t).1 from he, one_div_mul_cancel (hO s).1.ne']
   · rw [← show (P s).2 = (P t).2 from he, one_div_mul_cancel (hO s).2.ne']
-  have hμ0 : 0 < μ := one_pos.trans hμ
-  have hst : s ≠ t := by rintro rfl; simp [Crossing] at hc
-  have hs't' : s' ≠ t' := by rintro rfl; rw [hs.trans ht.symm] at hc; simp [Crossing] at hc
-  have hc' : Crossing (P s') (P t') := by
-    rw [hs, ht] at hc; simp only [Crossing, Prod.smul_fst, Prod.smul_snd, smul_eq_mul] at hc ⊢
-    nlinarith [mul_pos hμ0 hμ0]
-  obtain ⟨x, hx⟩ := hh.pairIntersections_nonempty (hO s') (hO t') hc'
-  have hxo := (hG.transversal s' t' hs't' x hx).1
-  obtain ⟨hx1, hx2⟩ := NeoTiling.mem_orthant.mp hxo
-  have hμx : ∀ p : ℝ × ℝ, hadamard (μ • p) (μ⁻¹ • x) = hadamard p x := fun p => by
-    ext <;> simp [hadamard] <;> field_simp
-  refine hG.rays s t s' t' hst hs't' (μ⁻¹ • x) ⟨quadrant_smul (inv_pos.mpr hμ0).le
-    (orthant_subset_quadrant hxo), by rw [hs, hμx]; exact hx.2.1, by rw [ht, hμx]; exact hx.2.2⟩
-    x hx (fun e => ?_) ⟨x.1 / x.2, div_pos hx1 hx2, by simp; field_simp, by field_simp⟩
-  have := congrArg Prod.fst e
-  simp only [Prod.smul_fst, smul_eq_mul] at this
-  nlinarith [inv_lt_one_of_one_lt₀ hμ]
 
 /-! ### Polygonal functions -/
 
@@ -223,14 +152,12 @@ section Lines
 
 variable {ι : Type*} {T : ℕ}
 
-/-- Vectors orthogonal to two points of `ℝ²₊₊` on one ray are parallel:
-`det (D, D') ⟨x, y⟩ = 0` is a linear combination of the hypotheses. -/
-theorem det2_eq_zero_of_ip_eq_zero {D D' x y : ℝ × ℝ} (hx : x ∈ orthant) (hy : y ∈ orthant)
-    (hxy : x.1 * y.2 = x.2 * y.1) (hD : ip D x = 0) (hD' : ip D' y = 0) : det2 D D' = 0 := by
-  have h := mul_pos (mem_orthant.1 hx).2 (mem_orthant.1 hy).2
+/-- Vectors orthogonal to one point of `ℝ²₊₊` are parallel: `det (D, D') x₂` is a linear
+combination of the hypotheses. -/
+theorem det2_eq_zero_of_ip_eq_zero {D D' x : ℝ × ℝ} (hx : x ∈ orthant) (hD : ip D x = 0)
+    (hD' : ip D' x = 0) : det2 D D' = 0 := by
   unfold det2 ip at *
-  exact mul_right_cancel₀ h.ne'
-    (by linear_combination D.1 * x.2 * hD' - D'.1 * y.2 * hD + D.1 * D'.1 * hxy)
+  exact mul_right_cancel₀ (mem_orthant.1 hx).2.ne' (by linear_combination D.1 * hD' - D'.1 * hD)
 
 /-- For `s ≠ t` the system `⟨p_s, y⟩ = ⟨p_t, y⟩ = 1` has at most one solution: two solutions
 would make `p_s, p_t` parallel, hence equal. -/
@@ -264,41 +191,6 @@ vectors vanishes at `ξ` only if it vanishes identically in `ξ`. -/
 def GenericLines (ξ : ι → ℝ × ℝ) (P : Fin T → ℝ × ℝ) : Prop :=
   ∀ a b c d : ι × Fin T, (∃ ζ, det2 (coefDiff P a b ζ) (coefDiff P c d ζ) ≠ 0) →
     det2 (coefDiff P a b ξ) (coefDiff P c d ξ) ≠ 0
-
-/-- **Two different pairs of crossing prices.** For lines `j ≠ k` and `j' ≠ k'` the determinant
-`det (a_{j s} - a_{k t}, a_{j' s'} - a_{k' t'})` does not vanish identically in `ξ`: if
-`{j', k'} ⊄ {j, k}`, take `ζ = (1, 0)` at `j`, `(0, 1)` at the new line and `0` elsewhere;
-otherwise its values at four choices of `(ζ_j, ζ_k)` make the pairs proportional, excluded by
-`not_dilate`. -/
-theorem PricesGeneralPosition.exists_det2_ne_zero {P : Fin T → ℝ × ℝ}
-    (hP : PricesGeneralPosition P) {s t s' t' : Fin T} (hd : PairsDiffer s t s' t')
-    (hc : Crossing (P s) (P t)) (hc' : Crossing (P s') (P t')) {j k j' k' : ι} (hjk : j ≠ k)
-    (hj'k' : j' ≠ k') :
-    ∃ ζ : ι → ℝ × ℝ, det2 (coefDiff P (j, s) (k, t) ζ) (coefDiff P (j', s') (k', t') ζ) ≠ 0 := by
-  classical
-  wlog h : (j' ≠ j ∧ j' ≠ k) ∨ (j' = j ∧ k' = k) generalizing s' t' j' k'
-  · obtain ⟨ζ, hζ⟩ := this ⟨hd.1, hd.2.1.symm, fun h => hd.2.2 h.symm⟩ hc'.symm hj'k'.symm
-      (by grind)
-    refine ⟨ζ, fun e => hζ ?_⟩
-    simp only [coefDiff_apply, det2, Prod.fst_sub, Prod.snd_sub] at e ⊢
-    linear_combination -e
-  obtain ⟨hs1, hs2⟩ := NeoTiling.mem_orthant.mp (hP.mem_orthant s)
-  rcases h with h | ⟨rfl, rfl⟩
-  · refine ⟨Pi.single j (1, 0) + Pi.single j' (0, 1), ?_⟩
-    simp only [coefDiff_apply, det2, hadamard, Pi.add_apply, Pi.single_apply, if_neg h.1.symm,
-      if_neg h.2.symm, if_neg hjk.symm, if_neg h.1, if_neg hj'k'.symm]
-    split_ifs <;> simp [hs1.ne', (NeoTiling.mem_orthant.mp (hP.mem_orthant s')).2.ne']
-  by_contra H
-  push_neg at H
-  have e1 := H (Pi.single j' (1, 1))
-  have e3 := H (Pi.single j' (1, 0) + Pi.single k' (0, 1))
-  have e4 := H (Pi.single j' (0, 1) + Pi.single k' (1, 0))
-  simp [det2, hadamard, hjk, hjk.symm] at e1 e3 e4
-  refine hP.not_dilate hd hc hc' (μ := (P s').1 / (P s).1) (Prod.ext ?_ ?_) (Prod.ext ?_ ?_) <;>
-    simp only [Prod.smul_fst, Prod.smul_snd, smul_eq_mul] <;> field_simp
-  · linear_combination e1
-  · exact mul_left_cancel₀ hs2.ne' (by linear_combination (P s).1 * e4 + (P t).1 * e1)
-  · linear_combination -e3
 
 /-- Coefficient vectors of two different curves differ: for one line by injectivity of
 `ξ_j ∘ ·`, for lines `j ≠ k` by genericity (witness `ζ_j = (1, 0)`, `ζ_k = (0, 1)`). -/
@@ -334,61 +226,68 @@ theorem NoSharedLine.ne (hS : NoSharedLine ξ P) (hξ : ∀ j, ξ j ∈ orthant)
   rw [hadamard_hinv_hadamard (hξ j)] at this
   rcases this with h | h <;> linarith [hx.2.1, hx.2.2]
 
-/-- **Active lines** at a common point `x` of the curves `s ≠ t` of `polyMin ξ`: `x ∈ ℝ²₊₊` and the
-prices cross (`mem_orthant_crossing`); lines `j ≠ k` are active for `s` and `t`
+/-- **Active lines** at a common point `x` of the curves `s ≠ t` of `polyMin ξ`: `x ∈ ℝ²₊₊`
+(`mem_orthant_of_mem_pairIntersections`); lines `j ≠ k` are active for `s` and `t`
 (`NoSharedLine.ne`); `j` is the only line active for `s` (a second one would be concurrent with
 `j` and `k`, which genericity excludes), so `a_{j s}` is the only supergradient of
 `polyMin ξ (p_s ∘ ·)` at `x` (`superdiff_polyMin_subset`). -/
 theorem exists_active (hξ : ∀ j, ξ j ∈ orthant) (hP : PricesGeneralPosition P)
     (hS : NoSharedLine ξ P) (hG : GenericLines ξ P) {s t : Fin T} (hst : s ≠ t) {x : ℝ × ℝ}
     (hx : x ∈ pairIntersections (polyMin ξ) (P s) (P t)) :
-    x ∈ orthant ∧ Crossing (P s) (P t) ∧ ∃ j k, j ≠ k ∧ ip (hadamard (ξ j) (P s)) x = 1 ∧
-      ip (hadamard (ξ k) (P t)) x = 1 ∧
+    x ∈ orthant ∧ ∃ j k, ip (hadamard (ξ j) (P s)) x = 1 ∧ ip (hadamard (ξ k) (P t)) x = 1 ∧
       superdiff (fun y => polyMin ξ (hadamard (P s) y)) x ⊆ {hadamard (ξ j) (P s)} := by
   classical
-  obtain ⟨hxo, hxc⟩ := (isPosNeoclassical_polyMin hξ).mem_orthant_crossing (hP.mem_orthant s)
-    (hP.mem_orthant t) (hP.fst_injective.ne hst) (hP.snd_injective.ne hst) hx
+  have hxo := (isPosNeoclassical_polyMin hξ).mem_orthant_of_mem_pairIntersections
+    (hP.mem_orthant s) (hP.mem_orthant t) (hP.fst_injective.ne hst) (hP.snd_injective.ne hst) hx
   obtain ⟨j, hj⟩ := exists_ip_eq_polyMin ξ (hadamard (P s) x)
   obtain ⟨k, hk⟩ := exists_ip_eq_polyMin ξ (hadamard (P t) x)
   rw [ip_hadamard, hx.2.1] at hj
   rw [ip_hadamard, hx.2.2] at hk
   have hjk := hS.ne hξ hst hx hj hk
-  refine ⟨hxo, hxc, j, k, hjk, hj, hk, ?_⟩
+  refine ⟨hxo, j, k, hj, hk, ?_⟩
   rw [show (fun y => polyMin ξ (hadamard (P s) y)) = _ from funext (polyMin_hadamard ξ (P s))]
   refine superdiff_polyMin_subset hxo fun l hlj => hj ▸ lt_of_le_of_ne ?_ fun heq => ?_
   · simpa [ip_hadamard, hx.2.1] using polyMin_le ξ (hadamard (P s) x) l
   have hlk := hS.ne hξ hst hx heq.symm hk
   obtain ⟨hs1, hs2⟩ := mem_orthant.mp (hP.mem_orthant s)
   refine hG (j, s) (k, t) (l, s) (k, t) ⟨Pi.single j (1, 0) + Pi.single l (0, 1), ?_⟩
-    (det2_eq_zero_of_ip_eq_zero hxo hxo (mul_comm _ _) (by simp [ip_sub, hj, hk])
+    (det2_eq_zero_of_ip_eq_zero hxo (by simp [ip_sub, hj, hk])
       (by simp [ip_sub, ← heq, hk]))
   simp [det2, hadamard, hlj, hjk.symm, hlk.symm, Ne.symm hlj, hs1.ne', hs2.ne']
 
-/-- **General position of a polygonal function** (through `generalPosition_iff`). By
-`exists_active`, intersection points of the curves `s, t` lie on two lines `(j, s)`, `(k, t)`
-with different coefficient vectors (`coef_ne`), so each pair of lines contributes at most one
-point (`subsingleton_solutions`), and the superdifferentials are the different points `a_{j s}`,
-`a_{k t}`. Two intersection points `x, y` of different pairs on one ray make
-`a_{j s} - a_{k t}` and `a_{j' s'} - a_{k' t'}` parallel (`det2_eq_zero_of_ip_eq_zero`), which
-genericity excludes (`exists_det2_ne_zero`). -/
+/-- **General position of a polygonal function.** By `exists_active`, intersection points of the
+curves `s, t` lie on two lines `(j, s)`, `(k, t)` with different coefficient vectors (`coef_ne`),
+so each pair of lines contributes at most one point (`subsingleton_solutions`), and the
+superdifferentials are the different points `a_{j s}`, `a_{k t}`. No triple: if `x` lies on the curves `r, s, t`, the active lines
+`j, k, l` are pairwise different (`NoSharedLine.ne`), and `a_{j r} - a_{k s}`,
+`a_{j r} - a_{l t}` are both orthogonal to `x`, so parallel (`det2_eq_zero_of_ip_eq_zero`);
+genericity excludes this (witness `ζ_j = (1, 0)`, `ζ_k = (0, 1)`). -/
 theorem generalPosition_polyMin (hξ : ∀ j, ξ j ∈ orthant) (hP : PricesGeneralPosition P)
     (hS : NoSharedLine ξ P) (hG : GenericLines ξ P) : GeneralPosition (polyMin ξ) P := by
-  refine (isPosNeoclassical_polyMin hξ).generalPosition_iff.mpr
-    ⟨hP.mem_orthant, fun s t hst => (pairGood_iff (hP.mem_orthant s)).mp ⟨?_, fun x hx => ?_⟩, ?_⟩
-  · refine (Set.finite_iUnion fun j => Set.finite_iUnion fun k =>
-      (subsingleton_solutions (hG.coef_ne hP hξ hst j k)).finite).subset fun z hz => ?_
-    obtain ⟨-, -, j, k, -, hj, hk, -⟩ := exists_active hξ hP hS hG hst hz
+  classical
+  refine ⟨hP.mem_orthant, fun s t hst => ?_, fun s t hst x hx => ?_,
+    fun r s t hrs hst hrt x hx ht => ?_⟩
+  · refine (Set.finite_iUnion fun j => Set.finite_iUnion fun k => (subsingleton_solutions
+      (hG.coef_ne hP hξ hst j k)).finite).subset fun z hz => ?_
+    obtain ⟨-, j, k, hj, hk, -⟩ := exists_active hξ hP hS hG hst hz
     exact mem_iUnion₂.mpr ⟨j, k, hj, hk⟩
-  · obtain ⟨hxo, -, j, -, -, -, -, hsupS⟩ := exists_active hξ hP hS hG hst hx
-    obtain ⟨-, -, j₂, -, -, -, -, hsupT⟩ := exists_active hξ hP hS hG hst.symm
+  · obtain ⟨hxo, j, -, -, -, hsupS⟩ := exists_active hξ hP hS hG hst hx
+    obtain ⟨-, j₂, -, -, -, hsupT⟩ := exists_active hξ hP hS hG hst.symm
       (pairIntersections_comm (polyMin ξ) (P s) (P t) ▸ hx)
-    exact ⟨hxo, Disjoint.mono hsupS hsupT (disjoint_singleton.mpr (hG.coef_ne hP hξ hst j j₂))⟩
-  · intro s t s' t' hd x hx y hy hxy
-    obtain ⟨hxo, hxc, j, k, hjk, hj, hk, -⟩ := exists_active hξ hP hS hG hd.1 hx
-    obtain ⟨hyo, hyc, j', k', hjk', hj', hk', -⟩ := exists_active hξ hP hS hG hd.2.1 hy
-    exact hG (j, s) (k, t) (j', s') (k', t') (hP.exists_det2_ne_zero hd hxc hyc hjk hjk')
-      (det2_eq_zero_of_ip_eq_zero hxo hyo hxy (by simp [ip_sub, hj, hk])
-        (by simp [ip_sub, hj', hk']))
+    exact ⟨hxo, Disjoint.mono hsupS hsupT
+      (disjoint_singleton.mpr (hG.coef_ne hP hξ hst j j₂))⟩
+  obtain ⟨hxo, j, k, hj, hk, -⟩ := exists_active hξ hP hS hG hrs hx
+  obtain ⟨l, hl⟩ := exists_ip_eq_polyMin ξ (hadamard (P t) x)
+  rw [ip_hadamard, ht] at hl
+  have hjk := hS.ne hξ hrs hx hj hk
+  have hjl := hS.ne hξ hrt ⟨hx.1, hx.2.1, ht⟩ hj hl
+  have hkl := hS.ne hξ hst ⟨hx.1, hx.2.2, ht⟩ hk hl
+  obtain ⟨hr1, -⟩ := mem_orthant.mp (hP.mem_orthant r)
+  obtain ⟨-, hs2⟩ := mem_orthant.mp (hP.mem_orthant s)
+  refine hG (j, r) (k, s) (j, r) (l, t) ⟨Pi.single j (1, 0) + Pi.single k (0, 1), ?_⟩
+    (det2_eq_zero_of_ip_eq_zero hxo (by simp [ip_sub, hj, hk])
+      (by simp [ip_sub, hj, hl]))
+  simp [det2, hadamard, hjk, hjk.symm, hjl.symm, hkl.symm, hr1.ne', hs2.ne']
 
 end Lines
 

@@ -6,8 +6,7 @@ import NeoTiling.Transversality
 For a strictly positive neoclassical `h` and a finite family of prices `P = (p_t)_{t < T}` in
 `ℝ²₊₊` consider the unit level curves `h (p_t ∘ x) = 1`. The pair `(h, P)` is in *general
 position* (`GeneralPosition`) if any two of the curves meet in finitely many points, all of them
-transversal, no three of the curves pass through one point, and no two distinct intersection
-points lie on one ray from the origin.
+transversal, and no three of the curves pass through one point.
 
 Main results: general position is stable under small perturbations of the prices
 (`IsPosNeoclassical.generalPosition_stable`) and is attained in every nonempty open set of prices
@@ -18,8 +17,9 @@ The substitution `y = p ∘ x` turns the curves of a pair `(p, q)` into the curv
 many intersections, all transversal) is an open condition on `r`: in the main chamber
 `r₁ > 1 > r₂` it is equivalent to one-variable transversality of `tau r`, and the bad
 one-variable parameters near a point form a closed set (the construction of
-`IsProfile.exists_open_transversal` without Sard). Conditions 2 and 3 of general position are
-merged into separation by rays (`RaySep`) of the intersection points of two different pairs.
+`IsProfile.exists_open_transversal` without Sard). Condition 2 of general position is
+equivalent to separation by rays (`RaySep`) of the intersection points of two pairs with a common
+index, since a ray meets each curve once by homogeneity.
 -/
 
 open Set Filter Topology
@@ -42,8 +42,7 @@ def PairTransversalAt (h : ℝ × ℝ → ℝ) (p q x₀ : ℝ × ℝ) : Prop :=
 is in general position if all prices lie in `ℝ²₊₊` and
 1. for `s ≠ t` the curves `h (p_s ∘ x) = 1` and `h (p_t ∘ x) = 1` meet in finitely many points,
    all of them transversal;
-2. no three curves with pairwise distinct indices pass through one point;
-3. no two distinct intersection points lie on one ray `x₁ = α x₂`, `α > 0`. -/
+2. no three curves with pairwise distinct indices pass through one point. -/
 structure GeneralPosition (h : ℝ × ℝ → ℝ) {T : ℕ} (P : Fin T → ℝ × ℝ) : Prop where
   mem_orthant : ∀ t, P t ∈ orthant
   finite : ∀ s t, s ≠ t → (pairIntersections h (P s) (P t)).Finite
@@ -51,22 +50,16 @@ structure GeneralPosition (h : ℝ × ℝ → ℝ) {T : ℕ} (P : Fin T → ℝ 
     PairTransversalAt h (P s) (P t) x
   no_triple : ∀ r s t, r ≠ s → s ≠ t → r ≠ t → ∀ x ∈ pairIntersections h (P r) (P s),
     h (hadamard (P t) x) ≠ 1
-  rays : ∀ s t s' t', s ≠ t → s' ≠ t' → ∀ x ∈ pairIntersections h (P s) (P t),
-    ∀ y ∈ pairIntersections h (P s') (P t'), x ≠ y → ¬ ∃ α > 0, x.1 = α * x.2 ∧ y.1 = α * y.2
 
 /-- `r` is a *good price*: the curves `h x = 1` and `h (r ∘ x) = 1` meet in finitely many points,
 all of them transversal. -/
 def IsGoodPrice (h : ℝ × ℝ → ℝ) (r : ℝ × ℝ) : Prop :=
   (levelIntersections h r).Finite ∧ ∀ x ∈ levelIntersections h r, TransversalAt h r x
 
-/-- `{s, t}` and `{s', t'}` are two different unordered pairs of distinct indices. -/
-def PairsDiffer {T : ℕ} (s t s' t' : Fin T) : Prop :=
-  s ≠ t ∧ s' ≠ t' ∧ ¬((s = s' ∧ t = t') ∨ (s = t' ∧ t = s'))
-
-/-- No intersection point of the pair `(s, t)` lies on one ray from the origin with an
-intersection point of the pair `(s', t')`. -/
-def RaySep (h : ℝ × ℝ → ℝ) {T : ℕ} (P : Fin T → ℝ × ℝ) (s t s' t' : Fin T) : Prop :=
-  ∀ x ∈ pairIntersections h (P s) (P t), ∀ y ∈ pairIntersections h (P s') (P t'),
+/-- No intersection point of the pair `(r, s)` lies on one ray from the origin with an
+intersection point of the pair `(r, t)`. -/
+def RaySep (h : ℝ × ℝ → ℝ) {T : ℕ} (P : Fin T → ℝ × ℝ) (r s t : Fin T) : Prop :=
+  ∀ x ∈ pairIntersections h (P r) (P s), ∀ y ∈ pairIntersections h (P r) (P t),
     x.1 * y.2 ≠ x.2 * y.1
 
 theorem pairIntersections_comm (h : ℝ × ℝ → ℝ) (p q : ℝ × ℝ) :
@@ -321,49 +314,36 @@ theorem apply_hadamard_of_cross_eq {p x y : ℝ × ℝ} (hp : p ∈ quadrant) (h
   · rw [hpy, ← hc0, zero_smul, hh.map_zero, zero_mul]
   · rw [hpy, hh.homogeneous _ hc0 _ (hadamard_mem_quadrant hp (orthant_subset_quadrant hx))]
 
-/-- General position in terms of good prices and separation by rays. -/
+/-- General position in terms of good prices and separation by rays of pairs with a common
+index: a triple point `x` of the curves `r, s, t` is a point of the pairs `(r, s)` and `(r, t)`
+on one ray; conversely two points of these pairs on one ray lie on the curve `r`, hence
+coincide by homogeneity (`apply_hadamard_of_cross_eq`) and give a triple point. -/
 theorem generalPosition_iff {T : ℕ} {P : Fin T → ℝ × ℝ} :
     GeneralPosition h P ↔ (∀ t, P t ∈ orthant) ∧
       (∀ s t, s ≠ t → IsGoodPrice h (hadamard (hinv (P s)) (P t))) ∧
-      ∀ s t s' t', PairsDiffer s t s' t' → RaySep h P s t s' t' := by
+      ∀ r s t, r ≠ s → s ≠ t → r ≠ t → RaySep h P r s t := by
   constructor
   · intro GP
     refine ⟨GP.mem_orthant, fun s t hst => (pairGood_iff (GP.mem_orthant s)).mp
-      ⟨GP.finite s t hst, GP.transversal s t hst⟩, fun s t s' t' hd x hx y hy hc => ?_⟩
-    rcases eq_or_ne x y with rfl | hxy
-    · -- `x = y` lies on three curves
-      obtain ⟨hk1, hk2⟩ | ⟨hk1, hk2⟩ : (s' ≠ s ∧ s' ≠ t) ∨ (t' ≠ s ∧ t' ≠ t) := by
-        unfold PairsDiffer at hd; omega
-      exacts [GP.no_triple s t s' hd.1 hk2.symm hk1.symm x hx hy.2.1,
-        GP.no_triple s t t' hd.1 hk2.symm hk1.symm x hx hy.2.2]
-    · -- `x ≠ y` lie on the ray `z₁ = (x₁ / x₂) z₂`
-      obtain ⟨hx1, hx2⟩ := mem_orthant.mp (GP.transversal s t hd.1 x hx).1
-      exact GP.rays s t s' t' hd.1 hd.2.1 x hx y hy hxy
-        ⟨x.1 / x.2, div_pos hx1 hx2, by field_simp, by field_simp; linarith⟩
+      ⟨GP.finite s t hst, GP.transversal s t hst⟩, fun r s t hrs hst hrt x hx y hy hc => ?_⟩
+    -- `y = (y₂ / x₂) • x` on the curve of `p_r` forces `y = x`, a triple point
+    have hxo := (GP.transversal r s hrs x hx).1
+    have hy2 := hh.apply_hadamard_of_cross_eq (orthant_subset_quadrant (GP.mem_orthant r)) hxo
+      hy.1 hc
+    rw [hx.2.1, hy.2.1, mul_one, eq_comm, div_eq_one_iff_eq (mem_orthant.mp hxo).2.ne'] at hy2
+    have hyx : y = x :=
+      Prod.ext (mul_left_cancel₀ (mem_orthant.mp hxo).2.ne' (by rw [← hc, hy2]; ring)) hy2
+    exact GP.no_triple r s t hrs hst hrt x hx (hyx ▸ hy.2.2)
   · rintro ⟨hO, hGood, hRS⟩
     have hPG := fun s t hst => (pairGood_iff (hO s)).mpr (hGood s t hst)
-    refine ⟨hO, fun s t hst => (hPG s t hst).1, fun s t hst => (hPG s t hst).2,
-      fun r s t hrs hst hrt x hx heq => ?_, ?_⟩
-    · -- a common point of `(r, s)` and `(r, t)` contradicts `RaySep r s r t`
-      exact hRS r s r t ⟨hrs, hrt, by omega⟩ x hx x ⟨hx.1, hx.2.1, heq⟩ (mul_comm _ _)
-    rintro s t s' t' hst hs't' x hx y hy hxy ⟨α, -, hxa, hya⟩
-    have hc : x.1 * y.2 = x.2 * y.1 := by rw [hxa, hya]; ring
-    by_cases hpd : (s = s' ∧ t = t') ∨ (s = t' ∧ t = s')
-    · -- the same pair: `y = (y₂ / x₂) • x` on the curve of `p_s` forces `y = x`
-      have hys : h (hadamard (P s) y) = 1 := by
-        rcases hpd with ⟨rfl, -⟩ | ⟨rfl, -⟩; exacts [hy.2.1, hy.2.2]
-      have hxo := ((hPG s t hst).2 x hx).1
-      have hy2 := hh.apply_hadamard_of_cross_eq (orthant_subset_quadrant (hO s)) hxo hy.1 hc
-      rw [hx.2.1, hys, mul_one, eq_comm, div_eq_one_iff_eq (mem_orthant.mp hxo).2.ne'] at hy2
-      exact hxy (Prod.ext (mul_left_cancel₀ (mem_orthant.mp hxo).2.ne' (by rw [← hc, hy2]; ring))
-        hy2).symm
-    · -- different pairs contradict `RaySep`
-      exact hRS s t s' t' ⟨hst, hs't', hpd⟩ x hx y hy hc
+    exact ⟨hO, fun s t hst => (hPG s t hst).1, fun s t hst => (hPG s t hst).2,
+      fun r s t hrs hst hrt x hx heq =>
+        hRS r s t hrs hst hrt x hx x ⟨hx.1, hx.2.1, heq⟩ (mul_comm _ _)⟩
 
 /-- **Separation by rays is open**: intersection points stay bounded for nearby prices and their
 limits are intersection points, so a sequence of bad families has a bad limit. -/
 theorem eventually_raySep {T : ℕ} {P₀ : Fin T → ℝ × ℝ} (hP₀ : ∀ t, P₀ t ∈ orthant)
-    {s t s' t' : Fin T} (H : RaySep h P₀ s t s' t') : ∀ᶠ P in 𝓝 P₀, RaySep h P s t s' t' := by
+    {r s t : Fin T} (H : RaySep h P₀ r s t) : ∀ᶠ P in 𝓝 P₀, RaySep h P r s t := by
   by_contra hcontra
   -- near `P₀` the coordinates of `p_u` stay above half of their values at `P₀`
   have hnear : ∀ u, ∀ᶠ P in 𝓝 P₀, (P₀ u).1 / 2 ≤ (P u).1 ∧ (P₀ u).2 / 2 ≤ (P u).2 := fun u =>
@@ -372,7 +352,7 @@ theorem eventually_raySep {T : ℕ} {P₀ : Fin T → ℝ × ℝ} (hP₀ : ∀ t
   -- a sequence of bad families `Q n → P₀` with bad points `x n`, `y n`
   obtain ⟨Q, hQ, hQbad⟩ := exists_seq_forall_of_frequently
     ((not_eventually.mp hcontra).and_eventually ((eventually_mem_orthant hP₀).and
-      ((hnear s).and (hnear s'))))
+      (hnear r)))
   choose x hx y hy hxy using fun n => by
     have := (hQbad n).1; simp only [RaySep, not_forall, not_not, exists_prop] at this; exact this
   -- the bad points lie in a compact box (`linear_le`): pass to a convergent subsequence
@@ -388,8 +368,8 @@ theorem eventually_raySep {T : ℕ} {P₀ : Fin T → ℝ × ℝ} (hP₀ : ∀ t
       nlinarith [mul_nonneg (sub_nonneg.2 hp.1) h1, mul_nonneg (sub_nonneg.2 hp.2) h2,
         mul_nonneg (ha.le.trans hp.1) h1, mul_nonneg (hb.le.trans hp.2) h2]
   have hK := fun n => Set.mk_mem_prod
-    (hbox (half_pos (hP₀ s).1) (half_pos (hP₀ s).2) (hQbad n).2.2.1 (hx n))
-    (hbox (half_pos (hP₀ s').1) (half_pos (hP₀ s').2) (hQbad n).2.2.2 (hy n))
+    (hbox (half_pos (hP₀ r).1) (half_pos (hP₀ r).2) (hQbad n).2.2 (hx n))
+    (hbox (half_pos (hP₀ r).1) (half_pos (hP₀ r).2) (hQbad n).2.2 (hy n))
   obtain ⟨⟨x₀, y₀⟩, -, φ, hφ, hlim⟩ :=
     ((isCompact_Icc.prod isCompact_Icc).prod (isCompact_Icc.prod isCompact_Icc)).tendsto_subseq hK
   -- the intersection points and the cross equation pass to the limit
@@ -407,44 +387,38 @@ theorem eventually_raySep {T : ℕ} {P₀ : Fin T → ℝ × ℝ} (hP₀ : ∀ t
     exact ⟨hu.1.2, hu.2, (hcurve v fun n => (hzn n).2.2).2⟩
   have hc : (x₀, y₀) ∈ {z : (ℝ × ℝ) × (ℝ × ℝ) | z.1.1 * z.2.2 = z.1.2 * z.2.1} :=
     (isClosed_eq (by fun_prop) (by fun_prop)).mem_of_tendsto hlim (.of_forall fun n => hxy (φ n))
-  exact H x₀ (hpair s t _ _ ((continuous_fst.tendsto _).comp hlim) fun n => hx (φ n))
-    y₀ (hpair s' t' _ _ ((continuous_snd.tendsto _).comp hlim) fun n => hy (φ n)) hc
+  exact H x₀ (hpair r s _ _ ((continuous_fst.tendsto _).comp hlim) fun n => hx (φ n))
+    y₀ (hpair r t _ _ ((continuous_snd.tendsto _).comp hlim) fun n => hy (φ n)) hc
 
-/-- **Separation by rays is dense.** Scale `p_k`, `k ∈ {s', t'} \ {s, t}`, by `λ ≠ 1` near `1`:
-each of the finitely many points of `(s, t)` is on a ray with a point of `(s', t')` for one `λ`. -/
+/-- **Separation by rays is dense.** Scale `p_t` by `λ ≠ 1` near `1`: each of the finitely many
+points of `(r, s)` is on a ray with a point of `(r, t)` for one `λ`. -/
 theorem exists_raySep_near {T : ℕ} {W : Set (Fin T → ℝ × ℝ)} (hW : IsOpen W)
-    {P₀ : Fin T → ℝ × ℝ} (hP₀ : P₀ ∈ W) (hO : ∀ t, P₀ t ∈ orthant) {s t s' t' : Fin T}
-    (hd : PairsDiffer s t s' t') (hG : IsGoodPrice h (hadamard (hinv (P₀ s)) (P₀ t))) :
-    ∃ P ∈ W, RaySep h P s t s' t' := by
-  wlog hk : t' ≠ s ∧ t' ≠ t generalizing s' t'
-  · -- otherwise `s' ∉ {s, t}`: swap `s'` and `t'`
-    unfold PairsDiffer at hd
-    obtain ⟨P, hPW, hR⟩ := this (s' := t') (t' := s') (by unfold PairsDiffer; omega) (by omega)
-    exact ⟨P, hPW, fun x hx y hy => hR x hx y (pairIntersections_comm h _ _ ▸ hy)⟩
-  obtain ⟨hFfin, htrF⟩ := (pairGood_iff (hO s)).mpr hG
-  -- the bad scalings `λ = h (p_s' ∘ x) / h (p_t' ∘ x)`, `x` an intersection point of `(s, t)`
-  set B : Set ℝ := (fun x => h (hadamard (P₀ s') x) / h (hadamard (P₀ t') x)) ''
-    pairIntersections h (P₀ s) (P₀ t)
-  -- scale `p_t'` by some `λ ≠ 1` near `1` outside `B`
+    {P₀ : Fin T → ℝ × ℝ} (hP₀ : P₀ ∈ W) (hO : ∀ t, P₀ t ∈ orthant) {r s t : Fin T}
+    (hst : s ≠ t) (hrt : r ≠ t) (hG : IsGoodPrice h (hadamard (hinv (P₀ r)) (P₀ s))) :
+    ∃ P ∈ W, RaySep h P r s t := by
+  obtain ⟨hFfin, htrF⟩ := (pairGood_iff (hO r)).mpr hG
+  -- the bad scalings `λ = h (p_r ∘ x) / h (p_t ∘ x)`, `x` an intersection point of `(r, s)`
+  set B : Set ℝ := (fun x => h (hadamard (P₀ r) x) / h (hadamard (P₀ t) x)) ''
+    pairIntersections h (P₀ r) (P₀ s)
+  -- scale `p_t` by some `λ ≠ 1` near `1` outside `B`
   have hev : ∀ᶠ lam in 𝓝 (1 : ℝ),
-      Function.update P₀ t' (lam • P₀ t') ∈ W ∧ 0 < lam ∧ lam ∉ B \ {1} :=
-    ((continuous_const.update t' (continuous_id.smul continuous_const)).continuousAt.eventually_mem
+      Function.update P₀ t (lam • P₀ t) ∈ W ∧ 0 < lam ∧ lam ∉ B \ {1} :=
+    ((continuous_const.update t (continuous_id.smul continuous_const)).continuousAt.eventually_mem
       (by simpa using hW.mem_nhds hP₀)).and ((lt_mem_nhds one_pos).and
         ((hFfin.image _).diff.isClosed.isOpen_compl.mem_nhds fun h1 => h1.2 rfl))
   obtain ⟨lam, ⟨hlW, hl0, hlB⟩, hl1⟩ := ((hev.filter_mono nhdsWithin_le_nhds).and
     (eventually_mem_nhdsWithin (s := {1}ᶜ))).exists
   refine ⟨_, hlW, fun x hx y hy hc => ?_⟩
-  simp only [Function.update_of_ne hk.1.symm, Function.update_of_ne hk.2.symm,
-    Function.update_of_ne hd.2.1, Function.update_self] at hx hy
+  simp only [Function.update_of_ne hrt, Function.update_of_ne hst, Function.update_self] at hx hy
   -- along the ray of `x`: `1 = c a = c λ b`, `c = y₂ / x₂`, hence `λ = a / b ∈ B`
-  have hA := hh.apply_hadamard_of_cross_eq (orthant_subset_quadrant (hO s')) (htrF x hx).1 hy.1 hc
+  have hA := hh.apply_hadamard_of_cross_eq (orthant_subset_quadrant (hO r)) (htrF x hx).1 hy.1 hc
   have hB := hh.apply_hadamard_of_cross_eq
-    (quadrant_smul hl0.le (orthant_subset_quadrant (hO t'))) (htrF x hx).1 hy.1 hc
+    (quadrant_smul hl0.le (orthant_subset_quadrant (hO t))) (htrF x hx).1 hy.1 hc
   rw [hy.2.1] at hA
-  rw [hy.2.2, show hadamard (lam • P₀ t') x = lam • hadamard (P₀ t') x by ext <;> simp [mul_assoc],
-    hh.homogeneous lam hl0 _ (hadamard_mem_quadrant (orthant_subset_quadrant (hO t')) hx.1)] at hB
+  rw [hy.2.2, show hadamard (lam • P₀ t) x = lam • hadamard (P₀ t) x by ext <;> simp [mul_assoc],
+    hh.homogeneous lam hl0 _ (hadamard_mem_quadrant (orthant_subset_quadrant (hO t)) hx.1)] at hB
   have hc0 : y.2 / x.2 ≠ 0 := fun h0 => by simp [h0] at hA
-  have hb : h (hadamard (P₀ t') x) ≠ 0 := fun h0 => by simp [h0] at hB
+  have hb : h (hadamard (P₀ t) x) ≠ 0 := fun h0 => by simp [h0] at hB
   exact hlB ⟨⟨x, hx, (div_eq_iff hb).mpr (mul_left_cancel₀ hc0 (hA.symm.trans hB))⟩, hl1⟩
 
 end IsPosNeoclassical
@@ -531,8 +505,9 @@ Proof: by `generalPosition_iff` general position is a finite conjunction of cond
 theorem generalPosition_stable {T : ℕ} {P : Fin T → ℝ × ℝ} (hP : GeneralPosition h P) :
     ∃ V : Set (Fin T → ℝ × ℝ), IsOpen V ∧ P ∈ V ∧ ∀ Q ∈ V, GeneralPosition h Q := by
   obtain ⟨hO, hG, hR⟩ := hh.generalPosition_iff.mp hP
-  have hR' : ∀ᶠ Q in 𝓝 P, ∀ s t s' t', PairsDiffer s t s' t' → RaySep h Q s t s' t' := by
-    simpa only [eventually_all] using fun s t s' t' hd => hh.eventually_raySep hO (hR s t s' t' hd)
+  have hR' : ∀ᶠ Q in 𝓝 P, ∀ r s t, r ≠ s → s ≠ t → r ≠ t → RaySep h Q r s t := by
+    simpa only [eventually_all] using
+      fun r s t hrs hst hrt => hh.eventually_raySep hO (hR r s t hrs hst hrt)
   obtain ⟨V, hVsub, hVo, hPV⟩ := eventually_nhds_iff.mp ((hh.eventually_pairsGood hO hG).and hR')
   exact ⟨V, hVo, hPV, fun Q hQ =>
     hh.generalPosition_iff.mpr ⟨(hVsub Q hQ).1.1, (hVsub Q hQ).1.2, (hVsub Q hQ).2⟩⟩
@@ -544,8 +519,7 @@ Proof: each condition of `generalPosition_iff` is open and dense relative to a s
 finite intersection meets `U` (`exists_mem_inter_iInter`). First the pairs, relative to
 `(ℝ²₊₊)^T`: moving `p_t` to `p_s ∘ q` with `q` given by lemma 2.9 makes the pair `(s, t)` good
 (`exists_pairGood_near`). Then the rays, relative to the families with all pairs good: scaling
-one price of the second pair moves its intersection points along their rays
-(`exists_raySep_near`). -/
+one curve of a triple moves its intersection points along their rays (`exists_raySep_near`). -/
 theorem exists_generalPosition {T : ℕ} {U : Set (Fin T → ℝ × ℝ)} (hU : IsOpen U)
     (hUo : U ⊆ {P | ∀ t, P t ∈ orthant}) (hne : U.Nonempty) :
     ∃ P ∈ U, GeneralPosition h P := by
@@ -564,16 +538,16 @@ theorem exists_generalPosition {T : ℕ} {U : Set (Fin T → ℝ × ℝ)} (hU : 
     {P | (∀ t, P t ∈ orthant) ∧ ∀ s t, s ≠ t → IsGoodPrice h (hadamard (hinv (P s)) (P t))}
   have hA : IsOpen A := isOpen_iff_mem_nhds.mpr fun P hP => hh.eventually_pairsGood hP.1 hP.2
   obtain ⟨P, ⟨hPU, hPA⟩, hPR⟩ := exists_mem_inter_iInter (A := A)
-    (C := fun i : {i : Fin T × Fin T × Fin T × Fin T // PairsDiffer i.1 i.2.1 i.2.2.1 i.2.2.2} =>
-      {P | RaySep h P i.1.1 i.1.2.1 i.1.2.2.1 i.1.2.2.2})
+    (C := fun i : {i : Fin T × Fin T × Fin T // i.1 ≠ i.2.1 ∧ i.2.1 ≠ i.2.2 ∧ i.1 ≠ i.2.2} =>
+      {P | RaySep h P i.1.1 i.1.2.1 i.1.2.2})
     (fun _ _ hP => hh.eventually_raySep hP.1.1 hP.2)
     (fun i W hW ⟨P, hPW, hPA⟩ => by
       obtain ⟨Q, ⟨hQW, hQA⟩, hQR⟩ :=
-        hh.exists_raySep_near (hW.inter hA) ⟨hPW, hPA⟩ hPA.1 i.2 (hPA.2 _ _ i.2.1)
+        hh.exists_raySep_near (hW.inter hA) ⟨hPW, hPA⟩ hPA.1 i.2.2.1 i.2.2.2 (hPA.2 _ _ i.2.1)
       exact ⟨Q, ⟨hQW, hQA⟩, hQR⟩)
     hU ⟨P₁, hP₁U, hP₁O, fun s t hst => mem_iInter.mp hP₁G ⟨(s, t), hst⟩⟩
   exact ⟨P, hPU, hh.generalPosition_iff.mpr
-    ⟨hPA.1, hPA.2, fun s t s' t' hd => mem_iInter.mp hPR ⟨(s, t, s', t'), hd⟩⟩⟩
+    ⟨hPA.1, hPA.2, fun r s t hrs hst hrt => mem_iInter.mp hPR ⟨(r, s, t), hrs, hst, hrt⟩⟩⟩
 
 end IsPosNeoclassical
 
