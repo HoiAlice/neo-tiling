@@ -247,7 +247,7 @@ $v_1+\dots+v_k=0$, $v_i\in N_{A_i}(x_{0})$, следует $v_1=\dots=v_k=0$.
 \end{remark}
 
 \begin{definition}[Регулярная разрешимость]\label{def:regular-solvability}
-    Пусть $P=\set{p_t}_{t\in[T]}$ --- набор цен. Будем говорить, что вектор выпусков
+    Пусть $P:=\set{p_t\in\Rpp}_{t\in[T]}$ --- набор цен. Будем говорить, что вектор выпусков
     $y\in\Rpp[T]$ \textit{регулярно разрешим} при ценах $P$, если существуют функция
     $h\in\hat\Phi_2$, для которой пара $(h,P)$ находится в общем положении, и полная
     абсолютно непрерывная мера $\mu$ на $\Rp$, для которой $\mu(A_t)=y_t$ при всех
@@ -255,11 +255,34 @@ $v_1+\dots+v_k=0$, $v_i\in N_{A_i}(x_{0})$, следует $v_1=\dots=v_k=0$.
     \[A_t:=\set{x\in\Rpp\mid h(p_t\circ x)<1}.\]
 \end{definition}
 
+\begin{lemma}\label{lem:signature-points}
+    Рассмотрим неоклассическую функцию $h\in\Phi_{2}$ и набор цен $P:=\set{p_t\in\Rpp}_{t\in[T]}$.
+    Введём \textit{спектр} пары $\mathrm{Sp}(h,P) := \left\{S\subset[T] \mid \operatorname{int}\set{x\in\Rpp\mid h(p_t\circ x)<1\Leftrightarrow t\in S} \neq \emptyset\right\}$. Тогда вектор выпусков $y\in\Rpp[T]$ принадлежит конусу $\operatorname{cone}\set{\mathbf 1_S\mid S\in\mathrm{Sp}(h,P)}$, если и только если существует полная абсолютно непрерывная мера $\mu$ на $\Rp$, для которой при всех $t\in[T]$ выполнено интегральное условие $\mu(A_t)=y_t$, где $A_t:=\set{x\in\Rpp\mid h(p_t\circ x)<1}$.
+\end{lemma}
+
+\begin{proof}
+Множества $R_S:=\set{x\in\Rpp\mid h(p_t\circ x)<1\Leftrightarrow t\in S}$ разбивают $\Rpp$, и $A_t=\bigsqcup\limits_{S\ni t} R_S$, поэтому условия $\mu(A_t)=y_t$ означают $y=\sum_{S\neq\varnothing}\mu(R_S)\mathbf 1_S$. Кривые $h(p_t\circ x)=1$ имеют нулевую меру Лебега, поскольку их гомотетичные копии $h(p_t\circ x)=c$, $c>0$, попарно не пересекаются, а $R_S$ отличается от открытого множества лишь точками кривых; поэтому $\mu(R_S)=0$ при $S\notin\mathrm{Sp}(h,P)$. Обратно, разложение $y=\sum\limits_{S\in\mathrm{Sp}(h,P)} m_S \mathbf 1_S$ с $m_S\ge0$ задаёт массу $m_S$, которую можно распределить с плотностью по шару в $\operatorname{int}R_S$.
+\end{proof}
+
+\begin{lemma}\label{lem:gp-approx}
+    Пусть набор цен $P$ находится в общем положении и $h\in\Phi_2$. Тогда существует
+    $g\in\hat\Phi_2$, для которой пара $(g,P)$ находится в общем положении и
+    $\mathrm{Sp}(g,P)\supseteq\mathrm{Sp}(h,P)$.
+\end{lemma}
+
+\begin{proof}
+Выберем для каждого $S\in\mathrm{Sp}(h,P)$ точку $x_S\in\operatorname{int} R_S$, и введем множество $Z:=\set{p_t\circ x_S \mid t\in[T],S\in\mathrm{Sp}(h,P)}$ получив \textit{зазор} $\eta:=\min_{z\in Z}\abs{h(z)-1}>0$. Функция $H(x):=h(x)+\varepsilon\bigl(x^1+x^2+\tfrac{x^1x^2}{x^1+x^2}\bigr)$ при достаточно малом $\varepsilon>0$ отличается от $h$ на $Z$ меньше чем на $\eta/2$, а значит для каждого $z\in Z$ верно что $H(z)\gtrless1\Leftrightarrow h(z)\gtrless1$. Более того, $H\in\hat\Phi_2$ и строго вогнута на отрезке $x^1+x^2=1$, так что её линия уровня $H(x)=1$ --- график строго выпуклой убывающей функции. Выберем на этой линии точки от одной оси до другой, соединим соседние отрезками и положим $g(x):=\min_j\ip{\xi_j}{x}$, где $\ip{\xi_j}{x}=1$ --- прямые, содержащие эти отрезки. Тогда $g\in\hat\Phi_2$, линия $g(x)=1$ --- полученная ломаная, и если точки расположены достаточно часто, то $\abs{g-H}<\eta/2$ на $Z$. Сдвигая векторы $\xi_m$ на сколь угодно малые величины, приведём пару $(g,P)$ в общее положение, сохранив это неравенство. Тогда $\abs{g-h}<\eta$ на $Z$, поэтому $g(p_t\circ x_S)-1$ и $h(p_t\circ x_S)-1$ одного знака, и по непрерывности $g$ точка $x_S$ имеет спектр $S$ для $g$, то есть $S\in\mathrm{Sp}(g,P)$.
+\end{proof}
+
 \begin{theorem}\label{thm:regular-solvability}
     Пусть набор цен $P$ находится в общем положении. Тогда вектор выпусков $y\in\Rpp[T]$
     неоклассически разрешим при ценах $P$ тогда и только тогда, когда он регулярно разрешим
     при этих ценах.
 \end{theorem}
+
+\begin{proof}
+По лемме~\ref{lem:signature-points} в обоих случаях речь идёт о включении $y$ в конус, натянутый на булевы векторы спектра. Пусть $y$ регулярно разрешим с функцией $h\in\hat\Phi_2\subset\Phi_2$. Во внутренности каждой области $R_S$, $S\in\mathrm{Sp}(h,P)$, есть точка вне кривых, а строгие неравенства в ней сохраняются при малом изменении цен; поэтому $\mathrm{Sp}(h,Q)\supseteq\mathrm{Sp}(h,P)$ для всех $Q$ из некоторой окрестности $P$, и $y$ неоклассически разрешим. Обратно, если $y$ неоклассически разрешим, возьмём $h\in\Phi_2$ и меру при самих ценах $P$; функция $g$ из леммы~\ref{lem:gp-approx} находится в общем положении с $P$ и $\mathrm{Sp}(g,P)\supseteq\mathrm{Sp}(h,P)$, так что $y$ регулярно разрешим.
+\end{proof}
 
 \appendix
 \section{Доказательство утверждения~\ref{prop:transversal}}\label{app:transversal}
