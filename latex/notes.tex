@@ -277,30 +277,30 @@ $v_1+\dots+v_k=0$, $v_i\in N_{A_i}(x_{0})$, следует $v_1=\dots=v_k=0$.
 
 \section{Алгоритм регулярной разрешимости}
 
-\begin{definition} [Достижимые спектры] Пусть $P:=\{p_{t}\in\Rpp\}_{t\in[T]}$ - набор цен в общем положении. Будем говорить, что $t$ \textit{покрывает} пару $s, r$ если $p_{t}\in conv\set{p_{s}, p_{r}}+\Rp$. Будем говорить, что $S\subset[T]$ \textit{достижимый спектр} при ценах $P$, если ни один индекс $t\in S$ не покрывает пару индексов $s,r\notin S$. Будем обозначать как $\mathrm{Sp}(P)$ семейство таких спектров.
+\begin{definition} [Достижимые спектры] Пусть $P:=\{p_{t}\in\Rpp\}_{t\in[T]}$ - набор цен. Будем говорить, что $t$ \textit{покрывает} пару $s, r$ если $p_{t}\in conv\set{p_{s}, p_{r}}+\Rp$. Будем говорить, что $S\subset[T]$ \textit{достижимый спектр} при ценах $P$, если ни один индекс $t\in S$ не покрывает пару индексов $s,r\notin S$. Будем обозначать как $\mathrm{Sp}(P)$ семейство таких спектров.
 \end{definition}
 
 \begin{lemma}
-    Пусть $h\in\Phi_{2}$ а $P$ находится в общем положении. Тогда $\mathrm{Sp}(h,P)\subseteq\mathrm{Sp}(P)$.
+    Пусть $h\in\Phi_{2}$ и $P:=\{p_{t}\in\Rpp\}_{t\in[T]}$~--- набор цен. Тогда $\mathrm{Sp}(h,P)\subseteq\mathrm{Sp}(P)$.
 \end{lemma}
 
 \begin{proof}
     Предположим противное: пусть $S\in\mathrm{Sp}(h,P)$ и $t\in S$ покрывает пару $s,r\notin S$. Но тогда $A_{t}\subset A_{s}\cup A_{r}$, а значит $s$ или $r$ лежит в $S$, что противоречит условию.
 \end{proof}
 
-\begin{lemma} Пусть $P$ находится в общем положении. Тогда для любого $S\in\mathrm{Sp}(P)$ существует кусочно-линейная $h(x):=\min\limits_{k\in K}\langle\xi_{k}, x\rangle\in\hat\Phi_{2}$ для которой выполнено что $S\in\mathrm{Sp}(h,P)$.
+\begin{lemma} Пусть $P:=\{p_{t}\in\Rpp\}_{t\in[T]}$~--- набор цен. Тогда для любого $S\in\mathrm{Sp}(P)$ существует кусочно-линейная $h(x):=\min\limits_{k\in K}\langle\xi_{k}, x\rangle\in\hat\Phi_{2}$ для которой выполнено что $S\in\mathrm{Sp}(h,P)$.
 \end{lemma}
 
 \begin{proof}
     Зафиксируем $S\in\mathrm{Sp}(P)$ и построим для каждого $t\in S$ вектор $\xi_t\in\Rpp$ что $\ip{\xi_t}{p_t}<1$ и $\ip{\xi_t}{p_s}>1$ при всех $s\notin S$. Тогда $h(x):=\min\limits_{t\in S}\ip{\xi_t}{x}$ лежит в $\hat\Phi_2$, $h(p_t)\le\ip{\xi_t}{p_t}<1$ при $t\in S$ и $h(p_s)=\min\limits_{t\in S}\ip{\xi_t}{p_s}>1$ при $s\notin S$. Неравенства строгие, поэтому по непрерывности точка $x=(1,1)$ лежит в камере со спектром $S\in\mathrm{Sp}(h,P)$.
 
-    Приведём пример таких $\xi_t$. Зафиксируем $t\in S$. Для $s\notin S$ индекс $t$ не покрывает пару $s,s$, то есть $p_s\not\le p_t$, а поскольку одноимённые координаты различных цен различны, выполнено $p^1_s>p^1_t$ или $p^2_s>p^2_t$. Пусть $\sigma_t>0$ таково, что $\sigma_t\,(p^1_s-p^1_t)+(p^2_s-p^2_t)>0$ для всех $s\notin S$. Тогда $\ip{(\sigma_t,1)}{p_t}<\min_{s\notin S}\ip{(\sigma_t,1)}{p_s}$, и вектор
+    Приведём пример таких $\xi_t$. Зафиксируем $t\in S$. Для $s\notin S$ индекс $t$ не покрывает пару $s,s$, то есть $p_s\not\le p_t$: выполнено $p^1_s>p^1_t$ или $p^2_s>p^2_t$. Пусть $\sigma_t>0$ таково, что $\sigma_t\,(p^1_s-p^1_t)+(p^2_s-p^2_t)>0$ для всех $s\notin S$. Тогда $\ip{(\sigma_t,1)}{p_t}<\min_{s\notin S}\ip{(\sigma_t,1)}{p_s}$, и вектор
     \[
         \xi_t:=\frac{2\,(\sigma_t,1)}{\ip{(\sigma_t,1)}{p_t}+\min_{s\notin S}\ip{(\sigma_t,1)}{p_s}}
     \]
     удовлетворяет $\ip{\xi_t}{p_t}<1<\ip{\xi_t}{p_s}$ при всех $s\notin S$.
 
-    Убедимся, что такое $\sigma_t$ существует. Для $s\notin S$ с $p^1_s>p^1_t$ неравенство $\sigma_t\,(p^1_s-p^1_t)+(p^2_s-p^2_t)>0$ равносильно $\sigma_t>\frac{p^2_t-p^2_s}{p^1_s-p^1_t}$, а для $s\notin S$ с $p^1_s<p^1_t$ (тогда $p^2_s>p^2_t$)~--- неравенству $\sigma_t<\frac{p^2_s-p^2_t}{p^1_t-p^1_s}$. Поэтому достаточно проверить, что для любых $r,s\notin S$ с $p^1_r>p^1_t>p^1_s$
+    Убедимся, что такое $\sigma_t$ существует. Неравенство $\sigma_t\,(p^1_s-p^1_t)+(p^2_s-p^2_t)>0$ при $p^1_s=p^1_t$ выполнено всегда (тогда $p^2_s>p^2_t$), при $p^1_s>p^1_t$ означает $\sigma_t>\frac{p^2_t-p^2_s}{p^1_s-p^1_t}$, а при $p^1_s<p^1_t$~--- $\sigma_t<\frac{p^2_s-p^2_t}{p^1_t-p^1_s}$. Поэтому достаточно проверить, что для любых $r,s\notin S$ с $p^1_r>p^1_t>p^1_s$
     \[
         \frac{p^2_t-p^2_r}{p^1_r-p^1_t}<\frac{p^2_s-p^2_t}{p^1_t-p^1_s},
     \]
@@ -308,7 +308,7 @@ $v_1+\dots+v_k=0$, $v_i\in N_{A_i}(x_{0})$, следует $v_1=\dots=v_k=0$.
 \end{proof}
 
 \begin{lemma}[склейка]\label{lem:patch}
-    Пусть $P$ находится в общем положении и $S_1,\dots,S_k\in\mathrm{Sp}(P)$. Тогда существует кусочно-линейная $h\in\hat\Phi_2$, для которой $S_1,\dots,S_k\in\mathrm{Sp}(h,P)$.
+    Пусть $P:=\{p_{t}\in\Rpp\}_{t\in[T]}$~--- набор цен и $S_1,\dots,S_k\in\mathrm{Sp}(P)$. Тогда существует кусочно-линейная $h\in\hat\Phi_2$, для которой $S_1,\dots,S_k\in\mathrm{Sp}(h,P)$.
 \end{lemma}
 
 \begin{proof}
