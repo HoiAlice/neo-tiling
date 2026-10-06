@@ -8,9 +8,11 @@ from fractions import Fraction as F
 from typing import TYPE_CHECKING
 
 from .geometry import Vec, hadamard, ip
+from .prices import fmt_spectrum
 
 if TYPE_CHECKING:
-    from .cone import Decomposition
+    from collections.abc import Iterable
+
     from .prices import Prices, Spectrum
 
 
@@ -40,12 +42,11 @@ class PiecewiseLinear:
 
 @dataclass(frozen=True)
 class Realization:
-    """h with points x_i of spectrum S_i carrying masses m_i."""
+    """h with points x_i such that the spectrum of x_i is S_i."""
 
     h: PiecewiseLinear
     points: tuple[Vec, ...]
     spectra: tuple[Spectrum, ...]
-    masses: tuple[F, ...]
 
     def with_function(self, h: PiecewiseLinear) -> Realization:
         return replace(self, h=h)
@@ -64,11 +65,17 @@ class Realization:
         return min((abs(self.h(z) - 1) for z in self.images(prices)), default=F(1))
 
     def ball_radius(self, prices: Prices) -> F:
-        """Balls of this radius around the x_i lie inside their regions R_S."""
+        """Balls of this radius around the x_i lie in the open orthant and inside R_S.
+
+        h(p o .) is Lipschitz in the l1 norm with constant max xi * max p, a Euclidean
+        ball of radius rho has l1 radius <= 2 rho, so rho = margin / (4 max xi max p)
+        changes every h(p_t o x) by less than the margin.
+        """
         lipschitz = (
-            2 * max(max(a) for a in self.h.lines) * max(max(p) for p in prices.points)
+            4 * max(max(a) for a in self.h.lines) * max(max(p) for p in prices.points)
         )
-        return self.margin(prices) / lipschitz
+        inside_orthant = min((min(x) for x in self.points), default=F(1)) / 2
+        return min(self.margin(prices) / lipschitz, inside_orthant)
 
 
 class Patching:
@@ -76,9 +83,8 @@ class Patching:
         self.prices = prices
 
     def separating_line(self, S: Spectrum, t: int) -> Vec:
-        """xi with <xi, p_t> < 1 < <xi, p_s> for s not in S: direction (sigma, 1) with
-        sigma
-        between the slope bounds of the points left and right of p_t, then rescaled."""
+        """xi with <xi, p_t> < 1 < <xi, p_s> for s not in S: direction (sigma, 1)
+        with sigma between the slope bounds of the prices left and right of p_t."""
         w = self.prices[t]
         outside = [self.prices[s] for s in range(self.prices.T) if s not in S]
         if not outside:
@@ -86,18 +92,25 @@ class Patching:
         lower = [F(0)] + [(w[1] - z[1]) / (z[0] - w[0]) for z in outside if z[0] > w[0]]
         upper = [(z[1] - w[1]) / (w[0] - z[0]) for z in outside if z[0] < w[0]]
         sigma = (max(lower) + min(upper)) / 2 if upper else max(lower) + 1
-        assert not upper or max(lower) < min(upper), "spectrum is not reachable"
         direction = (sigma, F(1))
         scale = 2 / (ip(direction, w) + min(ip(direction, z) for z in outside))
         return (sigma * scale, scale)
 
-    def realize(self, decomposition: Decomposition) -> Realization:
-        """Copy i sits at x_i = (a_i, 1/a_i), a_{i+1} = M a_i.  Its separating lines,
+    def realize(self, spectra: Iterable[Spectrum]) -> Realization:
+        """One h with a point of spectrum S for every given reachable S ("склейка").
+
+        Copy i sits at x_i = (a_i, 1/a_i), a_{i+1} = M a_i.  Its separating lines,
         transported by the same scaling, exceed 1 on every other copy once
-        M min(xi^1 p^1, xi^2 p^2) > 1."""
-        spectra = [S for S in decomposition.masses if S]
+        M min(xi^1 p^1, xi^2 p^2) > 1.  The empty spectrum needs no point.
+        """
+        spectra = list(dict.fromkeys(S for S in spectra if S))
+        unreachable = [S for S in spectra if not self.prices.is_reachable(S)]
+        if unreachable:
+            raise ValueError(
+                "not reachable: " + ", ".join(map(fmt_spectrum, unreachable))
+            )
         if not spectra:
-            return Realization(PiecewiseLinear(((F(1), F(1)),)), (), (), ())
+            return Realization(PiecewiseLinear(((F(1), F(1)),)), (), ())
         lines = [
             (i, self.separating_line(S, t)) for i, S in enumerate(spectra) for t in S
         ]
@@ -107,12 +120,10 @@ class Patching:
             for p in self.prices.points
         )
         M = F(math.floor(threshold) + 2)
-        transported = tuple((xi[0] / M**i, xi[1] * M**i) for i, xi in lines)
         realization = Realization(
-            PiecewiseLinear(transported),
+            PiecewiseLinear(tuple((xi[0] / M**i, xi[1] * M**i) for i, xi in lines)),
             tuple((M**i, 1 / M**i) for i in range(len(spectra))),
             tuple(spectra),
-            tuple(decomposition.masses[S] for S in spectra),
         )
         assert realization.spectra_hold(self.prices), "patching failed"
         return realization
