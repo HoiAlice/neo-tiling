@@ -9,10 +9,12 @@ from .cone import ConeOracle, Decomposition, Obstruction
 from .construction import Patching, PiecewiseLinear, Realization
 from .general_position import GeneralPositioner
 from .prices import Prices
-from .solver import Result, Solver
+from .solver import Construction, Decision, Solver
 
 __all__ = [
     "ConeOracle",
+    "Construction",
+    "Decision",
     "Decomposition",
     "GeneralPositioner",
     "Obstruction",
@@ -20,6 +22,5 @@ __all__ = [
     "PiecewiseLinear",
     "Prices",
     "Realization",
-    "Result",
     "Solver",
 ]

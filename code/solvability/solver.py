@@ -1,4 +1,4 @@
-"""The four steps put together, and a printable result."""
+"""Deciding y and building h for a family of reachable spectra."""
 
 from __future__ import annotations
 
@@ -12,16 +12,16 @@ from .general_position import GeneralPositioner, Report
 from .prices import Prices, fmt_spectrum
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Iterable, Sequence
+
+    from .prices import Spectrum
 
 
 @dataclass
-class Result:
+class Decision:
     prices: Prices
     y: list[F]
     verdict: Verdict
-    realization: Realization | None = None
-    report: Report | None = None
 
     @property
     def solvable(self) -> bool:
@@ -31,9 +31,8 @@ class Result:
         P = self.prices
         out = [f"T = {P.T}; reachable spectra: {len(P.reachable_spectra)} of {2**P.T}"]
         if P.coverings:
-            out += ["coverings (p_t dominates a point of [p_s, p_r]):"] + [
-                f"  {c}" for c in P.describe_coverings()
-            ]
+            out += ["coverings (p_t dominates a point of [p_s, p_r]):"]
+            out += [f"  {c}" for c in P.describe_coverings()]
         if isinstance(self.verdict, Obstruction):
             lam = self.verdict
             out += [
@@ -42,58 +41,63 @@ class Result:
                 f"  here <lambda, y> = {lam.value(self.y)} < 0",
                 f"  lambda = ({', '.join(map(str, lam.coefficients))})",
             ]
-            return "\n".join(out)
-        out.append("Regularly solvable.  y = sum m_S 1_S:")
-        out += [f"  {m} * 1_{fmt_spectrum(S)}" for S, m in self.verdict.masses.items()]
-        if self.realization is None:
-            return "\n".join(out)
+        else:
+            out.append("Regularly solvable.  y = sum m_S 1_S:")
+            out += [
+                f"  {m} * 1_{fmt_spectrum(S)}" for S, m in self.verdict.masses.items()
+            ]
+        return "\n".join(out)
+
+
+@dataclass
+class Construction:
+    """h with a point x_S of spectrum S for each prescribed S; masses, if given,
+    turn the points into the measure sum_S m_S Uniform(ball(x_S, rho))."""
+
+    prices: Prices
+    realization: Realization
+    report: Report | None = None
+    masses: dict[Spectrum, F] | None = None
+
+    def __str__(self) -> str:
+        r = self.realization
+        out = []
         if self.report is not None:
             out.append(
-                f"general position: NoSharedLine and GenericTriples verified "
+                "general position: NoSharedLine and GenericTriples verified "
                 f"({self.report.lines} lines, "
                 f"{self.report.rounds} perturbation round(s))"
             )
         out.append("h(x) = min_j (a_j x1 + b_j x2), (a_j, b_j):")
-        out += [f"  ({a[0]}, {a[1]})" for a in self.realization.h.lines]
-        if self.realization.points:
-            out.append(
-                f"mu = sum_i m_i Uniform(ball(x_i, {self.realization.ball_radius(P)})):"
-            )
-            out += [
-                f"  x = ({x[0]}, {x[1]}), m = {m}, S(x) = {fmt_spectrum(S)}"
-                for x, m, S in zip(
-                    self.realization.points,
-                    self.realization.masses,
-                    self.realization.spectra,
-                )
-            ]
+        out += [f"  ({a[0]}, {a[1]})" for a in r.h.lines]
+        if r.points:
+            rho = r.ball_radius(self.prices)
+            out.append(f"points x_S of spectrum S (balls of radius {rho} stay in R_S):")
+        for x, S in zip(r.points, r.spectra):
+            mass = "" if self.masses is None else f", m = {self.masses[S]}"
+            out.append(f"  S = {fmt_spectrum(S)}: x = ({x[0]}, {x[1]}){mass}")
         return "\n".join(out)
 
 
 class Solver:
     def __init__(
-        self,
-        prices: Prices,
-        *,
-        construct: bool = True,
-        general_position: bool = True,
-        seed: int = 0,
+        self, prices: Prices, *, general_position: bool = True, seed: int = 0
     ) -> None:
         self.prices = prices
-        self.construct = construct
         self.general_position = general_position
         self.seed = seed
 
-    def solve(self, y: Sequence[F]) -> Result:
+    def decide(self, y: Sequence[F]) -> Decision:
         y = [F(v) for v in y]
-        verdict = ConeOracle(self.prices).decide(y)
-        result = Result(self.prices, y, verdict)
-        if isinstance(verdict, Obstruction) or not self.construct:
-            return result
-        realization = Patching(self.prices).realize(verdict)
+        return Decision(self.prices, y, ConeOracle(self.prices).decide(y))
+
+    def construct(
+        self, spectra: Iterable[Spectrum], masses: dict[Spectrum, F] | None = None
+    ) -> Construction:
+        """The only place where h is built; ValueError for unreachable spectra."""
+        realization = Patching(self.prices).realize(spectra)
+        report = None
         if self.general_position:
-            realization, result.report = GeneralPositioner(self.prices, self.seed).run(
-                realization
-            )
-        result.realization = realization
-        return result
+            positioner = GeneralPositioner(self.prices, self.seed)
+            realization, report = positioner.run(realization)
+        return Construction(self.prices, realization, report, masses)
