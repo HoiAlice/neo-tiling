@@ -1,0 +1,5 @@
+# The project venv runs Python 3.9 (no itertools.pairwise, no runtime `X | Y` unions).
+target-version = "py39"
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "PIE", "RET", "RUF", "PL", "TC", "PERF"]
