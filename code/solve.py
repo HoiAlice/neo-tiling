@@ -30,7 +30,7 @@ def main() -> None:
     task.add_argument("--spectra", help='spectra for h, e.g. "1;2,3" (1-based)')
     task.add_argument("--all", action="store_true", help="h for all reachable spectra")
     parser.add_argument("--no-h", action="store_true", help="do not build h")
-    parser.add_argument("--no-gp", action="store_true", help="skip general position")
+    parser.add_argument("--no-gp", action="store_true", help="skip general position (always skipped if P is not)")
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 

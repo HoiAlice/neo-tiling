@@ -65,17 +65,30 @@ class Realization:
         return min((abs(self.h(z) - 1) for z in self.images(prices)), default=F(1))
 
     def ball_radius(self, prices: Prices) -> F:
-        """Balls of this radius around the x_i lie in the open orthant and inside R_S.
+        """Balls of this radius around the x_i lie in the open orthant and, for every
+        q_t with |q_t - p_t|_inf <= price_radius, inside the chamber R_S of (h, Q).
 
-        h(p o .) is Lipschitz in the l1 norm with constant max xi * max p, a Euclidean
-        ball of radius rho has l1 radius <= 2 rho, so rho = margin / (4 max xi max p)
-        changes every h(p_t o x) by less than the margin.
+        h is Lipschitz in the l1 norm with constant L = max xi, and
+        |q o x - p o x_i|_1 <= |q|_inf |x - x_i|_1 + |q - p|_inf |x_i|_1.  With
+        |q|_inf <= 2 max p and |x - x_i|_1 <= 2 rho, rho = margin / (8 L max p) makes
+        the first term at most margin / 2.
         """
         lipschitz = (
-            4 * max(max(a) for a in self.h.lines) * max(max(p) for p in prices.points)
+            8 * max(max(a) for a in self.h.lines) * max(max(p) for p in prices.points)
         )
         inside_orthant = min((min(x) for x in self.points), default=F(1)) / 2
         return min(self.margin(prices) / lipschitz, inside_orthant)
+
+    def price_radius(self, prices: Prices) -> F:
+        """Prices q_t with |q_t - p_t|_inf <= eps stay positive, |q|_inf <= 2 max p, and
+        the second term of ball_radius stays at most margin / 4, so every h(q_t o x),
+        x in a ball, differs from h(p_t o x_i) by less than the margin."""
+        lines = max(max(a) for a in self.h.lines)
+        spread = max((x[0] + x[1] for x in self.points), default=F(1))
+        return min(
+            self.margin(prices) / (4 * lines * spread),
+            min(min(p) for p in prices.points) / 2,
+        )
 
 
 class Patching:

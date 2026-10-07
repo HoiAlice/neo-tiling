@@ -25,9 +25,6 @@ class Prices:
     def __post_init__(self) -> None:
         if any(p[0] <= 0 or p[1] <= 0 for p in self.points):
             raise ValueError("prices must be strictly positive")
-        for s, t in itertools.combinations(range(self.T), 2):
-            if self[s][0] == self[t][0] or self[s][1] == self[t][1]:
-                raise ValueError(f"prices {s + 1} and {t + 1} share a coordinate")
 
     @classmethod
     def parse(cls, text: str) -> Prices:
@@ -43,6 +40,13 @@ class Prices:
     @property
     def T(self) -> int:
         return len(self.points)
+
+    @property
+    def general_position(self) -> bool:
+        """Distinct first and distinct second coordinates (notes, def:prices-gp)."""
+        return all(
+            len({p[c] for p in self.points}) == self.T for c in range(2)
+        )
 
     def covers(self, t: int, s: int, r: int) -> bool:
         """p_t >= mu p_s + (1 - mu) p_r for some mu in [0, 1]: two intervals meet."""

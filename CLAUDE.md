@@ -16,3 +16,9 @@ Math notes (`latex/notes.tex`, Russian) and their Lean 4 + Mathlib formalization
   user. Send the answer to that agent with `SendMessage`; it resumes with its context intact.
 - If the user asks to prove "here" (without the fork), follow `.claude/skills/prove/SKILL.md` in
   this context, still delegating tactic work to `lean-prover` agents.
+
+## Legacy
+
+`OLD/` holds the pre-2026-10-07 notes (tex, pdf) and Lean library (general position, profiles,
+level curves). It is legacy: do not read, reuse or cite it unless the user asks. The lakefile does
+not build it.

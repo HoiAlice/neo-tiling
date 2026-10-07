@@ -1,4 +1,4 @@
-"""Regular solvability of outputs y at prices P.
+"""Neoclassical solvability of outputs y at prices P (regular if P is in general position).
 
 See latex/notes.tex, section "Алгоритм регулярной разрешимости".
 
