@@ -214,10 +214,11 @@
 \section{Минимальное возмущение цен}
 
 \begin{definition}[Возмущение цен]\label{def:perturbation}
-    Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Для $\varepsilon\in\R^{d\times T}$ с $\varepsilon>-1$ положим $P_\varepsilon:=\set{p_t\circ(\mathbf e+\varepsilon_t)}_{t\in[T]}$, то есть $q^i_t:=p^i_t(1+\varepsilon^i_t)$. Для вектора выпусков $y\in\Rp[T]$ назовём \textit{расстоянием до разрешимости} величину
+    Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Для $\varepsilon\in\R^{d\times T}$ с $\varepsilon>-1$ положим $Q(\varepsilon):=\set{q^i_t:=p^i_t(1+\varepsilon^i_t)}_{t\in[T],\,i\in[d]}$. Для вектора выпусков $y\in\Rp[T]$ назовём \textit{минимальным возмущением} набора цен $P$ величину
     \[
-        \rho(P,y):=\inf\set{\norm{\varepsilon}_1\mid \varepsilon>-1,\ y\ \text{разрешим при ценах}\ P_\varepsilon},\qquad \norm{\varepsilon}_1:=\sum_{t,i}\abs{\varepsilon^i_t}.
+        \rho(P,y):=\inf\set{\norm{\varepsilon}_1\mid \varepsilon>-1,\ y\ \text{разрешим при ценах}\ Q(\varepsilon)},\qquad \norm{\varepsilon}_1:=\sum_{t,i}\abs{\varepsilon^i_t}.
     \]
+    Это наименьшее относительное изменение цен, при котором $y$ становится разрешим.
 \end{definition}
 
 \begin{lemma}\label{lem:open}
@@ -233,15 +234,15 @@
 \end{remark}
 
 \begin{lemma}[свидетели]\label{lem:witness}
-    Пусть $Q:=\set{q_t\in\Rpp[d]}_{t\in[T]}$ и $S\subset[T]$. Тогда $S\in\Sp(Q)$ тогда и только тогда, когда для каждого $t\in S$ существует вектор $\xi_t\in\Rp[d]$, для которого $\ip{\xi_t}{q_s-q_t}\ge1$ при всех $s\notin S$.
+    Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен и $S\subset[T]$. Тогда $S\in\Sp(P)$, если и только если существует $\set{\xi_t\in\Rp[d]}_{t\in S}:\forall t\in S,\forall s\notin S\Rightarrow\ip{\xi_t}{p_s-p_t}\ge1$.
 \end{lemma}
 
 \begin{proof}
-    Пусть $S\in\Sp(Q)$ и $t\in S$. По лемме~\ref{lem:separation} найдётся $\xi\in\Rpp[d]$ с $\ip{\xi}{q_t}<1<\ip{\xi}{q_s}$ при $s\notin S$. Тогда $\ip{\xi}{q_s-q_t}>c:=1-\ip{\xi}{q_t}>0$, и $\xi_t:=\xi/c$ искомый. Обратно, пусть $t\in S$ покрывает $[T]\setminus S$: $q_t\ge\sum_{s\notin S}w_sq_s$, $w_s\ge0$, $\sum_sw_s=1$. Так как $\xi_t\ge0$,
+    Пусть $S\in\Sp(P)$. Для каждого $t\in S$ по лемме~\ref{lem:separation} найдётся $\zeta_t\in\Rpp[d]:\forall s\notin S\Rightarrow\ip{\zeta_t}{p_t}<1<\ip{\zeta_t}{p_s}$. Положим $c_t:=1-\ip{\zeta_t}{p_t}>0$ и $\xi_t:=\zeta_t/c_t\in\Rp[d]$. Тогда $\forall s\notin S\Rightarrow\ip{\xi_t}{p_s-p_t}>(1-\ip{\zeta_t}{p_t})/c_t=1$.
+    Обратно, пусть набор $\set{\xi_t\in\Rp[d]}_{t\in S}$ из условия существует, но $S\notin\Sp(P)$. Тогда некоторое $t\in S$ покрывает $[T]\setminus S$, то есть $p_t\ge\sum_{s\notin S}w_sp_s$ при некоторых $w_s\ge0$, $\sum_{s\notin S}w_s=1$. Так как $\xi_t\ge0$, мы получаем следующее противоречие:
     \[
-        \ip{\xi_t}{q_t}\ \ge\ \sum_{s\notin S}w_s\ip{\xi_t}{q_s}\ \ge\ \sum_{s\notin S}w_s\bigl(\ip{\xi_t}{q_t}+1\bigr)\ =\ \ip{\xi_t}{q_t}+1.
+        \ip{\xi_t}{p_t}\ \ge\ \sum_{s\notin S}w_s\ip{\xi_t}{p_s}\ \ge\ \sum_{s\notin S}w_s\bigl(\ip{\xi_t}{p_t}+1\bigr)\ =\ \ip{\xi_t}{p_t}+1.
     \]
-    Противоречие.
 \end{proof}
 
 \begin{lemma}[Каратеодори]\label{lem:cara}
@@ -253,72 +254,47 @@
 \end{proof}
 
 \begin{lemma}[полный спектр]\label{lem:full}
-    Пусть $\kappa>0$ и все цены $Q:=\set{q_t\in\Rpp[d]}_{t\in[T]}$ лежат на поверхности $x^1x^2=\kappa$, причём первые координаты $q^1_t$ попарно различны. Тогда $\Sp(Q)=2^{[T]}$, и всякий вектор выпусков $y\in\Rp[T]$ разрешим при ценах $Q$.
+    Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен, у которого первые координаты $p^1_t$ попарно различны, а произведение первых двух координат одно и то же: $p^1_tp^2_t=\kappa$ при всех $t\in[T]$. Тогда всякое $S\subset[T]$ является достижимым спектром, то есть $\Sp(P)=2^{[T]}$. В частности, всякий вектор выпусков $y\in\Rp[T]$ разрешим при ценах $P$.
 \end{lemma}
 
 \begin{proof}
-    Пусть $t\in S$ и $\xi_t:=c\,\bigl((q^1_t)^{-1},(q^2_t)^{-1},0,\dots,0\bigr)\ge0$. При $s\ne t$, обозначая $a:=q^1_s$, $b:=q^1_t$, имеем $q^2_s=\kappa/a$, $q^2_t=\kappa/b$ и
+    Построим набор $\set{\xi_t\in\Rp[d]}_{t\in[T]}:\forall t\in[T],\forall s\ne t\Rightarrow\ip{\xi_t}{p_s-p_t}\ge1$. Тогда для каждого $S\subset[T]$ набор $\set{\xi_t}_{t\in S}$ удовлетворяет условию леммы~\ref{lem:witness}, и $S\in\Sp(P)$. Положим
     \[
-        \ip{\xi_t}{q_s-q_t}=c\Bigl(\frac ab+\frac ba-2\Bigr)=c\,\frac{(a-b)^2}{ab}>0.
+        \xi_t:=c_t\bigl((p^1_t)^{-1},(p^2_t)^{-1},0,\dots,0\bigr),\qquad c_t:=\max_{s\ne t}\frac{p^1_sp^1_t}{(p^1_s-p^1_t)^2}.
     \]
-    При $c:=\max_{s\ne t}\frac{q^1_sq^1_t}{(q^1_s-q^1_t)^2}$ правая часть не меньше $1$, и по лемме~\ref{lem:witness} $S\in\Sp(Q)$. Тогда $y=\sum_ty_t\mathbf 1_{\set t}\in\cone\set{\mathbf 1_S\mid S\in\Sp(Q)}$, и $y$ разрешим по теореме~\ref{thm:solvability}.
+    Так как $p^2_s/p^2_t=p^1_t/p^1_s$, при $s\ne t$
+    \[
+        \ip{\xi_t}{p_s-p_t}=c_t\Bigl(\frac{p^1_s}{p^1_t}+\frac{p^1_t}{p^1_s}-2\Bigr)=c_t\,\frac{(p^1_s-p^1_t)^2}{p^1_sp^1_t}\ge1.
+    \]
+    Второе утверждение: $y=\sum_ty_t\mathbf 1_{\set t}\in\cone\set{\mathbf 1_S\mid S\in\Sp(P)}$, и $y$ разрешим по теореме~\ref{thm:solvability}.
 \end{proof}
 
 \begin{definition}[Задача о возмущении]\label{def:model}
     Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$, $y\in\Rp[T]$, $Y:=\max_ty_t$, и зафиксированы границы $E>0$, $\eta\in(0,1)$, $\Xi>0$. Положим $M_{st}:=1+\Xi(1+E)\sum_{i\in[d]}(p^i_s+p^i_t)$. Переменные:
     \begin{itemize}
-        \item $\varepsilon^i_t$ и $a^i_t$~--- возмущения цен и их модули;
+        \item $\varepsilon^i_t$~--- возмущения цен;
         \item $z_{k,t}$~--- индикаторы спектров $S_k:=\set{t\mid z_{k,t}=1}$;
         \item $m_k$ и $w_{k,t}$~--- массы и их произведения с индикаторами;
         \item $\xi^i_{k,t}$~--- свидетели.
     \end{itemize}
     \textit{Задачей о возмущении} с границами $(E,\eta,\Xi)$ назовём задачу
     \begin{empheq}[left=\empheqlbrace]{align}
-        & \sum_{t\in[T],\,i\in[d]}a^i_t\ \to\ \min, \label{eq:obj}\\
-        & a^i_t\ge\varepsilon^i_t,\quad a^i_t\ge-\varepsilon^i_t, & &\forall\,t\in[T],\ i\in[d], \label{eq:abs}\\
+        & \sum_{t\in[T],\,i\in[d]}\abs{\varepsilon^i_t}\ \to\ \min, \label{eq:obj}\\
         & \sum_{k\in[T]}w_{k,t}=y_t, & &\forall\,t\in[T], \label{eq:cone}\\
         & w_{k,t}\le Y z_{k,t},\quad w_{k,t}\le m_k,\quad w_{k,t}\ge m_k-Y(1-z_{k,t}), & &\forall\,k,t\in[T], \label{eq:product}\\
         & \sum_{i\in[d]}\xi^i_{k,t}\,\bigl(p^i_s(1+\varepsilon^i_s)-p^i_t(1+\varepsilon^i_t)\bigr)\ \ge\ 1-M_{st}\,(1-z_{k,t}+z_{k,s}), & &\forall\,k,s,t\in[T],\ s\ne t, \label{eq:witness}\\
-        & \varepsilon^i_t\in[-1+\eta,E],\quad a^i_t\ge0,\quad \xi^i_{k,t}\in[0,\Xi], & &\forall\,k,t\in[T],\ i\in[d], \label{eq:box}\\
+        & \varepsilon^i_t\in[-1+\eta,E],\quad \xi^i_{k,t}\in[0,\Xi], & &\forall\,k,t\in[T],\ i\in[d], \label{eq:box}\\
         & z_{k,t}\in\set{0,1},\quad m_k\in[0,Y],\quad w_{k,t}\in[0,Y], & &\forall\,k,t\in[T]. \label{eq:box2}
     \end{empheq}
     Её оптимальное значение обозначим $v(E,\eta,\Xi)$.
 \end{definition}
 
-\begin{proposition}\label{prop:model}
-    Пусть $(\varepsilon,a,z,m,w,\xi)$ допустимо в задаче~\eqref{eq:obj}--\eqref{eq:box2}. Тогда $y$ неоклассически разрешим при ценах $P_\varepsilon$. Обратно, пусть $y$ разрешим при ценах $P_\varepsilon$ и $\varepsilon^i_t\in[-1+\eta,E]$. Тогда $\varepsilon$ допустимо при всех достаточно больших $\Xi$. Следовательно, $v(E,\eta,\Xi)$ не возрастает по $\Xi$ и стремится к $\inf\norm{\varepsilon}_1$ по всем $\varepsilon\in[-1+\eta,E]^{d\times T}$ с разрешимым при $P_\varepsilon$ вектором $y$.
-\end{proposition}
-
-\begin{proof}
-    Положим $Q:=P_\varepsilon$. Ограничения~\eqref{eq:product} означают $w_{k,t}=m_kz_{k,t}$, поэтому~\eqref{eq:cone} есть $y=\sum_km_k\mathbf 1_{S_k}$. Для $t\in S_k$ и $s\notin S_k$ ограничение~\eqref{eq:witness} есть $\ip{\xi_{k,t}}{q_s-q_t}\ge1$, так что $S_k\in\Sp(Q)$ по лемме~\ref{lem:witness}, $y\in\cone\set{\mathbf 1_S\mid S\in\Sp(Q)}$, и $y$ разрешим по теореме~\ref{thm:solvability}.
-
-    Обратно, по теореме~\ref{thm:solvability} и лемме~\ref{lem:cara} $y=\sum_{k\in[T]}m_k\mathbf 1_{S_k}$ с $S_k\in\Sp(Q)$, $m_k\ge0$, причём $m_k\le Y$ при $S_k\ne\varnothing$, а при $S_k=\varnothing$ можно взять $m_k=0$. По лемме~\ref{lem:witness} для $t\in S_k$ есть свидетели $\xi_{k,t}\ge0$, для остальных пар положим $\xi_{k,t}:=0$. При $\Xi\ge\max\xi^i_{k,t}$ все переменные в границах. Ограничение~\eqref{eq:witness} при $z_{k,t}=1$, $z_{k,s}=0$ выполнено по выбору свидетелей, а иначе его правая часть не больше $1-M_{st}$, тогда как левая по модулю не превосходит $\Xi\sum_i(q^i_s+q^i_t)\le M_{st}-1$. Монотонность $v$ по $\Xi$ очевидна, сходимость следует из доказанного.
-\end{proof}
-
-\begin{proposition}[границы]\label{prop:bounds}
-    Пусть числа $\lambda_t>0$ попарно различны, $\kappa>0$, и $\varepsilon^*$~--- возмущение, переводящее $P$ в $Q^*:=\set{(\lambda_t,\ \kappa/\lambda_t,\ p^3_t,\dots,p^d_t)}_{t\in[T]}$. Положим $r:=\norm{\varepsilon^*}_1$ и
-    \[
-        E:=r,\qquad
-        \eta:=\min\Bigl(\tfrac12,\ \min_t\frac{\lambda_t}{p^1_t},\ \min_t\frac{\kappa}{\lambda_tp^2_t}\Bigr),\qquad
-        \Xi:=\max_t\ \max_{s\ne t}\frac{\lambda_s\lambda_t}{(\lambda_s-\lambda_t)^2}\cdot\max\Bigl(\frac1{\lambda_t},\frac{\lambda_t}{\kappa}\Bigr).
-    \]
-    Тогда задача с границами $(E,\eta,\Xi)$ допустима, $v(E,\eta,\Xi)\le r$, и всякое $\varepsilon\ge-1+\eta$ с $\norm{\varepsilon}_1\le r$ лежит в коробке $[-1+\eta,E]^{d\times T}$.
-\end{proposition}
-
-\begin{proof}
-    Координаты $\varepsilon^*$ равны $\lambda_t/p^1_t-1$, $\kappa/(\lambda_tp^2_t)-1$ и $0$, поэтому $\varepsilon^*\ge-1+\eta$ и $\varepsilon^*\le r=E$ по выбору $\eta$ и $E$. По лемме~\ref{lem:full} $\Sp(Q^*)=2^{[T]}$, и $y=\sum_ty_t\mathbf 1_{\set t}$: положим $S_k:=\set k$, $m_k:=y_k\le Y$. Свидетели из доказательства леммы~\ref{lem:full} имеют координаты не больше $\Xi$. Как в доказательстве утверждения~\ref{prop:model}, набор $(\varepsilon^*,\abs{\varepsilon^*},z,m,w,\xi)$ допустим, откуда $v\le r$. Последнее утверждение: из $\norm{\varepsilon}_1\le r$ следует $\varepsilon^i_t\le r=E$.
-\end{proof}
-
 \begin{remark}
-    Утверждение~\ref{prop:bounds} означает, что коробка содержит $\ell_1$-шар радиуса $r$ вокруг $\varepsilon=0$, пересечённый с полупространствами $\varepsilon\ge-1+\eta$, а в нём лежат все решения не хуже $\varepsilon^*$. Коробка отсекает лишь возмущения, опускающие какую-либо цену ниже $\eta p^i_t$. Естественный выбор: $\lambda_t:=p^1_t$, если первые координаты цен попарно различны, и $\kappa$~--- точка минимума выпуклой кусочно-линейной функции $\kappa\mapsto\sum_t\abs{\kappa/(p^1_tp^2_t)-1}$, достигаемого в одной из точек $\kappa=p^1_tp^2_t$. Всякое допустимое решение, найденное решателем, можно взять вместо $\varepsilon^*$ и сузить коробку до его нормы.
+    Задача~\eqref{eq:obj}--\eqref{eq:box2}~--- смешанно-целочисленная задача с тривиально линеаризуемой целевой функцией, бинарными переменными $z$ и билинейными членами $\xi^i_{k,t}\varepsilon^i_s$ в~\eqref{eq:witness}. Все переменные ограничены. Такие задачи Gurobi решает до глобального оптимума пространственным методом ветвей и границ с оболочками Маккормика для билинейных членов~\cite{Gurobi}. Величина \texttt{MIPGap} относится к глобальной нижней оценке, поэтому статус \texttt{OPTIMAL} сертифицирует глобальный оптимум $v(E,\eta,\Xi)$ с точностью до допусков решателя, а статус \texttt{INFEASIBLE}~--- отсутствие решений в коробке с данным запасом $\Xi$. Билинейных членов $dT^3$, бинарных переменных $T^2$. Спектры $S_k$ взаимозаменяемы, поэтому полезно добавить $m_1\ge\dots\ge m_T$.
 \end{remark}
 
 \begin{remark}
-    Задача~\eqref{eq:obj}--\eqref{eq:box2}~--- смешанно-целочисленная задача с линейной целевой функцией, бинарными переменными $z$ и билинейными членами $\xi^i_{k,t}\varepsilon^i_s$ в~\eqref{eq:witness}; все переменные ограничены. Такие задачи Gurobi решает до глобального оптимума пространственным методом ветвей и границ с оболочками Маккормика для билинейных членов~\cite{Gurobi}. Величина \texttt{MIPGap} относится к глобальной нижней оценке, поэтому статус \texttt{OPTIMAL} сертифицирует глобальный оптимум $v(E,\eta,\Xi)$ с точностью до допусков решателя, а статус \texttt{INFEASIBLE}~--- отсутствие решений в коробке с данным запасом $\Xi$. Билинейных членов $dT^3$, бинарных переменных $T^2$. Спектры $S_k$ взаимозаменяемы, поэтому полезно добавить $m_1\ge\dots\ge m_T$.
-\end{remark}
-
-\begin{remark}
-    Допуски решателя снимаются точной проверкой найденного решения. Веса $\xi_{k,t}$ округляются до рациональных чисел; запас в единицу в~\eqref{eq:witness} позволяет проверить неравенства $\ip{\xi_{k,t}}{q_s-q_t}\ge1$ в точной арифметике. Массы $m_k$ пересчитываются точно решением системы $\sum_km_k\mathbf 1_{S_k}=y$ по найденным $S_k$. После этого разрешимость $y$ при ценах $P_\varepsilon$ установлена утверждением~\ref{prop:model}, а оптимальность~--- отчётом решателя.
+    Допуски решателя снимаются точной проверкой найденного решения. Веса $\xi_{k,t}$ округляются до рациональных чисел; запас в единицу в~\eqref{eq:witness} позволяет проверить неравенства $\ip{\xi_{k,t}}{q_s-q_t}\ge1$ в точной арифметике. Массы $m_k$ пересчитываются точно решением системы $\sum_km_k\mathbf 1_{S_k}=y$ по найденным $S_k$.
 \end{remark}
 
 \begin{thebibliography}{9}
