@@ -13,6 +13,7 @@ Main results:
 * `IsNeoclassical.realizes_iff_mem_indicatorCone`: `h` realizes `y ≥ 0` at `P` iff `y` lies in
   the cone spanned by the indicators of the spectrum `Sp(h, P)`.
 * `IsNeoclassical.eventually_spectrum_subset`: the spectrum does not shrink near `P`.
+* `exists_coef_of_mem_indicatorCone`: Carathéodory for the indicator cone, at most `T` indicators.
 -/
 
 open MeasureTheory Set Filter Topology
@@ -206,5 +207,79 @@ theorem IsNeoclassical.eventually_spectrum_subset (hh : IsNeoclassical h)
     with Q h1 h2 using ⟨x, hx, h1, h2⟩
 
 end Cone
+
+/-- **Carathéodory for the indicator cone.** A vector of `indicatorCone A` is a nonnegative
+combination of at most `T` indicators of sets in `A`: a minimal-support representation has
+linearly independent indicators, and `Fin T → ℝ` has dimension `T`. -/
+theorem exists_coef_of_mem_indicatorCone {T : ℕ} {A : Set (Finset (Fin T))} {y : Fin T → ℝ}
+    (hy : y ∈ indicatorCone A) :
+    ∃ m : Finset (Fin T) → ℝ, (∀ S, 0 ≤ m S) ∧ (∀ S, m S ≠ 0 → S ∈ A) ∧
+      (Finset.univ.filter fun S => m S ≠ 0).card ≤ T ∧
+      y = ∑ S, m S • (S : Set (Fin T)).indicator 1 := by
+  classical
+  set ind : Finset (Fin T) → Fin T → ℝ := fun S => (S : Set (Fin T)).indicator 1
+  -- some representation exists
+  obtain ⟨m, hm0, hmA, hmy⟩ : ∃ m : Finset (Fin T) → ℝ, (∀ S, 0 ≤ m S) ∧
+      (∀ S, m S ≠ 0 → S ∈ A) ∧ y = ∑ S, m S • ind S := by
+    refine Submodule.span_induction (p := fun y _ => ∃ m : Finset (Fin T) → ℝ, (∀ S, 0 ≤ m S) ∧
+      (∀ S, m S ≠ 0 → S ∈ A) ∧ y = ∑ S, m S • ind S) ?_ ?_ ?_ ?_ hy
+    · rintro _ ⟨S, hS, rfl⟩
+      refine ⟨Pi.single S 1, fun S' => ?_, fun S' h => ?_, ?_⟩
+      · rw [Pi.single_apply]; split_ifs <;> norm_num
+      · by_cases h' : S' = S <;> simp_all
+      · simp [Pi.single_apply, ind]
+    · exact ⟨0, fun _ => le_rfl, fun _ h => absurd rfl h, by simp⟩
+    · rintro y₁ y₂ - - ⟨m₁, h₁, a₁, e₁⟩ ⟨m₂, h₂, a₂, e₂⟩
+      refine ⟨m₁ + m₂, fun S => add_nonneg (h₁ S) (h₂ S), fun S h => ?_, ?_⟩
+      · by_contra hS
+        simp [not_imp_comm.1 (a₁ S) hS, not_imp_comm.1 (a₂ S) hS] at h
+      · simp [e₁, e₂, add_smul, Finset.sum_add_distrib]
+    · rintro r y - ⟨m, h₀, a, e⟩
+      refine ⟨fun S => r * m S, fun S => mul_nonneg r.2 (h₀ S), fun S h => a S ?_, ?_⟩
+      · exact right_ne_zero_of_mul h
+      · simp [e, Finset.smul_sum, mul_smul]; rfl
+  -- reduce the support
+  suffices H : ∀ R : Finset (Finset (Fin T)), (∀ S ∈ R, S ∈ A) → ∀ m : Finset (Fin T) → ℝ,
+      (∀ S, 0 ≤ m S) → (∀ S, m S ≠ 0 → S ∈ R) → y = ∑ S, m S • ind S →
+      ∃ m : Finset (Fin T) → ℝ, (∀ S, 0 ≤ m S) ∧ (∀ S, m S ≠ 0 → S ∈ A) ∧
+        (Finset.univ.filter fun S => m S ≠ 0).card ≤ T ∧ y = ∑ S, m S • ind S from
+    H (Finset.univ.filter fun S => m S ≠ 0) (fun S hS => hmA S (by simpa using hS)) m hm0
+      (fun S h => by simpa using h) hmy
+  intro R
+  induction R using Finset.strongInductionOn with | _ R ih =>
+  intro hRA m hm0 hmR hmy
+  by_cases hR : R.card ≤ T
+  · exact ⟨m, hm0, fun S h => hRA S (hmR S h),
+      (Finset.card_le_card fun S hS => hmR S (by simpa using hS)).trans hR, hmy⟩
+  obtain ⟨g, hg, i, hi⟩ := Fintype.not_linearIndependent_iff.1
+    fun h : LinearIndependent ℝ fun S : R => ind S =>
+    by have := h.fintype_card_le_finrank; simp at this; omega
+  wlog hgi : 0 < g i generalizing g
+  · exact this (-g) (by simp only [Pi.neg_apply, neg_smul, Finset.sum_neg_distrib, hg, neg_zero])
+      (by simpa using hi) (neg_pos.2 (lt_of_le_of_ne (not_lt.1 hgi) hi))
+  let μ (S : Finset (Fin T)) : ℝ := if h : S ∈ R then g ⟨S, h⟩ else 0
+  have hμR (S) (hS : S ∉ R) : μ S = 0 := by simp [μ, hS]
+  have hμ : ∑ S, μ S • ind S = 0 := by
+    rw [← Finset.sum_subset R.subset_univ fun S _ hS => by simp [hμR S hS],
+      ← Finset.sum_coe_sort, ← hg]
+    simp [μ]
+  obtain ⟨S₀, hS₀, hmin⟩ := (Finset.univ.filter (0 < μ ·)).exists_min_image
+    (fun S => m S / μ S) ⟨i, by simpa [μ] using hgi⟩
+  simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hS₀ hmin
+  have hS₀R : S₀ ∈ R := by by_contra h; simp [hμR S₀ h] at hS₀
+  set θ := m S₀ / μ S₀
+  have hθ : 0 ≤ θ := div_nonneg (hm0 _) hS₀.le
+  refine ih _ (Finset.erase_ssubset hS₀R) (fun S hS => hRA S (Finset.mem_of_mem_erase hS))
+    (fun S => m S - θ * μ S) (fun S => ?_) (fun S hS => ?_) ?_
+  · rcases lt_or_ge 0 (μ S) with h | h
+    · have := hmin S h; rw [le_div_iff₀ h] at this; linarith
+    · nlinarith [hm0 S]
+  · by_cases h : S = S₀
+    · subst h; simp [θ, div_mul_cancel₀ _ hS₀.ne'] at hS
+    · refine Finset.mem_erase.2 ⟨h, ?_⟩
+      by_contra h'
+      simp [hμR S h', not_imp_comm.1 (hmR S) h'] at hS
+  · simp_rw [sub_smul, Finset.sum_sub_distrib, mul_smul, ← Finset.smul_sum, hμ, smul_zero,
+      sub_zero, hmy]
 
 end NeoTiling
