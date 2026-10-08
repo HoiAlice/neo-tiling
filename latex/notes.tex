@@ -214,11 +214,15 @@
 \section{Минимальное возмущение цен}
 
 \begin{definition}[Возмущение цен]\label{def:perturbation}
-    Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Для $\varepsilon\in\R^{d\times T}$ с $\varepsilon>-1$ положим $Q(\varepsilon):=\set{q^i_t:=p^i_t(1+\varepsilon^i_t)}_{t\in[T],\,i\in[d]}$. Для вектора выпусков $y\in\Rp[T]$ назовём \textit{минимальным возмущением} набора цен $P$ величину
+    Для $p,q>0$ назовём \textit{возмущением} величину
     \[
-        \rho(P,y):=\inf\set{\norm{\varepsilon}_1\mid \varepsilon>-1,\ y\ \text{разрешим при ценах}\ Q(\varepsilon)},\qquad \norm{\varepsilon}_1:=\sum_{t,i}\abs{\varepsilon^i_t}.
+        \pi(p,q):=\max\set{\abs{q/p-1},\ \abs{p/q-1}}.
     \]
-    Это наименьшее относительное изменение цен, при котором $y$ становится разрешим.
+    Для наборов цен $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$ и $Q:=\set{q_t\in\Rpp[d]}_{t\in[T]}$ положим $\pi(P,Q):=\sum_{t\in[T],\,i\in[d]}\pi(p^i_t,q^i_t)$. Для вектора выпусков $y\in\Rp[T]$ назовём \textit{минимальным возмущением} набора цен $P$ величину
+    \[
+        \rho(P,y):=\inf\set{\pi(P,Q)\mid Q\in\Rpp[d\times T],\ y\ \text{разрешим при ценах}\ Q}.
+    \]
+    Это наименьшее относительное изменение цен, при котором $y$ становится разрешим. Возмущение симметрично, $\pi(p,q)=\pi(q,p)$, и $\pi(p,q)\to\infty$ при $q\to0$.
 \end{definition}
 
 \begin{lemma}\label{lem:open}
@@ -230,7 +234,7 @@
 \end{proof}
 
 \begin{remark}
-    По лемме~\ref{lem:open} множество наборов цен, при которых $y$ разрешим, открыто. Поэтому при $\rho(P,y)>0$ точная нижняя грань не достигается: у допустимого $\varepsilon$ есть целая окрестность допустимых, и в ней найдётся $\varepsilon'$ с меньшей нормой. Ниже задача дополняется запасом $\Xi$, который делает минимум достижимым.
+    По лемме~\ref{lem:open} множество наборов цен, при которых $y$ разрешим, открыто. Поэтому при $\rho(P,y)>0$ точная нижняя грань не достигается: у допустимого набора $Q$ есть целая окрестность допустимых, и в ней найдётся $Q'$ с меньшим возмущением. Ниже задача дополняется запасом $W$, который делает минимум достижимым.
 \end{remark}
 
 \begin{lemma}[свидетели]\label{lem:witness}
@@ -253,6 +257,32 @@
     Среди представлений $y=\sum_{S\in\mathcal A}m_S\mathbf 1_S$ с $m_S\ge0$ возьмём представление с наименьшим числом ненулевых коэффициентов. Если их больше $T$, векторы $\mathbf 1_S$ с $m_S>0$ линейно зависимы в $\R^T$: $\sum_Sg_S\mathbf 1_S=0$, $g\ne0$, и, меняя знак, считаем, что некоторое $g_S>0$. Положим $\theta:=\min_{g_S>0}m_S/g_S$. Коэффициенты $m_S-\theta g_S$ неотрицательны, дают то же $y$ и обращаются в нуль ещё в одном месте. Противоречие с минимальностью.
 \end{proof}
 
+\begin{definition}[Задача о возмущении]\label{def:model}
+    Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен и $y\in\Rp[T]$~--- вектор выпусков. Зафиксируем параметры $D>0$ и $W>0$: границу возмущения цен и границу свидетелей. По ним рассчитаем вспомогательные границы
+    \[
+        Y:=\max_{t\in[T]}y_t,\qquad M_{st}:=1+W(1+D)\sum_{i\in[d]}(p^i_s+p^i_t).
+    \]
+    Переменные:
+    \begin{itemize}
+        \item $a^i_t$~--- множители цен, $q^i_t:=p^i_ta^i_t$;
+        \item $b^i_t$ и $g^i_t$~--- обратные множители и возмущения координат;
+        \item $z_{k,t}$~--- индикаторы спектров $S_k:=\set{t\mid z_{k,t}=1}$;
+        \item $m_k$ и $w_{k,t}$~--- массы и их произведения с индикаторами;
+        \item $\xi^i_{k,t}$~--- свидетели.
+    \end{itemize}
+    Границы на переменные~--- техническое требование решателя: в ограниченной коробке пространственный метод ветвей и границ сходится и сертифицирует глобальный оптимум. \textit{Задачей о возмущении} с параметрами $(D,W)$ назовём задачу
+    \begin{empheq}[left=\empheqlbrace]{align}
+        & \sum_{t\in[T],\,i\in[d]}g^i_t\ \to\ \min, \label{eq:obj}\\
+        & g^i_t\ge a^i_t-1,\quad g^i_t\ge b^i_t-1,\quad a^i_tb^i_t\ge1, & &\forall\,t\in[T],\ i\in[d], \label{eq:pert}\\
+        & \sum_{k\in[T]}w_{k,t}=y_t, & &\forall\,t\in[T], \label{eq:cone}\\
+        & w_{k,t}\le Y z_{k,t},\quad w_{k,t}\le m_k,\quad w_{k,t}\ge m_k-Y(1-z_{k,t}), & &\forall\,k,t\in[T], \label{eq:product}\\
+        & \sum_{i\in[d]}\xi^i_{k,t}\,\bigl(p^i_sa^i_s-p^i_ta^i_t\bigr)\ \ge\ 1-M_{st}\,(1-z_{k,t}+z_{k,s}), & &\forall\,k,s,t\in[T],\ s\ne t, \label{eq:witness}\\
+        & a^i_t,\,b^i_t\in[0,\,1+D],\quad g^i_t\in[0,D],\quad \xi^i_{k,t}\in[0,W], & &\forall\,k,t\in[T],\ i\in[d], \label{eq:box}\\
+        & z_{k,t}\in\set{0,1},\quad m_k\in[0,Y],\quad w_{k,t}\in[0,Y], & &\forall\,k,t\in[T]. \label{eq:box2}
+    \end{empheq}
+    Её оптимальное значение обозначим $v(D,W)$.
+\end{definition}
+
 \begin{lemma}[полный спектр]\label{lem:full}
     Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен, у которого первые координаты $p^1_t$ попарно различны, а произведение первых двух координат одно и то же: $p^1_tp^2_t=\kappa$ при всех $t\in[T]$. Тогда всякое $S\subset[T]$ является достижимым спектром, то есть $\Sp(P)=2^{[T]}$. В частности, всякий вектор выпусков $y\in\Rp[T]$ разрешим при ценах $P$.
 \end{lemma}
@@ -269,28 +299,56 @@
     Второе утверждение: $y=\sum_ty_t\mathbf 1_{\set t}\in\cone\set{\mathbf 1_S\mid S\in\Sp(P)}$, и $y$ разрешим по теореме~\ref{thm:solvability}.
 \end{proof}
 
-\begin{definition}[Задача о возмущении]\label{def:model}
-    Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$, $y\in\Rp[T]$, $Y:=\max_ty_t$, и зафиксированы границы $E>0$, $\eta\in(0,1)$, $\Xi>0$. Положим $M_{st}:=1+\Xi(1+E)\sum_{i\in[d]}(p^i_s+p^i_t)$. Переменные:
-    \begin{itemize}
-        \item $\varepsilon^i_t$~--- возмущения цен;
-        \item $z_{k,t}$~--- индикаторы спектров $S_k:=\set{t\mid z_{k,t}=1}$;
-        \item $m_k$ и $w_{k,t}$~--- массы и их произведения с индикаторами;
-        \item $\xi^i_{k,t}$~--- свидетели.
-    \end{itemize}
-    \textit{Задачей о возмущении} с границами $(E,\eta,\Xi)$ назовём задачу
-    \begin{empheq}[left=\empheqlbrace]{align}
-        & \sum_{t\in[T],\,i\in[d]}\abs{\varepsilon^i_t}\ \to\ \min, \label{eq:obj}\\
-        & \sum_{k\in[T]}w_{k,t}=y_t, & &\forall\,t\in[T], \label{eq:cone}\\
-        & w_{k,t}\le Y z_{k,t},\quad w_{k,t}\le m_k,\quad w_{k,t}\ge m_k-Y(1-z_{k,t}), & &\forall\,k,t\in[T], \label{eq:product}\\
-        & \sum_{i\in[d]}\xi^i_{k,t}\,\bigl(p^i_s(1+\varepsilon^i_s)-p^i_t(1+\varepsilon^i_t)\bigr)\ \ge\ 1-M_{st}\,(1-z_{k,t}+z_{k,s}), & &\forall\,k,s,t\in[T],\ s\ne t, \label{eq:witness}\\
-        & \varepsilon^i_t\in[-1+\eta,E],\quad \xi^i_{k,t}\in[0,\Xi], & &\forall\,k,t\in[T],\ i\in[d], \label{eq:box}\\
-        & z_{k,t}\in\set{0,1},\quad m_k\in[0,Y],\quad w_{k,t}\in[0,Y], & &\forall\,k,t\in[T]. \label{eq:box2}
-    \end{empheq}
-    Её оптимальное значение обозначим $v(E,\eta,\Xi)$.
-\end{definition}
+\begin{lemma}[коробка]\label{lem:box}
+    Пусть $p,q>0$ и $D\ge0$. Тогда $\pi(p,q)=\max\set{q/p,\,p/q}-1$, и $\pi(p,q)\le D$ тогда и только тогда, когда $p/(1+D)\le q\le p(1+D)$. В частности, если $\pi(P,Q)\le D$, то $p^i_t/(1+D)\le q^i_t\le p^i_t(1+D)$ при всех $t\in[T]$, $i\in[d]$.
+\end{lemma}
+
+\begin{proof}
+    Положим $a:=q/p$. При $a\ge1$ имеем $\abs{a-1}=a-1\ge1-a^{-1}=\abs{a^{-1}-1}$, при $a\le1$~--- симметрично. Поэтому $\pi(p,q)=\max\set{a,a^{-1}}-1$, и $\pi(p,q)\le D$ равносильно $a\le1+D$ и $a^{-1}\le1+D$. Второе утверждение: слагаемые в $\pi(P,Q)$ неотрицательны, поэтому $\pi(p^i_t,q^i_t)\le\pi(P,Q)\le D$.
+\end{proof}
+
+\begin{lemma}[оценка сверху]\label{lem:bound}
+    Пусть $d\ge2$, $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен, $y\in\Rp[T]$, $\kappa>0$ и
+    \[
+        D(\kappa):=\sum_{t\in[T]}\Bigl(\max\set{\frac{\kappa}{p^1_tp^2_t},\ \frac{p^1_tp^2_t}{\kappa}}-1\Bigr).
+    \]
+    Тогда для всякого $\eta>0$ найдётся набор цен $Q\in\Rpp[d\times T]$, при котором $y$ разрешим, с $\pi(P,Q)\le D(\kappa)+\eta$. В частности, $\rho(P,y)\le D(\kappa)$.
+\end{lemma}
+
+\begin{proof}
+    Для $\theta\ge0$ положим $q^1_t:=p^1_t+\theta t$, $q^2_t:=\kappa/q^1_t$ и $q^i_t:=p^i_t$ при $i>2$. Цены $Q_\theta$ положительны, $q^1_tq^2_t=\kappa$, а $q^1_t$ попарно различны, если $\theta\ne(p^1_t-p^1_s)/(s-t)$ при всех $s\ne t$. Функция $\theta\mapsto\pi(P,Q_\theta)$ непрерывна, а при $\theta=0$ по лемме~\ref{lem:box} равна
+    \[
+        \sum_{t\in[T]}\pi\bigl(p^2_t,\kappa/p^1_t\bigr)=D(\kappa).
+    \]
+    Поэтому при малом $\theta>0$ вне конечного множества исключений $\pi(P,Q_\theta)\le D(\kappa)+\eta$, а $y$ разрешим при ценах $Q_\theta$ по лемме~\ref{lem:full}.
+\end{proof}
+
+\begin{proposition}\label{prop:bounds}
+    Пусть $d\ge2$ и $D>D(\kappa)$ при некотором $\kappa>0$. Тогда $\rho(P,y)<D$, и для всякого набора цен $Q$ с $\pi(P,Q)\le D$ значения $a^i_t:=q^i_t/p^i_t$, $b^i_t:=p^i_t/q^i_t$, $g^i_t:=\pi(p^i_t,q^i_t)$ удовлетворяют~\eqref{eq:pert} и~\eqref{eq:box}. Таким образом, границы на $a$, $b$ и $g$ не исключают ни одного набора цен с возмущением не больше $D$.
+\end{proposition}
+
+\begin{proof}
+    Первое утверждение~--- лемма~\ref{lem:bound}. Далее, $a^i_tb^i_t=1$, и по лемме~\ref{lem:box} $a^i_t,b^i_t\in[1/(1+D),1+D]\subset[0,1+D]$ и $g^i_t=\max\set{a^i_t,b^i_t}-1\in[0,D]$.
+\end{proof}
+
+\begin{proposition}[внутренняя точка]\label{prop:interior}
+    Пусть $d\ge2$, $Q:=\set{q_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен с попарно различными $q^1_t$ и $q^1_tq^2_t=\kappa$ (например, $Q=Q_\theta$ из леммы~\ref{lem:bound}), и
+    \[
+        W_{\mathrm{crit}}(Q):=\max_{t\in[T]}c_t\max\set{(q^1_t)^{-1},(q^2_t)^{-1}},\qquad c_t:=\max_{s\ne t}\frac{q^1_sq^1_t}{(q^1_s-q^1_t)^2}.
+    \]
+    Если $D\ge\pi(P,Q)$ и $W\ge W_{\mathrm{crit}}(Q)$, то задача о возмущении с параметрами $(D,W)$ имеет допустимую точку со значением целевой функции $\pi(P,Q)$. В частности, $v(D,W)\le\pi(P,Q)$.
+\end{proposition}
+
+\begin{proof}
+    Положим $a^i_t:=q^i_t/p^i_t$, $b^i_t:=p^i_t/q^i_t$, $g^i_t:=\pi(p^i_t,q^i_t)$, $z_{k,t}:=[k=t]$, $m_k:=y_k$, $w_{k,t}:=y_k[k=t]$ и $\xi_{k,t}:=\xi_t$, где $\xi_t$~--- свидетели из леммы~\ref{lem:full} для набора $Q$. Ограничения~\eqref{eq:pert} и~\eqref{eq:box} для $a$, $b$, $g$ выполнены по лемме~\ref{lem:box}, ограничения~\eqref{eq:cone}, \eqref{eq:product}, \eqref{eq:box2}~--- непосредственно. Далее, $0\le\xi_t\le c_t\max\set{(q^1_t)^{-1},(q^2_t)^{-1}}\le W$. В~\eqref{eq:witness} при $k=t$ и $s\ne t$ правая часть равна $1$, а левая равна $\ip{\xi_t}{q_s-q_t}\ge1$ по лемме~\ref{lem:full}. В остальных случаях $1-z_{k,t}+z_{k,s}\ge1$, правая часть не больше $1-M_{st}$, а левая не меньше $-W\sum_iq^i_t\ge-W(1+D)\sum_ip^i_t\ge1-M_{st}$.
+\end{proof}
 
 \begin{remark}
-    Задача~\eqref{eq:obj}--\eqref{eq:box2}~--- смешанно-целочисленная задача с тривиально линеаризуемой целевой функцией, бинарными переменными $z$ и билинейными членами $\xi^i_{k,t}\varepsilon^i_s$ в~\eqref{eq:witness}. Все переменные ограничены. Такие задачи Gurobi решает до глобального оптимума пространственным методом ветвей и границ с оболочками Маккормика для билинейных членов~\cite{Gurobi}. Величина \texttt{MIPGap} относится к глобальной нижней оценке, поэтому статус \texttt{OPTIMAL} сертифицирует глобальный оптимум $v(E,\eta,\Xi)$ с точностью до допусков решателя, а статус \texttt{INFEASIBLE}~--- отсутствие решений в коробке с данным запасом $\Xi$. Билинейных членов $dT^3$, бинарных переменных $T^2$. Спектры $S_k$ взаимозаменяемы, поэтому полезно добавить $m_1\ge\dots\ge m_T$.
+    Величины $D(\kappa)$ и $W_{\mathrm{crit}}(Q_\theta)$ вычисляются до запуска решателя. Если первые координаты $p^1_t$ попарно различны, можно взять $\theta=0$: тогда $\pi(P,Q_0)=D(\kappa)$. При $\theta\to0$ величина $W_{\mathrm{crit}}(Q_\theta)$ растёт, если у $P$ есть совпадающие первые координаты.
+\end{remark}
+
+\begin{remark}
+    Задача~\eqref{eq:obj}--\eqref{eq:box2}~--- смешанно-целочисленная задача с линейной целевой функцией, бинарными переменными $z$ и билинейными членами $\xi^i_{k,t}a^i_s$ в~\eqref{eq:witness}. Множество $\set{ab\ge1,\ a,b\ge0}$ выпукло (повёрнутый конус второго порядка), так что~\eqref{eq:pert} невыпуклости не добавляет. Из $a^i_tb^i_t\ge1$ и $b^i_t\le1+D$ следует $a^i_t\ge1/(1+D)$, так что в~\eqref{eq:box} нижняя граница нуль ничего не теряет; в коде границу $a^i_t,b^i_t\ge1/(1+D)$ стоит задать явно, оболочки Маккормика для $\xi^i_{k,t}a^i_s$ от этого становятся точнее. Все переменные ограничены. Такие задачи Gurobi решает до глобального оптимума пространственным методом ветвей и границ с оболочками Маккормика для билинейных членов~\cite{Gurobi}. Величина \texttt{MIPGap} относится к глобальной нижней оценке, поэтому статус \texttt{OPTIMAL} сертифицирует глобальный оптимум $v(D,W)$ с точностью до допусков решателя, а статус \texttt{INFEASIBLE}~--- отсутствие решений в коробке с данным запасом $W$. Билинейных членов $dT^3$, бинарных переменных $T^2$. Спектры $S_k$ взаимозаменяемы, поэтому полезно добавить $m_1\ge\dots\ge m_T$.
 \end{remark}
 
 \begin{remark}
