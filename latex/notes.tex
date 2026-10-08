@@ -63,7 +63,7 @@
 \begin{document}
 \section{Разрешимость}
 
-Всюду $d\in\N$, $d\ge1$. Для $p,x\in\R^d$ через $p\circ x:=(p^1x^1,\dots,p^dx^d)$ обозначим покоординатное произведение, через $\mathbf e:=(1,\dots,1)\in\R^d$~--- единичный вектор, через $\mathbf 1_S\in\R^T$~--- индикатор множества $S\subset[T]$. Неравенства между векторами покоординатные.
+Всюду $d\in\N$, $d\ge2$. Для $p,x\in\R^d$ через $p\circ x:=(p^1x^1,\dots,p^dx^d)$ обозначим покоординатное произведение, через $\mathbf e:=(1,\dots,1)\in\R^d$~--- единичный вектор, через $\mathbf 1_S\in\R^T$~--- индикатор множества $S\subset[T]$. Неравенства между векторами покоординатные.
 
 \begin{definition}[Неоклассические Функции]\label{def:neoclassical}
     Будем называть функцию $f:\Rp[d]\to\R_{+}$ \textit{неоклассической}, если она \textit{непрерывна}, \textit{вогнута} и однородна степени~1.\\
@@ -146,7 +146,7 @@
 \end{proof}
 
 \begin{lemma}[склейка]\label{lem:patch}
-    Пусть $d\ge2$ и $P:=\set{p_{t}\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Тогда существует кусочно-линейная $h\in\Phi_d$, для которой $\Sp(P)\subseteq\Sp(h,P)$.
+    Пусть $P:=\set{p_{t}\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Тогда существует кусочно-линейная $h\in\Phi_d$, для которой $\Sp(P)\subseteq\Sp(h,P)$.
 \end{lemma}
 
 \begin{proof}
@@ -161,20 +161,12 @@
     Так как $\ip{\eta\circ x_{-a}}{p\circ x_b}=\ip{\eta}{p\circ x_{b-a}}$, в точке $x_{E_S}$ векторы с показателем $E_S$ дают значения $\ip{\eta_{S,t}}{p}$, а все остальные~--- значения $\ip{\eta}{p\circ x_z}$ с $z\ne0$, большие единицы. Поэтому для $t\in S$ имеем $h(p_t\circ x_{E_S})\le\ip{\eta_{S,t}}{p_t}<1$, а для $s\notin S$~--- $h(p_s\circ x_{E_S})>1$. Значит, $x_{E_S}\in R_S$ и $S\in\Sp(h,P)$.
 \end{proof}
 
-\begin{lemma}\label{lem:dim-one}
-    Пусть $d=1$ и $h(x):=x$. Тогда $\Sp(P)\subseteq\Sp(h,P)$.
-\end{lemma}
-
-\begin{proof}
-    Пусть $S\in\Sp(P)$. Если $S=\varnothing$, подходит достаточно большая точка $x$. Иначе возьмём $t\in S$ с наибольшей ценой и точку $x:=\xi$ из леммы~\ref{lem:separation}. Тогда $p_rx\le p_tx<1$ при $r\in S$ и $p_sx>1$ при $s\notin S$, то есть $x\in R_S$.
-\end{proof}
-
 \begin{theorem}\label{thm:spectrum}
     Пусть $P:=\set{p_{t}\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Тогда существует $h\in\Phi_d$, для которой $\Sp(h,P)=\Sp(P)$.
 \end{theorem}
 
 \begin{proof}
-    Включение $\Sp(P)\subseteq\Sp(h,P)$ даёт лемма~\ref{lem:dim-one} при $d=1$ и лемма~\ref{lem:patch} при $d\ge2$, обратное включение~--- лемма~\ref{lem:necessity}.
+    Включение $\Sp(P)\subseteq\Sp(h,P)$ даёт лемма~\ref{lem:patch}, обратное~--- лемма~\ref{lem:necessity}.
 \end{proof}
 
 \begin{theorem}\label{thm:solvability}
@@ -261,7 +253,7 @@
 \end{proof}
 
 \begin{lemma}[полный спектр]\label{lem:full}
-    Пусть $d\ge2$, $\kappa>0$ и все цены $Q:=\set{q_t\in\Rpp[d]}_{t\in[T]}$ лежат на поверхности $x^1x^2=\kappa$, причём первые координаты $q^1_t$ попарно различны. Тогда $\Sp(Q)=2^{[T]}$, и всякий вектор выпусков $y\in\Rp[T]$ разрешим при ценах $Q$.
+    Пусть $\kappa>0$ и все цены $Q:=\set{q_t\in\Rpp[d]}_{t\in[T]}$ лежат на поверхности $x^1x^2=\kappa$, причём первые координаты $q^1_t$ попарно различны. Тогда $\Sp(Q)=2^{[T]}$, и всякий вектор выпусков $y\in\Rp[T]$ разрешим при ценах $Q$.
 \end{lemma}
 
 \begin{proof}
@@ -304,7 +296,7 @@
 \end{proof}
 
 \begin{proposition}[границы]\label{prop:bounds}
-    Пусть $d\ge2$, числа $\lambda_t>0$ попарно различны, $\kappa>0$, и $\varepsilon^*$~--- возмущение, переводящее $P$ в $Q^*:=\set{(\lambda_t,\ \kappa/\lambda_t,\ p^3_t,\dots,p^d_t)}_{t\in[T]}$. Положим $r:=\norm{\varepsilon^*}_1$ и
+    Пусть числа $\lambda_t>0$ попарно различны, $\kappa>0$, и $\varepsilon^*$~--- возмущение, переводящее $P$ в $Q^*:=\set{(\lambda_t,\ \kappa/\lambda_t,\ p^3_t,\dots,p^d_t)}_{t\in[T]}$. Положим $r:=\norm{\varepsilon^*}_1$ и
     \[
         E:=r,\qquad
         \eta:=\min\Bigl(\tfrac12,\ \min_t\frac{\lambda_t}{p^1_t},\ \min_t\frac{\kappa}{\lambda_tp^2_t}\Bigr),\qquad

@@ -11,9 +11,9 @@ Main results:
   witnesses in the non-strict form `⟨ξ, p_s - p_t⟩ ≥ 1`, `ξ ≥ 0`.
 * `exists_polyMin_patch`: for `d ≥ 2`, all reachable spectra lie in the spectrum of one
   polyhedral function.
-* `exists_spectrum_eq_reachableSpectra`: for `d ≥ 1` some neoclassical `h` has
+* `exists_spectrum_eq_reachableSpectra`: for `d ≥ 2` some neoclassical `h` has
   `Sp(h, P) = Sp(P)`.
-* `neoSolvable_iff_mem_indicatorCone`: for `d ≥ 1`, outputs `y ≥ 0` are neoclassically solvable
+* `neoSolvable_iff_mem_indicatorCone`: for `d ≥ 2`, outputs `y ≥ 0` are neoclassically solvable
   at positive prices `P` iff `y` lies in the cone spanned by the indicators of `Sp(P)`.
 * `eventually_reachableSpectra_subset`, `NeoSolvable.eventually`: `Sp(P) ⊆ Sp(Q)` for `Q` near `P`,
   so solvability is an open condition on the prices.
@@ -169,50 +169,22 @@ theorem exists_polyMin_patch (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) :
       exact hηs j s hs
     · exact hfar o s (sub_ne_zero.2 h)
 
-/-- **Dimension one.** For `d = 1` the linear function `x ↦ x₀` has every reachable spectrum:
-for `S ≠ ∅` take `t ∈ S` with the largest price and the point `x = ξ` of
-`IsReachable.exists_vector` for `t`; then `p_r x < 1` for `r ∈ S` and `p_s x > 1` for `s ∉ S`.
-For `S = ∅` take a large point. -/
-theorem reachableSpectra_subset_spectrum_of_eq_one (hd : d = 1) (hP : ∀ t, P t ∈ orthant d) :
-    reachableSpectra P ⊆ spectrum (polyMin fun _ : Unit => (1 : Fin d → ℝ)) P := by
-  subst hd
-  intro S hS
-  obtain ⟨x, hx, hxS, hxS'⟩ : ∃ x ∈ orthant 1,
-      (∀ r ∈ S, P r 0 * x 0 < 1) ∧ ∀ s ∉ S, 1 < P s 0 * x 0 := by
-    rcases S.eq_empty_or_nonempty with rfl | hne
-    · obtain ⟨c, hc0, hc⟩ := ((eventually_gt_atTop 0).and (eventually_all.2 fun s =>
-        (tendsto_id.const_mul_atTop (hP s 0)).eventually_gt_atTop 1)).exists
-      exact ⟨fun _ => c, fun _ => hc0, by simp, fun s _ => hc s⟩
-    obtain ⟨t, ht, hmax⟩ := S.exists_max_image (fun t => P t 0) hne
-    obtain ⟨ξ, hξ, hξt, hξS⟩ := hS.exists_vector hP ht
-    simp only [dotProduct, Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton]
-      at hξt hξS
-    exact ⟨ξ, hξ, fun r hr => by nlinarith [hmax r hr, hξ 0], fun s hs => by linarith [hξS s hs]⟩
-  exact ⟨x, hx, fun r hr => by simpa [polyMin, dotProduct] using hxS r hr,
-    fun s hs => by simpa [polyMin, dotProduct] using hxS' s hs⟩
-
-/-- **Spectra of neoclassical functions.** For `d ≥ 1` some neoclassical `h` has
-`Sp(h, P) = Sp(P)`: for `d = 1` a linear function
-(`reachableSpectra_subset_spectrum_of_eq_one`), for `d ≥ 2` patch all reachable spectra
-(`exists_polyMin_patch`); the other inclusion is
+/-- **Spectra of neoclassical functions.** For `d ≥ 2` some neoclassical `h` has
+`Sp(h, P) = Sp(P)`: patch all reachable spectra (`exists_polyMin_patch`); the other inclusion is
 `IsNeoclassical.spectrum_subset_reachableSpectra`. -/
-theorem exists_spectrum_eq_reachableSpectra (hd : 0 < d) (hP : ∀ t, P t ∈ orthant d) :
-    ∃ h, IsNeoclassical h ∧ spectrum h P = reachableSpectra P := by
-  suffices ∃ h, IsNeoclassical h ∧ reachableSpectra P ⊆ spectrum h P by
-    obtain ⟨h, hh, hsub⟩ := this
-    exact ⟨h, hh, (hh.spectrum_subset_reachableSpectra hP).antisymm hsub⟩
-  rcases (by omega : d = 1 ∨ 2 ≤ d) with hd | hd
-  exacts [⟨_, isNeoclassical_polyMin fun _ => zero_le_one,
-    reachableSpectra_subset_spectrum_of_eq_one hd hP⟩, exists_polyMin_patch hd hP]
+theorem exists_spectrum_eq_reachableSpectra (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) :
+    ∃ h, IsNeoclassical h ∧ spectrum h P = reachableSpectra P :=
+  let ⟨h, hh, hsub⟩ := exists_polyMin_patch hd hP
+  ⟨h, hh, (hh.spectrum_subset_reachableSpectra hP).antisymm hsub⟩
 
-/-- **Neoclassical solvability criterion.** For `d ≥ 1`, positive prices `P` and outputs
+/-- **Neoclassical solvability criterion.** For `d ≥ 2`, positive prices `P` and outputs
 `y ≥ 0`, `y` is neoclassically solvable at `P` iff `y` lies in the cone spanned by the
 indicators of the reachable spectra.
 
 `→`: realization at `P` puts `y` into the cone of `Sp(h, P) ⊆ Sp(P)`. `←`: take `h` with
 `Sp(h, P) = Sp(P)` (`exists_spectrum_eq_reachableSpectra`); near `P` the spectrum of `h` only
 grows (`IsNeoclassical.eventually_spectrum_subset`), so `h` realizes `y` there. -/
-theorem neoSolvable_iff_mem_indicatorCone (hd : 0 < d) (hP : ∀ t, P t ∈ orthant d)
+theorem neoSolvable_iff_mem_indicatorCone (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d)
     (hy : ∀ t, 0 ≤ y t) :
     NeoSolvable P y ↔ y ∈ indicatorCone (reachableSpectra P) := by
   constructor
@@ -229,7 +201,7 @@ theorem neoSolvable_iff_mem_indicatorCone (hd : 0 < d) (hP : ∀ t, P t ∈ orth
 
 /-- **Reachable spectra do not shrink near `P`.** Take `h` with `Sp(h, P) = Sp(P)`; near `P`,
 `Sp(P) = Sp(h, P) ⊆ Sp(h, Q) ⊆ Sp(Q)`. -/
-theorem eventually_reachableSpectra_subset (hd : 0 < d) (hP : ∀ t, P t ∈ orthant d) :
+theorem eventually_reachableSpectra_subset (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) :
     ∀ᶠ Q in 𝓝 P, reachableSpectra P ⊆ reachableSpectra Q := by
   obtain ⟨h, hh, hspec⟩ := exists_spectrum_eq_reachableSpectra hd hP
   filter_upwards [hh.eventually_spectrum_subset hP, eventually_all.2 fun t =>
@@ -239,7 +211,7 @@ theorem eventually_reachableSpectra_subset (hd : 0 < d) (hP : ∀ t, P t ∈ ort
 /-- **Solvability is an open condition on the prices**: `y` solvable at `P` is solvable at all
 `Q` near `P` (`eventually_reachableSpectra_subset`). Hence the infimum of a distance from `P` to
 the solvable prices is not attained in general. -/
-theorem NeoSolvable.eventually (hd : 0 < d) (hP : ∀ t, P t ∈ orthant d) (hy : ∀ t, 0 ≤ y t)
+theorem NeoSolvable.eventually (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) (hy : ∀ t, 0 ≤ y t)
     (h : NeoSolvable P y) : ∀ᶠ Q in 𝓝 P, NeoSolvable Q y := by
   rw [neoSolvable_iff_mem_indicatorCone hd hP hy] at h
   filter_upwards [eventually_reachableSpectra_subset hd hP, eventually_all.2 fun t =>
@@ -287,7 +259,7 @@ theorem neoSolvable_of_hyperbola (hd : 2 ≤ d) (hQ : ∀ t, P t ∈ orthant d) 
     (hκ : ∀ t, P t ⟨0, by omega⟩ * P t ⟨1, by omega⟩ = κ)
     (hinj : Function.Injective fun t => P t ⟨0, by omega⟩) (hy : ∀ t, 0 ≤ y t) :
     NeoSolvable P y := by
-  rw [neoSolvable_iff_mem_indicatorCone (by omega) hQ hy,
+  rw [neoSolvable_iff_mem_indicatorCone hd hQ hy,
     reachableSpectra_eq_univ_of_hyperbola hd hQ hκ hinj]
   have : y = ∑ t, y t • ((({t} : Finset (Fin T)) : Set (Fin T)).indicator 1) := by
     ext r; simp [Finset.sum_apply, Pi.single_apply]
