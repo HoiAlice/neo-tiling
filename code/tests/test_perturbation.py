@@ -11,8 +11,9 @@ DEN = 10  # the optima below are simple rationals, so a coarse conversion hits t
 
 
 def run(prices: str, outputs: str, **kwargs):
+    """Exact mode: these examples are tiny and their optima are checked."""
     problem = Problem.parse(prices, outputs)
-    solution = solve(prepare(problem), **kwargs)
+    solution = solve(prepare(problem), exact=True, **kwargs)
     assert solution.status == "optimal"
     return problem, solution, verify(problem, rational(solution, DEN))
 
