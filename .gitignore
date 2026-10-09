@@ -15,3 +15,6 @@ latex/*.fdb_latexmk
 
 # Claude Code local permissions
 .claude/settings.local.json
+
+# Raw downloads for code/data (see code/data/README.md)
+code/data/raw/

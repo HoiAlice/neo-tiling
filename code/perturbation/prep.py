@@ -24,10 +24,16 @@ class Problem:
 
     P: tuple[Vec, ...]
     y: tuple[Fraction, ...]
+    periods: tuple[str, ...] | None = None  # labels of t, e.g. years
+    factors: tuple[str, ...] | None = None  # labels of i, e.g. input names
 
     def __post_init__(self) -> None:
         if not self.P or len(self.P) != len(self.y):
             raise ValueError("P and y must have the same positive length T")
+        if self.periods is not None and len(self.periods) != len(self.P):
+            raise ValueError("one period label per observation")
+        if self.factors is not None and len(self.factors) != len(self.P[0]):
+            raise ValueError("one factor label per coordinate")
         d = len(self.P[0])
         if d < MIN_DIM or any(len(p) != d for p in self.P):
             raise ValueError("all prices must have the same dimension d >= 2")
