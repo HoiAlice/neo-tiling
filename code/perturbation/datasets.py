@@ -25,7 +25,7 @@ def _frac(x: float) -> Fraction:
 
 
 def berndt_wood() -> Problem:
-    """Prices (PK, PL, PE, PM), output QY, 1947-1971."""
+    """Prices (PK, PL, PE, PM) and the gross output quantity QY, 1947-1971."""
     P, y, years = [], [], []
     for line in (DATA / "berndt_wood_klem.dat").read_text().splitlines():
         f = [float(v) for v in line.split()]
@@ -34,9 +34,8 @@ def berndt_wood() -> Problem:
         P.append(tuple(_frac(f[i]) for i in (4, 6, 8, 10)))
         y.append(_frac(f[1]))
         years.append(str(int(f[0])))
-    return Problem(
-        tuple(P), tuple(y), tuple(years), ("capital", "labour", "energy", "materials")
-    )
+    factors = ("capital", "labour", "energy", "materials")
+    return Problem(tuple(P), tuple(y), tuple(years), factors)
 
 
 def _value(text: str) -> float:
@@ -95,9 +94,8 @@ def euklems(
             kept.append(str(int(r["year"])))
     if len(P) < 2:  # noqa: PLR2004
         raise ValueError(f"too few complete observations for {geo}/{industry}")
-    return Problem(
-        tuple(P), tuple(y), tuple(kept), ("capital", "labour", "intermediates")
-    )
+    factors = ("capital", "labour", "intermediates")
+    return Problem(tuple(P), tuple(y), tuple(kept), factors)
 
 
 def select(problem: Problem, indices: tuple[int, ...]) -> Problem:

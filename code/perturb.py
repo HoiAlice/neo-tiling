@@ -5,7 +5,7 @@ python code/perturb.py --data bw --time 1800
 python code/perturb.py --data euklems:UK:C --window 1999:8 --exact
 
 First the certified test of weak solvability at P (rho = 0?), then the solver: the
-heuristic mode by default (hyperbola start, aggressive heuristics, stop on stall, no
+heuristic mode by default (aggressive heuristics, stop on stall, no start point, no
 certificate), or `--exact` for the full branch and bound; then the exact rational check
 of the answer and the report of the price changes.
 """
@@ -13,7 +13,7 @@ of the answer and the report of the price changes.
 import argparse
 
 from perturbation import Problem, prepare, rational, solve, verify
-from perturbation.datasets import berndt_wood, euklems, window
+from perturbation.datasets import berndt_wood, euklems, select, window
 from perturbation.exact import MAX_T, weakly_solvable
 from perturbation.report import describe
 
@@ -28,6 +28,9 @@ def load(args) -> Problem:
         problem = euklems(geo, industry)
     else:
         raise SystemExit(f"unknown dataset {args.data}")
+    if args.inputs:
+        names = args.inputs.split(",")
+        problem = select(problem, tuple(problem.factors.index(n) for n in names))
     if args.window:
         first, n = args.window.split(":")
         start = problem.periods.index(first) if problem.periods else int(first)
@@ -42,6 +45,9 @@ def main() -> None:
     parser.add_argument("--P", help='prices, rows by ";", e.g. "4,1;3,3;1,4"')
     parser.add_argument("--y", help='outputs, e.g. "1,5,3"')
     parser.add_argument("--data", help="bw | euklems:GEO:INDUSTRY")
+    parser.add_argument(
+        "--inputs", help="keep only these inputs, e.g. capital,labour (d = 2)"
+    )
     parser.add_argument("--window", help="FIRST:N, e.g. 1947:8 (period label, length)")
     parser.add_argument(
         "--K", type=int, default=None, help="number of spectra (default T)"
@@ -53,7 +59,7 @@ def main() -> None:
         "--no-symmetry", action="store_true", help="no m_1 >= ... >= m_K"
     )
     parser.add_argument(
-        "--no-start", action="store_true", help="no hyperbola start point"
+        "--start", action="store_true", help="add the hyperbola point as a start"
     )
     parser.add_argument(
         "--exact", action="store_true", help="branch and bound to optimality"
@@ -91,7 +97,7 @@ def main() -> None:
         K=args.K,
         indicator=args.indicator,
         symmetry=not args.no_symmetry,
-        start=not args.no_start,
+        start=args.start,
         time_limit=args.time,
         verbose=args.verbose,
         exact=args.exact,
