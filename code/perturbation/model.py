@@ -129,36 +129,18 @@ def build(  # noqa: PLR0912
     return model, {"a": a, "g": g, "z": z, "m": m, "w": w, "xi": xi}
 
 
-def start_family(y: tuple[float, ...], kind: str) -> list[tuple[frozenset[int], float]]:
-    """Spectra and masses of the start point, ordered by decreasing mass.
+def add_start(model: Model, v: dict, prep: Prepared, K: int) -> bool:
+    """The hyperbola point as a start solution: singleton spectra S_t = {t} with mass
+    y_t, ordered by decreasing mass, and the witnesses of the full-spectrum lemma.
 
-    "singletons": S_t = {t} with mass y_t. "layers": the layer cake of y, nested spectra
-    {t | y_t >= level} with the gaps between consecutive levels as masses. Both are
-    weakly reachable at the hyperbola prices, where every t has a witness against all
-    other indices, so both give feasible start points of the same cost D(kappa)."""
-    T = len(y)
-    if kind == "singletons":
-        family = [(frozenset({t}), y[t]) for t in range(T) if y[t] > 0]
-    elif kind == "layers":
-        levels = sorted({v for v in y if v > 0})
-        family = []
-        prev = 0.0
-        for level in levels:
-            family.append(
-                (frozenset(t for t in range(T) if y[t] >= level), level - prev)
-            )
-            prev = level
-    else:
-        raise ValueError(f"unknown start family {kind}")
-    return sorted(family, key=lambda sm: -sm[1])
-
-
-def add_start(
-    model: Model, v: dict, prep: Prepared, K: int, kind: str = "singletons"
-) -> bool:
-    """The hyperbola start point with the family `kind` (see `start_family`)."""
+    NOTE: this point is the existence proof of the notes (lem:bound), not a sensible
+    start. Its cost is D(kappa), far above typical optima, and on real data it anchors
+    the solver's heuristics in a poor region: runs without it found better incumbents.
+    It is therefore off by default (`solve(start=False)`)."""
     T, d, y = prep.T, prep.d, prep.y
-    family = start_family(y, kind)[:K]
+    family = sorted(
+        [(frozenset({t}), y[t]) for t in range(T) if y[t] > 0], key=lambda sm: -sm[1]
+    )[:K]
     sol = model.createSol()
     for t in range(T):
         for i in range(d):
@@ -185,8 +167,7 @@ def solve(  # noqa: PLR0913, PLR0917
     K: int | None = None,
     indicator: bool = False,
     symmetry: bool = True,
-    start: bool = True,
-    start_kind: str = "singletons",
+    start: bool = False,
     time_limit: float | None = None,
     verbose: bool = False,
     D: float | None = None,
@@ -196,8 +177,9 @@ def solve(  # noqa: PLR0913, PLR0917
 ) -> Solution:
     """`D` tightens the box to a known upper bound on rho; `params`: SCIP settings.
 
-    By default the heuristic mode: the hyperbola start point, aggressive heuristics, and
-    the search stops after `stall_nodes` nodes without an improvement. No certificate:
+    By default the heuristic mode: aggressive heuristics, no start point (see
+    `add_start`), and the search stops after `stall_nodes` nodes without an
+    improvement. No certificate:
     the dual bound is reported but is typically 0 on real data. `exact=True` runs the
     plain branch and bound to optimality (feasible for T <= 4 or so)."""
     T, d = prep.T, prep.d
@@ -213,7 +195,7 @@ def solve(  # noqa: PLR0913, PLR0917
     if time_limit is not None:
         model.setParam("limits/time", time_limit)
     if start:
-        add_start(model, v, prep, K, start_kind)
+        add_start(model, v, prep, K)
     t0 = time.perf_counter()
     model.optimize()
     seconds = time.perf_counter() - t0
