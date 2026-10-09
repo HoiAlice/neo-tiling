@@ -9,5 +9,10 @@ solvability theory.
   regular solvability, reachable spectra via pair coverings, degenerate prices). Not built: the
   lakefile only globs `NeoTiling/`.
 
+- `Perturbation.lean` — the 2026-10-08 perturbation file (symmetric perturbation `pert`, box
+  lemma, hyperbola bound `D(κ)`, witness bound `W_crit`), written for the perturbation problem
+  with a witness bound `W`. Moved here on 2026-10-09 when that problem was replaced by the one
+  through weak solvability. Not built.
+
 The current theory lives in `latex/notes.tex` and `NeoTiling/`. Do not read, reuse or cite files
 here unless the user explicitly asks.
