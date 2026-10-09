@@ -6,9 +6,8 @@ import NeoTiling.Reachable
 Main results:
 
 * `IsReachable.exists_vector`: for `t ∈ S ∈ Sp(P)` a positive vector `ξ` separates `p_t` from
-  the prices outside `S`: `⟨ξ, p_t⟩ < 1 < ⟨ξ, p_s⟩` for `s ∉ S`.
-* `isReachable_iff_exists_witness`: reachability is equivalent to the existence of such
-  witnesses in the non-strict form `⟨ξ, p_s - p_t⟩ ≥ 1`, `ξ ≥ 0`.
+  the prices outside `S`: `⟨ξ, p_t⟩ < 1 < ⟨ξ, p_s⟩` for `s ∉ S` (perturb and rescale the
+  witness).
 * `exists_polyMin_patch`: for `d ≥ 2`, all reachable spectra lie in the spectrum of one
   polyhedral function.
 * `exists_spectrum_eq_reachableSpectra`: for `d ≥ 2` some neoclassical `h` has
@@ -27,81 +26,40 @@ namespace NeoTiling
 
 variable {d T : ℕ} {P : Fin T → Fin d → ℝ} {y : Fin T → ℝ}
 
-open Pointwise in
 /-- **Separation.** For `t ∈ S ∈ Sp(P)` some positive `ξ` has `⟨ξ, p_t⟩ < 1 < ⟨ξ, p_s⟩` for all
-`s ∉ S`. The closed convex set `C = conv {p_s | s ∉ S} + ℝᵈ₊` misses `p_t` by reachability.
-A functional `f` with `f(p_t) < u < f(C)` is nonnegative on `ℝᵈ₊`, since `C + ℝᵈ₊ ⊆ C`. Then
-`ξ = (f + δ·1) / u` with small `δ > 0` works. -/
+`s ∉ S`. Adding `δ 1` with small `δ > 0` makes the witness `ξ₀` positive and keeps
+`⟨ξ₁, p_s - p_t⟩ > 0` for the finitely many `s ∉ S`; then divide `ξ₁` by a number between
+`⟨ξ₁, p_t⟩` and `min_{s ∉ S} ⟨ξ₁, p_s⟩`. -/
 theorem IsReachable.exists_vector (hP : ∀ t, P t ∈ orthant d) {S : Finset (Fin T)}
     (hS : IsReachable P S) {t : Fin T} (ht : t ∈ S) :
     ∃ ξ ∈ orthant d, ξ ⬝ᵥ P t < 1 ∧ ∀ s ∉ S, 1 < ξ ⬝ᵥ P s := by
-  set K := stdSimplex ℝ (Fin T) ∩ (S : Set (Fin T)).pi fun _ => {0}
-  set L := Fintype.linearCombination ℝ P
-  set C := L '' K + Ici 0
-  have hPsC (s) (hs : s ∉ S) : P s ∈ C :=
-    ⟨_, ⟨Pi.single s 1, ⟨single_mem_stdSimplex ℝ s, fun r hr =>
-      Pi.single_eq_of_ne (ne_of_mem_of_not_mem hr hs) 1⟩, rfl⟩, 0, self_mem_Ici, by simp [L]⟩
-  obtain ⟨f, u, hfu, hfC, hf0⟩ : ∃ (f : StrongDual ℝ (Fin d → ℝ)) (u : ℝ),
-      f (P t) < u ∧ (∀ c ∈ C, u < f c) ∧ ∀ v, 0 ≤ v → 0 ≤ f v := by
-    rcases C.eq_empty_or_nonempty with hC | ⟨-, a, ha, b, hb, rfl⟩
-    · exact ⟨0, 1, by simp, by simp [hC], fun _ _ => le_rfl⟩
-    obtain ⟨f, u, hfu, hfC⟩ := geometric_hahn_banach_point_closed
-      ((((convex_stdSimplex ℝ _).inter (convex_pi fun _ _ => convex_singleton 0)).linear_image
-        L).add (convex_Ici 0))
-      (isClosed_Ici.add_left_of_isCompact (((isCompact_stdSimplex _).inter_right
-        (isClosed_set_pi fun _ _ => isClosed_singleton)).image L.continuous_of_finiteDimensional))
-      (by
-        rintro ⟨-, ⟨w, ⟨hw, hwS⟩, rfl⟩, c, hc, hwc⟩
-        refine hS t ht ⟨w, hw.1, fun r hr => hwS r (by simpa using hr), hw.2, ?_⟩
-        exact (le_add_of_nonneg_right hc).trans_eq hwc)
-    refine ⟨f, u, hfu, hfC, fun v hv => not_lt.1 fun hfv => ?_⟩
-    have hab := hfC _ ⟨a, ha, b, hb, rfl⟩
-    have := hfC _ ⟨a, ha, b + ((f (a + b) - u) / -f v) • v,
-      add_nonneg hb (smul_nonneg (div_nonneg (by linarith) (by linarith)) hv), rfl⟩
-    simp only [← add_assoc, map_add, map_smul, smul_eq_mul] at this hab
-    rw [div_mul_eq_mul_div, div_neg, mul_div_cancel_right₀ _ hfv.ne] at this
-    linarith
-  have hu : 0 < u := (hf0 _ (orthant_subset_Ici (hP t))).trans_lt hfu
-  obtain ⟨δ, hδ, hδt⟩ := exists_pos_mul_lt (sub_pos.2 hfu) (∑ i, P t i)
-  set ξ : Fin d → ℝ := fun i => (f (fun j => if i = j then 1 else 0) + δ) / u
-  have key (p : Fin d → ℝ) : ξ ⬝ᵥ p = (f p + δ * ∑ i, p i) / u := by
-    rw [← f.coe_coe, f.toLinearMap.pi_apply_eq_sum_univ]
-    simp [ξ, dotProduct, Finset.mul_sum, Finset.sum_div, ← Finset.sum_add_distrib]
-    refine Finset.sum_congr rfl fun i _ => by ring
-  refine ⟨ξ, fun i => div_pos (add_pos_of_nonneg_of_pos (hf0 _ fun j => ?_) hδ) hu, ?_,
-    fun s hs => ?_⟩
-  · dsimp; split_ifs <;> norm_num
-  · rw [key, div_lt_one hu]; linarith
-  · rw [key, one_lt_div hu]
-    nlinarith [hfC _ (hPsC s hs), Finset.sum_nonneg fun i (_ : i ∈ Finset.univ) => (hP s i).le]
-
-/-- **Reachability by witnesses.** `S` is reachable iff every `t ∈ S` has a nonnegative vector
-`ξ` with `⟨ξ, p_s - p_t⟩ ≥ 1` for all `s ∉ S`: `→` rescales `IsReachable.exists_vector`, `←`
-pairs `ξ` with a covering. -/
-theorem isReachable_iff_exists_witness (hP : ∀ t, P t ∈ orthant d) {S : Finset (Fin T)} :
-    IsReachable P S ↔ ∀ t ∈ S, ∃ ξ : Fin d → ℝ, 0 ≤ ξ ∧ ∀ s ∉ S, 1 ≤ ξ ⬝ᵥ (P s - P t) := by
-  constructor
-  · intro hS t ht
-    obtain ⟨ξ, hξ, hξt, hξs⟩ := hS.exists_vector hP ht
-    have hc : 0 < 1 - ξ ⬝ᵥ P t := by linarith
-    refine ⟨(1 - ξ ⬝ᵥ P t)⁻¹ • ξ, smul_nonneg (inv_nonneg.2 hc.le) fun i => (hξ i).le,
-      fun s hs => ?_⟩
-    rw [smul_dotProduct, smul_eq_mul, dotProduct_sub, ← div_eq_inv_mul, le_div_iff₀ hc]
-    linarith [hξs s hs]
-  · rintro h t ht ⟨w, hw0, hwS, hw1, hwP⟩
-    obtain ⟨ξ, hξ, hξs⟩ := h t ht
-    have h1 := dotProduct_le_dotProduct_of_nonneg_left hwP hξ
-    have h2 : ξ ⬝ᵥ ∑ r, w r • P r = ∑ r, w r * (ξ ⬝ᵥ P r) := by
-      simp [dotProduct_sum, dotProduct_smul]
-    have h3 : ∑ r, w r * (ξ ⬝ᵥ P t + 1) ≤ ∑ r, w r * (ξ ⬝ᵥ P r) := by
-      refine Finset.sum_le_sum fun r _ => ?_
-      by_cases hr : r ∈ S
-      · simp [hwS r (by simpa using hr)]
-      · have := hξs r hr
-        rw [dotProduct_sub] at this
-        exact mul_le_mul_of_nonneg_left (by linarith) (hw0 r)
-    rw [← Finset.sum_mul, hw1] at h3
-    linarith
+  obtain ⟨ξ₀, hξ₀, hne, hξs⟩ := hS t ht
+  obtain ⟨i₀, -⟩ := Function.ne_iff.1 hne
+  have hev : ∀ᶠ δ in 𝓝[>] (0:ℝ), 0 < δ ∧ ∀ s ∈ Sᶜ, 0 < (ξ₀ + δ • 1) ⬝ᵥ (P s - P t) :=
+    eventually_mem_nhdsWithin.and <| nhdsWithin_le_nhds <| (eventually_all_finset Sᶜ).2 fun s hs =>
+      (by fun_prop : Continuous fun δ : ℝ => (ξ₀ + δ • 1) ⬝ᵥ (P s - P t)).continuousAt.eventually
+        (lt_mem_nhds (by simpa using hξs s (by simpa using hs)))
+  obtain ⟨δ, hδ, hδs⟩ := hev.exists
+  set ξ₁ := ξ₀ + δ • (1 : Fin d → ℝ)
+  have hξ₁ : ξ₁ ∈ orthant d := fun i => by
+    have := hξ₀ i; simp only [ξ₁, Pi.add_apply, Pi.smul_apply, Pi.one_apply, smul_eq_mul,
+      mul_one, Pi.zero_apply] at this ⊢; linarith
+  have ha : 0 < ξ₁ ⬝ᵥ P t :=
+    Finset.sum_pos (fun i _ => mul_pos (hξ₁ i) (hP t i)) ⟨i₀, Finset.mem_univ _⟩
+  obtain ⟨c, hac, hcs⟩ : ∃ c, ξ₁ ⬝ᵥ P t < c ∧ ∀ s ∉ S, c < ξ₁ ⬝ᵥ P s := by
+    rcases (Sᶜ).eq_empty_or_nonempty with h | hne
+    · refine ⟨ξ₁ ⬝ᵥ P t + 1, by linarith, fun s hs => ?_⟩
+      have : s ∈ Sᶜ := Finset.mem_compl.2 hs
+      simp [h] at this
+    · obtain ⟨s₁, hs₁, hmin⟩ := Finset.exists_min_image Sᶜ (fun s => ξ₁ ⬝ᵥ P s) hne
+      have := hδs s₁ hs₁
+      rw [dotProduct_sub] at this
+      exact ⟨(ξ₁ ⬝ᵥ P t + ξ₁ ⬝ᵥ P s₁) / 2, by linarith,
+        fun s hs => by linarith [hmin s (Finset.mem_compl.2 hs)]⟩
+  have hc : 0 < c := ha.trans hac
+  refine ⟨c⁻¹ • ξ₁, fun i => by simpa using mul_pos (inv_pos.2 hc) (hξ₁ i), ?_, fun s hs => ?_⟩
+  · rw [smul_dotProduct, smul_eq_mul, inv_mul_lt_one₀ hc]; exact hac
+  · rw [smul_dotProduct, smul_eq_mul, one_lt_inv_mul₀ hc]; exact hcs s hs
 
 /-- **Patching, `d ≥ 2`.** Take the vectors `η_{S,t}` of `IsReachable.exists_vector` for
 `t ∈ S ∈ Sp(P)` and the extra vector `1`. Give `S` an exponent `E_S ≥ 1` and the extra vector
@@ -175,7 +133,7 @@ theorem exists_polyMin_patch (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) :
 theorem exists_spectrum_eq_reachableSpectra (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) :
     ∃ h, IsNeoclassical h ∧ spectrum h P = reachableSpectra P :=
   let ⟨h, hh, hsub⟩ := exists_polyMin_patch hd hP
-  ⟨h, hh, (hh.spectrum_subset_reachableSpectra hP).antisymm hsub⟩
+  ⟨h, hh, (hh.spectrum_subset_reachableSpectra (by omega) hP).antisymm hsub⟩
 
 /-- **Neoclassical solvability criterion.** For `d ≥ 2`, positive prices `P` and outputs
 `y ≥ 0`, `y` is neoclassically solvable at `P` iff `y` lies in the cone spanned by the
@@ -189,7 +147,7 @@ theorem neoSolvable_iff_mem_indicatorCone (hd : 2 ≤ d) (hP : ∀ t, P t ∈ or
     NeoSolvable P y ↔ y ∈ indicatorCone (reachableSpectra P) := by
   constructor
   · rintro ⟨h, hh, hev⟩
-    exact Submodule.span_mono (image_mono (hh.spectrum_subset_reachableSpectra hP))
+    exact Submodule.span_mono (image_mono (hh.spectrum_subset_reachableSpectra (by omega) hP))
       ((hh.realizes_iff_mem_indicatorCone hP hy).1 hev.self_of_nhds)
   · intro hY
     obtain ⟨h, hh, hspec⟩ := exists_spectrum_eq_reachableSpectra hd hP
@@ -206,7 +164,7 @@ theorem eventually_reachableSpectra_subset (hd : 2 ≤ d) (hP : ∀ t, P t ∈ o
   obtain ⟨h, hh, hspec⟩ := exists_spectrum_eq_reachableSpectra hd hP
   filter_upwards [hh.eventually_spectrum_subset hP, eventually_all.2 fun t =>
     ((continuous_apply t).tendsto P).eventually (isOpen_orthant.mem_nhds (hP t))] with Q hQ hQo
-  exact hspec ▸ hQ.trans (hh.spectrum_subset_reachableSpectra hQo)
+  exact hspec ▸ hQ.trans (hh.spectrum_subset_reachableSpectra (by omega) hQo)
 
 /-- **Solvability is an open condition on the prices**: `y` solvable at `P` is solvable at all
 `Q` near `P` (`eventually_reachableSpectra_subset`). Hence the infimum of a distance from `P` to
@@ -219,38 +177,34 @@ theorem NeoSolvable.eventually (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) (h
   exact (neoSolvable_iff_mem_indicatorCone hd hQo hy).2 (Submodule.span_mono (image_mono hQ) h)
 
 /-- **Full spectrum.** If all prices lie on the surface `x₀ x₁ = κ` with pairwise distinct `x₀`,
-every `S` is reachable (`isReachable_iff_exists_witness` with `ξ ∝ (x₀⁻¹, x₁⁻¹, 0, …)` at `p_t`).
-With `a = (p_s)₀`, `b = (p_t)₀` one gets `⟨ξ, p_s - p_t⟩ = c (a - b)² / (a b)`, which is `≥ 1`
-for `s ≠ t` once `c ≥ ∑_s a b / (a - b)²`. -/
+every `S` is reachable with the witness `ξ = (x₀⁻¹, x₁⁻¹, 0, …)` at `p_t`. With `a = (p_s)₀`,
+`b = (p_t)₀` one gets `⟨ξ, p_s - p_t⟩ = (a - b)² / (a b) > 0` for `s ≠ t`. -/
 theorem reachableSpectra_eq_univ_of_hyperbola (hd : 2 ≤ d) (hQ : ∀ t, P t ∈ orthant d) {κ : ℝ}
     (hκ : ∀ t, P t ⟨0, by omega⟩ * P t ⟨1, by omega⟩ = κ)
     (hinj : Function.Injective fun t => P t ⟨0, by omega⟩) : reachableSpectra P = Set.univ := by
-  refine Set.eq_univ_of_forall fun S => (isReachable_iff_exists_witness hQ).2 fun t ht => ?_
+  refine Set.eq_univ_of_forall fun S => show IsReachable P S from fun t ht => ?_
   set i0 : Fin d := ⟨0, by omega⟩
   set i1 : Fin d := ⟨1, by omega⟩
   have h10 : i1 ≠ i0 := by simp [i0, i1, Fin.ext_iff]
-  set c := ∑ s, P s i0 * P t i0 / (P s i0 - P t i0) ^ 2
-  have hc : ∀ s, P s i0 * P t i0 / (P s i0 - P t i0) ^ 2 ≤ c := fun s =>
-    Finset.single_le_sum (f := fun s => P s i0 * P t i0 / (P s i0 - P t i0) ^ 2)
-      (fun s _ => by have := hQ s i0; have := hQ t i0; positivity) (Finset.mem_univ s)
-  refine ⟨fun i => c * (if i = i0 then (P t i0)⁻¹ else if i = i1 then (P t i1)⁻¹ else 0),
-    fun i => ?_, fun s hs => ?_⟩
-  · have := hQ t i0; have := hQ t i1; have : 0 ≤ c := le_trans (by positivity) (hc t)
+  refine ⟨fun i => if i = i0 then (P t i0)⁻¹ else if i = i1 then (P t i1)⁻¹ else 0,
+    fun i => ?_, fun h0 => ?_, fun s hs => ?_⟩
+  · have := hQ t i0; have := hQ t i1
     simp only [Pi.zero_apply]; split_ifs <;> positivity
+  · have := congrFun h0 i0
+    simp only [if_true, Pi.zero_apply, inv_eq_zero] at this
+    exact (hQ t i0).ne' this
   · have hst : P s i0 ≠ P t i0 := fun h => hs (hinj h ▸ ht)
     have ha := hQ s i0; have hb := hQ t i0; have hv := hQ t i1
-    have hne : (P s i0 - P t i0) ^ 2 ≠ 0 := pow_ne_zero _ (sub_ne_zero.2 hst)
+    have hne : P s i0 - P t i0 ≠ 0 := sub_ne_zero.2 hst
     have hu : P s i1 = P t i0 * P t i1 / P s i0 := by
       rw [eq_div_iff ha.ne', mul_comm, hκ, hκ]
     rw [dotProduct, Finset.sum_eq_add i0 i1 h10.symm (fun j _ hj => by simp [hj.1, hj.2])
       (by simp) (by simp)]
     simp only [Pi.sub_apply, if_true, if_neg h10, hu]
-    have key := hc s
-    rw [div_le_iff₀ (by positivity)] at key
-    have : c * (P t i0)⁻¹ * (P s i0 - P t i0)
-        + c * (P t i1)⁻¹ * (P t i0 * P t i1 / P s i0 - P t i1)
-        = c * (P s i0 - P t i0) ^ 2 / (P s i0 * P t i0) := by field_simp; ring
-    rw [this, le_div_iff₀ (by positivity)]; linarith
+    have : (P t i0)⁻¹ * (P s i0 - P t i0) + (P t i1)⁻¹ * (P t i0 * P t i1 / P s i0 - P t i1)
+        = (P s i0 - P t i0) ^ 2 / (P s i0 * P t i0) := by field_simp; ring
+    rw [this]
+    positivity
 
 /-- **Full spectrum, solvability.** Under the hypotheses of
 `reachableSpectra_eq_univ_of_hyperbola` every `y ≥ 0` is solvable: all sets are reachable, so

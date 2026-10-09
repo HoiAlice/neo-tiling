@@ -197,9 +197,10 @@ noncomputable def witnessBound (hd : 2 ≤ d) (P : Fin T → Fin d → ℝ) : �
   ⨆ t, (⨆ s, P s ⟨0, by omega⟩ * P t ⟨0, by omega⟩ / (P s ⟨0, by omega⟩ - P t ⟨0, by omega⟩) ^ 2)
     * max (P t ⟨0, by omega⟩)⁻¹ (P t ⟨1, by omega⟩)⁻¹
 
-/-- **Witnesses of bounded size.** For prices on the surface `x₀ x₁ = κ` with distinct `x₀`, each
-`p_t` has a witness `ξ ∈ [0, witnessBound hd P]ᵈ` against all other prices: the witness of
-`reachableSpectra_eq_univ_of_hyperbola`, `ξ = c_t (x₀⁻¹, x₁⁻¹, 0, …)`, has this size. -/
+/-- **Witnesses with margin `1` of bounded size.** For prices on the surface `x₀ x₁ = κ` with
+distinct `x₀`, each `p_t` has `ξ ∈ [0, witnessBound hd P]ᵈ` with `⟨ξ, p_s - p_t⟩ ≥ 1` for all
+`s ≠ t`: the witness `(x₀⁻¹, x₁⁻¹, 0, …)` of `reachableSpectra_eq_univ_of_hyperbola` gives
+`(a - b)² / (a b)`, and scaling it by `c_t` makes this at least `1`. -/
 theorem exists_witness_le_of_hyperbola (hd : 2 ≤ d) (hQ : ∀ t, P t ∈ orthant d) {κ : ℝ}
     (hκ : ∀ t, P t ⟨0, by omega⟩ * P t ⟨1, by omega⟩ = κ)
     (hinj : Function.Injective fun t => P t ⟨0, by omega⟩) (t : Fin T) :

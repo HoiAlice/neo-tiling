@@ -3,14 +3,14 @@ import NeoTiling.Solvability
 /-!
 # Weakly reachable spectra and the closure of the solvable prices
 
-An index `t` *strictly covers* `R` (`StrictCovers`) if `p_t` strictly dominates, in every
-coordinate, a convex combination of the prices `p_r`, `r ∈ R`. A set `S` is *weakly reachable*
-(`IsWeakReachable`) if every `t ∈ S` has a witness `ζ ≥ 0`, `∑ ζ = 1`, with `⟨ζ, p_s - p_t⟩ ≥ 0`
-for all `s ∉ S`; equivalently no `t ∈ S` strictly covers `Sᶜ` (`isWeakReachable_iff`, by
-separation in `exists_weak_witness_of_not_strictCovers`).
+A set `S` is *weakly reachable* (`IsWeakReachable`) if every `t ∈ S` has a nonzero `ξ ≥ 0` with
+`⟨ξ, p_s - p_t⟩ ≥ 0` for all `s ∉ S`. This is the definition of `IsReachable` with `≤` in place
+of `<`.
 
 Main result: `y ≥ 0` lies in the cone of the weakly reachable spectra of `P` iff `P` is a limit of
 prices at which `y` is solvable (`mem_closure_of_weakReachable`, `weakReachable_of_mem_closure`).
+The converse direction is compactness of the simplex of normalized witnesses
+(`eventually_reachableSpectra_subset_weak`).
 
 The hard direction combines two ideas.
 
@@ -36,132 +36,29 @@ variable {d T : ℕ} {P : Fin T → Fin d → ℝ} {y : Fin T → ℝ}
 
 /-! ### Definitions -/
 
-/-- `t` strictly covers `R`: `∑_r w_r p_r < p_t` in every coordinate for convex weights `w`
-supported on `R`. -/
-def StrictCovers (P : Fin T → Fin d → ℝ) (t : Fin T) (R : Finset (Fin T)) : Prop :=
-  ∃ w : Fin T → ℝ, (∀ r, 0 ≤ w r) ∧ (∀ r ∉ R, w r = 0) ∧ ∑ r, w r = 1 ∧
-    ∀ i, (∑ r, w r • P r) i < P t i
-
-/-- `S` is weakly reachable: every `t ∈ S` has a normalized witness `ζ ≥ 0`, `∑ ζ = 1`, with
-`⟨ζ, p_s - p_t⟩ ≥ 0` for all `s ∉ S`. -/
+/-- `S` is weakly reachable: every `t ∈ S` has a nonzero `ξ ≥ 0` with `⟨ξ, p_s - p_t⟩ ≥ 0` for
+all `s ∉ S`. -/
 def IsWeakReachable (P : Fin T → Fin d → ℝ) (S : Finset (Fin T)) : Prop :=
-  ∀ t ∈ S, ∃ ζ : Fin d → ℝ, (∀ i, 0 ≤ ζ i) ∧ ∑ i, ζ i = 1 ∧ ∀ s ∉ S, 0 ≤ ζ ⬝ᵥ (P s - P t)
+  ∀ t ∈ S, ∃ ξ : Fin d → ℝ, 0 ≤ ξ ∧ ξ ≠ 0 ∧ ∀ s ∉ S, 0 ≤ ξ ⬝ᵥ (P s - P t)
 
 /-- The weakly reachable spectra. -/
 def weakReachableSpectra (P : Fin T → Fin d → ℝ) : Set (Finset (Fin T)) :=
   {S | IsWeakReachable P S}
 
-/-- A strict covering is a covering. The same weights work, with `<` weakened to `≤`. -/
-theorem StrictCovers.covers {t : Fin T} {R : Finset (Fin T)} (h : StrictCovers P t R) :
-    Covers P t R :=
-  let ⟨w, hw0, hwR, hw1, hlt⟩ := h
-  ⟨w, hw0, hwR, hw1, fun i => (hlt i).le⟩
+/-- Reachable spectra are weakly reachable: the same witnesses work. -/
+theorem IsReachable.isWeakReachable {S : Finset (Fin T)} (hS : IsReachable P S) :
+    IsWeakReachable P S := fun t ht =>
+  let ⟨ξ, h0, hne, h⟩ := hS t ht
+  ⟨ξ, h0, hne, fun s hs => (h s hs).le⟩
 
-/-! ### Weak witnesses -/
-
-/-- A convex combination with a positive value at every point of its support is positive. -/
-theorem pos_sum_mul {ι : Type*} [Fintype ι] {w f : ι → ℝ} (hw0 : ∀ r, 0 ≤ w r)
-    (hw1 : ∑ r, w r = 1) (hf : ∀ r, w r ≠ 0 → 0 < f r) : 0 < ∑ r, w r * f r := by
-  obtain ⟨r, hr⟩ : ∃ r, w r ≠ 0 := by
-    by_contra h; push_neg at h; simp [h] at hw1
-  refine Finset.sum_pos' (fun s _ => ?_)
-    ⟨r, Finset.mem_univ _, mul_pos ((hw0 r).lt_of_ne' hr) (hf r hr)⟩
-  by_cases h : w s = 0
-  · simp [h]
-  · exact (mul_pos ((hw0 s).lt_of_ne' h) (hf s h)).le
-
-/-- Averaging against weights of total mass `1`:
-`∑ w_r ⟨ξ, q_r - q_t⟩ = ⟨ξ, ∑ w_r q_r - q_t⟩`. -/
-theorem sum_dotProduct_sub {Q : Fin T → Fin d → ℝ} {w : Fin T → ℝ} (hw1 : ∑ r, w r = 1)
-    (ξ : Fin d → ℝ) (t : Fin T) :
-    ∑ r, w r * (ξ ⬝ᵥ (Q r - Q t)) = ξ ⬝ᵥ ((∑ r, w r • Q r) - Q t) := by
-  simp only [dotProduct_sub, dotProduct_sum, dotProduct_smul, smul_eq_mul, mul_sub,
-    Finset.sum_sub_distrib, ← Finset.sum_mul, hw1, one_mul]
-
-/-- A weak witness excludes strict covering: `0 ≤ ∑_s w_s ⟨ζ, p_s - p_t⟩ = ⟨ζ, ∑ w p - p_t⟩ < 0`. -/
-theorem not_strictCovers_of_isWeakReachable {S : Finset (Fin T)} (hS : IsWeakReachable P S)
-    {t : Fin T} (ht : t ∈ S) : ¬ StrictCovers P t Sᶜ := by
-  rintro ⟨w, hw0, hwS, hw1, hlt⟩
-  obtain ⟨ζ, hζ0, hζ1, hζ⟩ := hS t ht
-  have ha : 0 ≤ ∑ r, w r * (ζ ⬝ᵥ (P r - P t)) := Finset.sum_nonneg fun r _ => by
-    by_cases hr : r ∈ S
-    · simp [hwS r (by simpa using hr)]
-    · exact mul_nonneg (hw0 r) (hζ r hr)
-  have hc := pos_sum_mul hζ0 hζ1 (f := fun i => P t i - (∑ r, w r • P r) i)
-    fun i _ => sub_pos.2 (hlt i)
-  rw [sum_dotProduct_sub hw1] at ha
-  simp only [dotProduct, Pi.sub_apply, mul_sub, Finset.sum_sub_distrib] at ha hc
-  linarith
-
-/-- A nonnegative `ξ` with `⟨ξ, q_s - q_t⟩ > 0` for all `s ∉ S` excludes covering. -/
-theorem not_covers_of_pos {Q : Fin T → Fin d → ℝ} {S : Finset (Fin T)} {t : Fin T}
-    {ξ : Fin d → ℝ} (hξ : 0 ≤ ξ) (h : ∀ s ∉ S, 0 < ξ ⬝ᵥ (Q s - Q t)) : ¬ Covers Q t Sᶜ := by
-  rintro ⟨w, hw0, hwS, hw1, hle⟩
-  have hpos := pos_sum_mul hw0 hw1 (f := fun r => ξ ⬝ᵥ (Q r - Q t)) fun r hr =>
-    h r fun hrS => hr (hwS r (by simpa using hrS))
-  rw [sum_dotProduct_sub hw1] at hpos
-  have := dotProduct_le_dotProduct_of_nonneg_left (sub_nonpos.2 hle) hξ
-  simp only [dotProduct_zero] at this
-  linarith
-
-open Pointwise in
-/-- **Separation.** If `t` does not strictly cover `R`, some `ζ ≥ 0` with `∑ ζ = 1` has
-`⟨ζ, p_s - p_t⟩ ≥ 0` for all `s ∈ R`. A functional `f` separates `p_t` from the open convex set
-`O` of points strictly above a convex combination of `p_s`, `s ∈ R`; testing `f` on
-`p_s + ε 1 + λ eᵢ ∈ O` shows that `ζ ∝ -f` is a nonnegative nonzero witness. The case `R = ∅` is
-the witness `e₀`. -/
-theorem exists_weak_witness_of_not_strictCovers (hd : 1 ≤ d) {R : Finset (Fin T)} {t : Fin T}
-    (h : ¬ StrictCovers P t R) :
-    ∃ ζ : Fin d → ℝ, (∀ i, 0 ≤ ζ i) ∧ ∑ i, ζ i = 1 ∧ ∀ s ∈ R, 0 ≤ ζ ⬝ᵥ (P s - P t) := by
-  rcases R.eq_empty_or_nonempty with rfl | ⟨s₀, hs₀⟩
-  · exact ⟨Pi.single ⟨0, hd⟩ 1, fun i => by rw [Pi.single_apply]; positivity, by simp,
-      by simp⟩
-  set K := stdSimplex ℝ (Fin T) ∩ (↑R : Set (Fin T))ᶜ.pi fun _ => {0}
-  set L := Fintype.linearCombination ℝ P
-  have hO (s) (hs : s ∈ R) (v) (hv : v ∈ orthant d) : P s + v ∈ L '' K + orthant d :=
-    ⟨_, ⟨Pi.single s 1, ⟨single_mem_stdSimplex ℝ s, fun r hr =>
-      Pi.single_eq_of_ne (by rintro rfl; exact hr hs) 1⟩, by simp [L]⟩, v, hv, rfl⟩
-  obtain ⟨f, hf⟩ := geometric_hahn_banach_open_point
-    ((((convex_stdSimplex ℝ _).inter (convex_pi fun _ _ => convex_singleton 0)).linear_image
-      L).add (by simpa [orthant, Set.pi] using
-        convex_pi (s := univ) fun (_ : Fin d) _ => convex_Ioi (0 : ℝ))) isOpen_orthant.add_left
-    (x := P t) fun ⟨_, ⟨w, ⟨hw, hwR⟩, hwL⟩, v, hv, hwv⟩ => h ⟨w, hw.1, hwR, hw.2, fun i => by
-      simpa [← hwv, ← hwL, L, Fintype.linearCombination_apply] using hv i⟩
-  set e : Fin d → Fin d → ℝ := fun i j => if i = j then 1 else 0
-  set c := fun i => f (e i)
-  have hlin x : f x = ∑ i, x i * c i := f.toLinearMap.pi_apply_eq_sum_univ x
-  have hone : f 1 = ∑ i, c i := by simp [hlin]
-  have hc (i) : c i ≤ 0 := not_lt.1 fun hc => by
-    set a := |f (P t) - f (P s₀) - f 1|
-    have := hf _ (hO s₀ hs₀ (1 + (a / c i) • e i) fun j => by simp [e]; positivity)
-    rw [map_add, map_add, map_smul, smul_eq_mul, show f (e i) = c i from rfl,
-      div_mul_cancel₀ _ hc.ne'] at this
-    linarith [le_abs_self (f (P t) - f (P s₀) - f 1)]
-  have h1 : f 1 < 0 := (hone ▸ Finset.sum_nonpos fun i _ => hc i).lt_of_ne fun h0 => by
-    simpa [hlin, (Finset.sum_eq_zero_iff_of_nonpos fun i _ => hc i).1 (hone ▸ h0)] using
-      hf _ (hO s₀ hs₀ 1 fun _ => one_pos)
-  have hle (s) (hs : s ∈ R) : f (P s) ≤ f (P t) := le_of_forall_pos_lt_add fun ε hε => by
-    have := hf _ (hO s hs ((ε / -f 1) • 1) fun _ => by simpa using div_pos hε (neg_pos.2 h1))
-    simp [div_neg, h1.ne] at this; linarith
-  have hζ (x) : (fun i => c i / f 1) ⬝ᵥ x = f x / f 1 := by
-    simp [hlin, dotProduct, Finset.sum_div, mul_div_assoc, mul_comm]
-  refine ⟨fun i => c i / f 1, fun i => div_nonneg_of_nonpos (hc i) h1.le, by
-    rw [← Finset.sum_div, ← hone, div_self h1.ne], fun s hs => by
-    rw [hζ, map_sub]; exact div_nonneg_of_nonpos (sub_nonpos.2 (hle s hs)) h1.le⟩
-
-/-- Weak reachability means no `t ∈ S` strictly covers `Sᶜ`. `→` is
-`not_strictCovers_of_isWeakReachable`, `←` is `exists_weak_witness_of_not_strictCovers`. -/
-theorem isWeakReachable_iff (hd : 1 ≤ d) {S : Finset (Fin T)} :
-    IsWeakReachable P S ↔ ∀ t ∈ S, ¬ StrictCovers P t Sᶜ := by
-  refine ⟨fun hS t ht => not_strictCovers_of_isWeakReachable hS ht, fun h t ht => ?_⟩
-  obtain ⟨ζ, h0, h1, hζ⟩ := exists_weak_witness_of_not_strictCovers hd (h t ht)
-  exact ⟨ζ, h0, h1, fun s hs => hζ s (Finset.mem_compl.2 hs)⟩
-
-/-- Reachable spectra are weakly reachable. A strict covering is a covering
-(`StrictCovers.covers`), so `isWeakReachable_iff` applies. -/
-theorem IsReachable.isWeakReachable (hd : 1 ≤ d) {S : Finset (Fin T)} (hS : IsReachable P S) :
-    IsWeakReachable P S :=
-  (isWeakReachable_iff hd).2 fun t ht hc => hS t ht hc.covers
+/-- A nonzero `ξ ≥ 0` has a positive multiple in the standard simplex: divide by `∑ ξ > 0`. -/
+theorem exists_smul_mem_stdSimplex {ξ : Fin d → ℝ} (h0 : 0 ≤ ξ) (hne : ξ ≠ 0) :
+    ∃ c : ℝ, 0 < c ∧ c • ξ ∈ stdSimplex ℝ (Fin d) := by
+  obtain ⟨i, hi⟩ := Function.ne_iff.1 hne
+  have hpos : 0 < ∑ i, ξ i :=
+    Finset.sum_pos' (fun j _ => h0 j) ⟨i, Finset.mem_univ _, (h0 i).lt_of_ne' hi⟩
+  refine ⟨(∑ i, ξ i)⁻¹, inv_pos.2 hpos, fun j => smul_nonneg (inv_pos.2 hpos).le (h0 j), ?_⟩
+  simp [← Finset.mul_sum, hpos.ne']
 
 /-! ### Monotone representation -/
 
@@ -501,8 +398,9 @@ theorem eventually_tilt_witness_pos (hP : ∀ t, P t ∈ orthant d) {s t : Fin T
     nlinarith [mul_pos hδ h]
 
 /-- For small `δ > 0`, every weakly reachable `S` meeting every cluster in an upper set of `y` is
-reachable at `tilt P y δ`. There are finitely many `S`; for `t ∈ S` the witness `ζ + δ g` of
-`eventually_tilt_witness_pos` works for the finitely many `s ∉ S` (`not_covers_of_pos`). -/
+reachable at `tilt P y δ`. There are finitely many `S`; for `t ∈ S` normalize the weak witness to
+`ζ`, `∑ ζ = 1`; then `ζ + δ g` is a witness at `tilt P y δ` for the finitely many `s ∉ S`
+(`eventually_tilt_witness_pos`). -/
 theorem isReachable_tilt (hP : ∀ t, P t ∈ orthant d) :
     ∀ᶠ δ in 𝓝[>] 0, {S | IsWeakReachable P S ∧ ∀ t ∈ S, ∀ s ∉ S, P s = P t → y s < y t} ⊆
       reachableSpectra (tilt P y δ) := by
@@ -514,17 +412,22 @@ theorem isReachable_tilt (hP : ∀ t, P t ∈ orthant d) :
     · exact .of_forall fun _ h => absurd h hS'
     obtain ⟨hS, hmono⟩ := hS'
     refine ((eventually_all_finset S).2 fun t ht => ?_).mono fun _ h _ => h
-    obtain ⟨ζ, hζ0, hζ1, hζ⟩ := hS t ht
+    obtain ⟨ξ, hξ0, hξne, hξ⟩ := hS t ht
+    obtain ⟨c, hc, -, hζ1⟩ := exists_smul_mem_stdSimplex hξ0 hξne
+    obtain ⟨i₀, -⟩ := Function.ne_iff.1 hξne
     have hs : ∀ᶠ δ in 𝓝[>] (0:ℝ), ∀ s ∈ Sᶜ,
-        0 < (ζ + δ • fun i => (P t i)⁻¹) ⬝ᵥ (tilt P y δ s - tilt P y δ t) :=
+        0 < (c • ξ + δ • fun i => (P t i)⁻¹) ⬝ᵥ (tilt P y δ s - tilt P y δ t) :=
       (eventually_all_finset Sᶜ).2 fun s hs => by
         have hs : s ∉ S := by simpa using hs
         exact eventually_tilt_witness_pos hP ((ne_or_eq _ _).imp_right (hmono t ht s hs)) hζ1
-          (hζ s hs)
+          (by rw [smul_dotProduct, smul_eq_mul]; exact mul_nonneg hc.le (hξ s hs))
     filter_upwards [hs, self_mem_nhdsWithin] with δ h hδ
-    refine not_covers_of_pos (fun i => ?_) fun s hs => h s (by simpa using hs)
-    have := hζ0 i; have := hP t i; have : 0 < δ := hδ
-    simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, Pi.zero_apply]; positivity
+    have hpos (i) : 0 < (c • ξ + δ • fun i => (P t i)⁻¹) i := by
+      simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+      exact add_pos_of_nonneg_of_pos (mul_nonneg hc.le (hξ0 i))
+        (mul_pos (show (0:ℝ) < δ from hδ) (inv_pos.2 (hP t i)))
+    exact ⟨_, fun i => (hpos i).le, fun h0 => (hpos i₀).ne' (by rw [h0]; rfl),
+      fun s hs => h s (by simpa using hs)⟩
   filter_upwards [eventually_all.2 key] with δ h S hS using h S hS
 
 /-- `tilt P y δ → P` as `δ → 0`, and the tilted prices are eventually positive. -/
@@ -558,21 +461,32 @@ theorem mem_closure_of_weakReachable (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant
 /-! ### Converse -/
 
 /-- **Reachable spectra near `P` are weakly reachable at `P`.** If `S` is not weakly reachable,
-some `t ∈ S` strictly covers `Sᶜ` with weights `w` (`isWeakReachable_iff`); the strict
-inequalities `(∑ w q)ᵢ < (q_t)ᵢ` persist for `Q` near `P`, so `t` covers `Sᶜ` at `Q`. -/
-theorem eventually_reachableSpectra_subset_weak (hd : 1 ≤ d) :
+some `t ∈ S` has, for every `ζ` in the simplex, an `s ∉ S` with `⟨ζ, p_s - p_t⟩ < 0`. This strict
+inequality is open in `(Q, ζ)`, and the simplex is compact, so it persists for all `ζ` at all `Q`
+near `P`. A normalized witness of reachability at `Q` would contradict it. -/
+theorem eventually_reachableSpectra_subset_weak :
     ∀ᶠ Q in 𝓝 P, reachableSpectra Q ⊆ weakReachableSpectra P := by
   refine eventually_all.2 fun S => ?_
   by_cases hS : IsWeakReachable P S
   · exact .of_forall fun _ _ => hS
-  obtain ⟨t, ht, w, hw0, hwS, hw1, hlt⟩ := by
-    simpa using (isWeakReachable_iff hd).not.1 hS
-  have hc (i) : Continuous fun Q : Fin T → Fin d → ℝ => (∑ r, w r • Q r) i := by
-    simp only [Finset.sum_apply, Pi.smul_apply]; fun_prop
-  filter_upwards [eventually_all.2 fun i => (hc i).tendsto P |>.eventually_lt
-    ((by fun_prop : Continuous fun Q : Fin T → Fin d → ℝ => Q t i).tendsto P) (hlt i)]
-    with Q hQ hR
-  exact (hR t ht ⟨w, hw0, hwS, hw1, fun i => (hQ i).le⟩).elim
+  obtain ⟨t, ht, hno⟩ : ∃ t ∈ S, ∀ ζ ∈ stdSimplex ℝ (Fin d), ∃ s ∉ S, ζ ⬝ᵥ (P s - P t) < 0 := by
+    by_contra h
+    push_neg at h
+    refine hS fun t ht => ?_
+    obtain ⟨ζ, hζ, hζs⟩ := h t ht
+    exact ⟨ζ, fun i => hζ.1 i, fun h0 => by simpa [h0] using hζ.2, hζs⟩
+  have hev : ∀ᶠ Q in 𝓝 P, ∀ ζ ∈ stdSimplex ℝ (Fin d), ∃ s ∉ S, ζ ⬝ᵥ (Q s - Q t) < 0 :=
+    (isCompact_stdSimplex _).eventually_forall_of_forall_eventually fun ζ hζ => by
+      obtain ⟨s, hs, hlt⟩ := hno ζ hζ
+      exact ((by fun_prop : Continuous fun z : (Fin T → Fin d → ℝ) × (Fin d → ℝ) =>
+        z.2 ⬝ᵥ (z.1 s - z.1 t)).continuousAt.eventually (gt_mem_nhds hlt)).mono
+          fun z hz => ⟨s, hs, hz⟩
+  filter_upwards [hev] with Q hQ hR
+  obtain ⟨ξ, hξ0, hξne, hξ⟩ := hR t ht
+  obtain ⟨c, hc, hcξ⟩ := exists_smul_mem_stdSimplex hξ0 hξne
+  obtain ⟨s, hs, hlt⟩ := hQ _ hcξ
+  rw [smul_dotProduct, smul_eq_mul] at hlt
+  linarith [mul_pos hc (hξ s hs)]
 
 /-- **Converse.** If `P` is a limit of prices at which `y` is solvable, then `y` lies in the cone
 of the weakly reachable spectra of `P`: near `P` the prices are positive, `y` lies in the cone of
@@ -585,7 +499,7 @@ theorem weakReachable_of_mem_closure (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant
     eventually_all.2 fun t => ((continuous_apply t).tendsto P).eventually
       (isOpen_orthant.mem_nhds (hP t))
   obtain ⟨Q, ⟨hQ, hsub⟩, hQy⟩ := mem_closure_iff_nhds.1 h _
-    (h2.and (eventually_reachableSpectra_subset_weak (by omega)))
+    (h2.and eventually_reachableSpectra_subset_weak)
   exact Submodule.span_mono (Set.image_mono hsub)
     ((neoSolvable_iff_mem_indicatorCone hd hQ hy).1 hQy)
 
