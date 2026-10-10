@@ -1,4 +1,4 @@
-import NeoTiling.Cuts
+import NeoTiling.Closure
 
 /-!
 # Complexity of (weak) solvability at fixed prices

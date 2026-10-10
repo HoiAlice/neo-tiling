@@ -147,7 +147,7 @@ theorem weakReachableSpectra_eq_univ_of_hyperbola (hd : 2 ≤ d) (hQ : ∀ t, P 
 theorem exists_weak_totalPert_eq (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) (hy : ∀ t, 0 ≤ y t)
     {κ : ℝ} (hκ : 0 < κ) :
     ∃ Q : Fin T → Fin d → ℝ, (∀ t, Q t ∈ orthant d) ∧
-      y ∈ indicatorCone (weakReachableSpectra Q) ∧ totalPert P Q = hyperbolaBound hd P κ := by
+      WeakSolvable Q y ∧ totalPert P Q = hyperbolaBound hd P κ := by
   set i0 : Fin d := ⟨0, by omega⟩
   set i1 : Fin d := ⟨1, by omega⟩
   have h01 : i0 ≠ i1 := by simp [i0, i1, Fin.ext_iff]
@@ -156,7 +156,7 @@ theorem exists_weak_totalPert_eq (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) 
     have := hP t i0; have := hP t i
     show 0 < (if i = i1 then κ / P t i0 else P t i)
     split_ifs <;> positivity
-  refine ⟨Q, hQ, ?_, ?_⟩
+  refine ⟨Q, hQ, (weakSolvable_iff hd (fun t i => (hQ t i).le) hy).2 ?_, ?_⟩
   · rw [weakReachableSpectra_eq_univ_of_hyperbola hd hQ (κ := κ) fun t => by
       have := (hP t i0).ne'
       show (if i0 = i1 then κ / P t i0 else P t i0) * (if i1 = i1 then κ / P t i0 else P t i1) = κ
@@ -181,11 +181,11 @@ theorem exists_weak_totalPert_eq (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) 
 
 /-- Weak solvability at positive prices within total perturbation `c` is a compact condition:
 the set lies in the compact box of `totalPert_le_box`, and inside the box it is the closure of
-the solvable prices (closure theorem) cut by the closed condition `totalPert P Q ≤ c`. -/
-theorem isCompact_weak_totalPert_le (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) (hy : ∀ t, 0 ≤ y t)
-    {c : ℝ} (hc : 0 ≤ c) :
+the solvable prices (the definition of `WeakSolvable`) cut by the closed condition
+`totalPert P Q ≤ c`. -/
+theorem isCompact_weak_totalPert_le (hP : ∀ t, P t ∈ orthant d) {c : ℝ} (hc : 0 ≤ c) :
     IsCompact {Q : Fin T → Fin d → ℝ | (∀ t, Q t ∈ orthant d) ∧
-      y ∈ indicatorCone (weakReachableSpectra Q) ∧ totalPert P Q ≤ c} := by
+      WeakSolvable Q y ∧ totalPert P Q ≤ c} := by
   set B : Set (Fin T → Fin d → ℝ) := Set.pi univ fun t => Set.pi univ fun i =>
     Icc (P t i / (1 + c)) (P t i * (1 + c))
   have hBc : IsCompact B := isCompact_univ_pi fun t => isCompact_univ_pi fun i => isCompact_Icc
@@ -195,31 +195,28 @@ theorem isCompact_weak_totalPert_le (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant 
     ((continuousOn_totalPert hP).mono hBpos).preimage_isClosed_of_isClosed hBc.isClosed
       isClosed_Iic
   have heq : {Q : Fin T → Fin d → ℝ | (∀ t, Q t ∈ orthant d) ∧
-      y ∈ indicatorCone (weakReachableSpectra Q) ∧ totalPert P Q ≤ c} =
-      closure {Q : Fin T → Fin d → ℝ | NeoSolvable Q y} ∩ (B ∩ totalPert P ⁻¹' Iic c) := by
+      WeakSolvable Q y ∧ totalPert P Q ≤ c} =
+      closure {Q | (∀ t, Q t ∈ orthant d) ∧ NeoSolvable Q y} ∩ (B ∩ totalPert P ⁻¹' Iic c) := by
     ext Q
     constructor
-    · rintro ⟨hQ, hy', hc'⟩
-      exact ⟨mem_closure_of_weakReachable hd hQ hy hy',
-        fun t _ i _ => totalPert_le_box hP hQ hc' t i, hc'⟩
-    · rintro ⟨hcls, hQB, hc'⟩
-      exact ⟨hBpos Q hQB, weakReachable_of_mem_closure hd (hBpos Q hQB) hy hcls, hc'⟩
+    · rintro ⟨hQ, hw, hc'⟩
+      exact ⟨hw, fun t _ i _ => totalPert_le_box hP hQ hc' t i, hc'⟩
+    · rintro ⟨hw, hQB, hc'⟩
+      exact ⟨hBpos Q hQB, hw, hc'⟩
   rw [heq]
   exact hBc.of_isClosed_subset (isClosed_closure.inter hcl) fun Q hQ => hQ.2.1
 
-/-- `minPert` is at most the perturbation of any weakly solvable `Q`: `Q` is a limit of solvable
-positive prices (closure theorem), and `totalPert P` is continuous at `Q`. -/
-theorem minPert_le (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) (hy : ∀ t, 0 ≤ y t)
-    (hQ : ∀ t, Q t ∈ orthant d) (h : y ∈ indicatorCone (weakReachableSpectra Q)) :
-    minPert P y ≤ totalPert P Q := by
+/-- `minPert` is at most the perturbation of any weakly solvable positive `Q`: `Q` is a limit of
+solvable positive prices, and `totalPert P` is continuous at `Q`. -/
+theorem minPert_le (hP : ∀ t, P t ∈ orthant d) (hQ : ∀ t, Q t ∈ orthant d)
+    (h : WeakSolvable Q y) : minPert P y ≤ totalPert P Q := by
   have hOpen := isOpen_setOf_orthant (d := d) (T := T)
   have hc : ContinuousAt (totalPert P) Q :=
     (continuousOn_totalPert hP).continuousAt (hOpen.mem_nhds hQ)
   refine le_of_forall_pos_le_add fun ε hε => ?_
   have hev : ∀ᶠ Q' in 𝓝 Q, (∀ t, Q' t ∈ orthant d) ∧ totalPert P Q' < totalPert P Q + ε :=
     Filter.Eventually.and (hOpen.mem_nhds hQ) (hc.eventually (gt_mem_nhds (by linarith)))
-  obtain ⟨Q', ⟨hQ'o, hQ'lt⟩, hQ's⟩ :=
-    mem_closure_iff_nhds.1 (mem_closure_of_weakReachable hd hQ hy h) _ hev
+  obtain ⟨Q', ⟨-, hQ'lt⟩, hQ'o, hQ's⟩ := mem_closure_iff_nhds.1 h _ hev
   have hbdd : BddBelow (totalPert P '' {Q | (∀ t, Q t ∈ orthant d) ∧ NeoSolvable Q y}) :=
     ⟨0, by
       rintro _ ⟨Q'', -, rfl⟩
@@ -235,26 +232,23 @@ is nonempty (`exists_weak_totalPert_eq`) and compact (`isCompact_weak_totalPert_
 prices are weakly solvable, so `minPert P y ≥ totalPert P Q̄`; the reverse is `minPert_le`. -/
 theorem exists_minPert (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) (hy : ∀ t, 0 ≤ y t) :
     ∃ Q : Fin T → Fin d → ℝ, (∀ t, Q t ∈ orthant d) ∧
-      y ∈ indicatorCone (weakReachableSpectra Q) ∧ totalPert P Q = minPert P y ∧
+      WeakSolvable Q y ∧ totalPert P Q = minPert P y ∧
       ∀ Q' : Fin T → Fin d → ℝ, (∀ t, Q' t ∈ orthant d) →
-        y ∈ indicatorCone (weakReachableSpectra Q') → minPert P y ≤ totalPert P Q' := by
+        WeakSolvable Q' y → minPert P y ≤ totalPert P Q' := by
   obtain ⟨Q₀, hQ₀, hw₀, he₀⟩ := exists_weak_totalPert_eq hd hP hy (κ := 1) one_pos
   have hc : 0 ≤ hyperbolaBound hd P 1 :=
     he₀ ▸ Finset.sum_nonneg fun t _ => Finset.sum_nonneg fun i _ => pert_nonneg _ _
-  obtain ⟨Q, ⟨hQ, hw, -⟩, hmin⟩ := (isCompact_weak_totalPert_le hd hP hy hc).exists_isMinOn
+  obtain ⟨Q, ⟨hQ, hw, -⟩, hmin⟩ := (isCompact_weak_totalPert_le hP hc).exists_isMinOn
     ⟨Q₀, hQ₀, hw₀, he₀.le⟩ ((continuousOn_totalPert hP).mono fun Q hQ => hQ.1)
-  have hmin' : ∀ Q', (∀ t, Q' t ∈ orthant d) → y ∈ indicatorCone (weakReachableSpectra Q') →
+  have hmin' : ∀ Q', (∀ t, Q' t ∈ orthant d) → WeakSolvable Q' y →
       totalPert P Q ≤ totalPert P Q' := fun Q' hQ' hw' => by
     by_cases h : totalPert P Q' ≤ hyperbolaBound hd P 1
     · exact isMinOn_iff.1 hmin _ ⟨hQ', hw', h⟩
     · exact (isMinOn_iff.1 hmin _ ⟨hQ₀, hw₀, he₀.le⟩).trans (he₀.le.trans (not_le.1 h).le)
-  obtain ⟨Q', hQ'o, hQ's⟩ := mem_closure_iff_nhds.1 (mem_closure_of_weakReachable hd hQ hy hw) _
-    (isOpen_setOf_orthant.mem_nhds hQ)
-  refine ⟨Q, hQ, hw, le_antisymm ?_ (minPert_le hd hP hy hQ hw),
-    fun Q' hQ' hw' => minPert_le hd hP hy hQ' hw'⟩
-  refine le_csInf ⟨_, Q', ⟨hQ'o, hQ's⟩, rfl⟩ ?_
-  rintro _ ⟨Q'', ⟨hQ'', hs⟩, rfl⟩
-  exact hmin' Q'' hQ'' (Submodule.span_mono (image_mono fun S hS => hS.isWeakReachable)
-    ((neoSolvable_iff_mem_indicatorCone hd hQ'' hy).1 hs))
+  obtain ⟨Q', -, hQ'⟩ := mem_closure_iff_nhds.1 hw _ univ_mem
+  refine ⟨Q, hQ, hw, le_antisymm ?_ (minPert_le hP hQ hw), fun Q' hQ' => minPert_le hP hQ'⟩
+  refine le_csInf ⟨_, Q', hQ', rfl⟩ ?_
+  rintro _ ⟨Q'', hQ'', rfl⟩
+  exact hmin' Q'' hQ''.1 (subset_closure hQ'')
 
 end NeoTiling
