@@ -1,0 +1,307 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[english,russian]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+\usepackage{url}
+\newcommand{\lean}[1]{\mbox{\path{#1}}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{proposition}[theorem]{Утверждение}
+\newtheorem{corollary}[theorem]{Следствие}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Определение}
+\theoremstyle{remark}
+\newtheorem*{remark}{Замечание}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\newcommand{\set}[1]{\left\{ #1 \right\}}
+\newcommand{\ip}[2]{\langle #1, #2\rangle}
+\newcommand{\Rpp}[1][2]{\R^{#1}_{++}}
+\newcommand{\Rp}[1][2]{\R^{#1}_{+}}
+\DeclareMathOperator{\conv}{conv}
+\DeclareMathOperator{\cone}{cone}
+\DeclareMathOperator{\Sp}{Sp}
+\DeclareMathOperator{\STAB}{STAB}
+\newcommand{\WS}{\textsc{WS}}
+\newcommand{\COL}{\textsc{Col}}
+\newcommand{\Spm}{\Sp_\star}
+\newcommand{\gs}{\mathrel{\succ}}
+\newcommand{\ngs}{\mathrel{\not\succ}}
+
+\title{Сложность проверки разрешимости и слабой разрешимости при фиксированных ценах}
+\author{}
+\date{10 октября 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Рассматривается задача: по набору цен $P=\set{p_t\in\Rpp[d]}_{t\in[T]}$ и вектору выпусков $y\in\Rp[T]$ решить, лежит ли $y$ в конусе индикаторов достижимых (или слабо достижимых) спектров. По теореме о разрешимости из заметок первый вариант~--- это проверка неоклассической разрешимости. Оба варианта разбираются одним доказательством, отличие сосредоточено в одном знаке неравенства. При $d=2$ задача решается одной задачей линейного программирования размера $O(T^3)$. При $d=3$ она NP-трудна относительно полиномиальной сводимости по Тьюрингу (NP-hard under polynomial-time Turing reductions), а задача о столбце NP-полна. Основные утверждения проверены в Lean~4 (\path{complexity/lean/Complexity.lean}) и численно (папка \path{complexity}).
+\end{abstract}
+
+\section{Постановка}
+
+Обозначения и определения взяты из заметок (\path{latex/notes.tex}). Рассматриваются два \emph{режима} $\star$: слабый и строгий. Для $u\in\R$ запись $u\gs0$ означает $u\ge0$ в слабом режиме и $u>0$ в строгом. Множество $S\subset[T]$ лежит в $\Spm(P)$, если для каждого $t\in S$ существует ненулевой $\xi\in\Rp[d]$ с $\ip{\xi}{p_s-p_t}\gs0$ при всех $s\notin S$. Так $\Spm(P)$~--- это $\widehat{\Sp}(P)$ в слабом режиме и $\Sp(P)$ в строгом. Вектор $y$ \emph{разрешим в режиме $\star$}, если $y\in\cone\set{\mathbf 1_S\mid S\in\Spm(P)}$. В строгом режиме это неоклассическая разрешимость (теорема о разрешимости в заметках), в слабом~--- слабая разрешимость.
+
+Входные данные рациональны. Рассматриваются две задачи при фиксированном $d$ и режиме $\star$.
+\begin{itemize}
+    \item $\WS_\star(d)$: по $P$ и $y$ решить, разрешим ли $y$ в режиме $\star$.
+    \item $\COL_\star(d)$ (задача о столбце): по $P$, $w\in\Z^T$ и $k\in\Z$ решить, есть ли $S\in\Spm(P)$ с $\sum_{t\in S}w_t\ge k$.
+\end{itemize}
+$\COL_\star$~--- задача оценки нового столбца в генерации столбцов для $\WS_\star$. Обе задачи лежат в NP. Для $\COL_\star$ сертификат~--- само $S$: его проверка~--- $\abs S$ задач линейного программирования. Для $\WS_\star$ сертификат~--- не более $T$ множеств из разложения $y=\sum_km_k\mathbf 1_{S_k}$ (лемма Каратеодори в заметках).
+
+Задача $A$ \emph{NP-трудна относительно полиномиальной сводимости по Тьюрингу}, если любую задачу из NP можно решить за полиномиальное время с оракулом для $A$. В частности, тогда $A\in$ P влечёт P $=$ NP. Сводимость по Карпу (одно преобразование входа, один вызов оракула) даёт более сильное утверждение. Ниже NP-трудность $\COL_\star$ доказана по Карпу, а NP-трудность $\WS_\star$~--- по Тьюрингу.
+
+\begin{lemma}[покрытие]\label{lem:cover}
+    Пусть $t\in[T]$ и $\varnothing\ne U\subset[T]$. Ненулевого $\xi\ge0$ с $\ip{\xi}{p_s-p_t}\gs0$ при всех $s\in U$ нет тогда и только тогда, когда $p_t\in\conv\set{p_s}_{s\in U}+K_\star$, где $K_\star=\Rpp[d]$ в слабом режиме и $K_\star=\Rp[d]$ в строгом.
+\end{lemma}
+
+\begin{proof}
+    Теоремы об альтернативе для матрицы со строками $p_s-p_t$: Вилля в слабом режиме, Моцкина в строгом.
+\end{proof}
+
+Лемма~\ref{lem:cover} поясняет картину, но в доказательствах не используется: свидетели строятся явно. Точка $t\in S$ запрещена открытой областью дополнения в слабом режиме и замкнутой в строгом. Из леммы и теоремы Каратеодори следует, что минимальное покрывающее множество содержит не больше $d$ точек (эксперименты \path{exp_covers_check.py}, \path{exp_covers_strict.py}).
+
+\section{Размерность $2$: полиномиальный алгоритм}
+
+Пусть $d=2$. Обозначим $X_t:=p^1_t$, $Y_t:=p^2_t$ и
+\[
+    \chi(a,b,q):=(X_b-X_a)(Y_q-Y_a)-(Y_b-Y_a)(X_q-X_a).
+\]
+При $X_a<X_b$ число $\chi(a,b,q)$ положительно, когда $p_q$ лежит строго выше прямой через $p_a$ и $p_b$.
+
+\begin{definition}[цепочка]\label{def:chain}
+    \emph{Цепочкой} назовём последовательность индексов $v_0,\dots,v_k$ с $X_{v_0}<\dots<X_{v_k}$, $Y_{v_0}>\dots>Y_{v_k}$ и $\chi(v_j,v_{j+1},v_{j+2})>0$ при $j+2\le k$. Индекс $q$ лежит в \emph{области} $C(V)$ цепочки, если
+    \[
+        X_q-X_{v_0}\ge0,\qquad Y_q-Y_{v_k}\ge0,\qquad \chi(v_j,v_{j+1},q)\ge0\ \text{при всех}\ j<k,
+    \]
+    и во \emph{внутренности} $C^\circ(V)$, если все эти неравенства строгие. \emph{Запрещённая область} $F_\star(V)$~--- это $C^\circ(V)$ в слабом режиме и $C(V)$ в строгом.
+\end{definition}
+
+Область $C(V)$~--- это $\conv\set{p_v}_{v\in V}+\Rp$: вертикальный луч вверх из $p_{v_0}$, выпуклая ломаная $p_{v_0}\dots p_{v_k}$ и горизонтальный луч вправо из $p_{v_k}$ ограничивают её снизу и слева. Точка вне $F_\star(V)$ нарушает одно из трёх неравенств в смысле $\gs$: $X_{v_0}-X_q\gs0$, или $Y_{v_k}-Y_q\gs0$, или $-\chi(v_j,v_{j+1},q)\gs0$ при некотором $j$.
+
+\begin{theorem}[цепочки]\label{thm:chain}
+    В любом режиме $S\in\Spm(P)$ тогда и только тогда, когда $S=[T]$ или существует цепочка $V$, для которой
+    \begin{enumerate}[label=(\roman*)]
+        \item вершины $V$ не лежат в $S$;
+        \item каждый индекс вне $C(V)$ лежит в $S$;
+        \item каждый индекс из $F_\star(V)$ не лежит в $S$.
+    \end{enumerate}
+    В слабом режиме граничные точки $C(V)$, кроме вершин, свободны. В строгом режиме (i)--(iii) означают, что $S$ состоит ровно из индексов вне $C(V)$.
+\end{theorem}
+
+\begin{proof}
+    \emph{Достаточность.} Пусть $t\in S$. По (iii) $t\notin F_\star(V)$, поэтому одно из неравенств нарушено в смысле $\gs$. Все $s\notin S$ лежат в $C(V)$ по (ii). Если $X_{v_0}-X_t\gs0$, свидетель $\xi=(1,0)$: $X_s-X_t=(X_s-X_{v_0})+(X_{v_0}-X_t)\gs0$, так как первое слагаемое неотрицательно. Если $Y_{v_k}-Y_t\gs0$, свидетель $\xi=(0,1)$. Если $-\chi(v_j,v_{j+1},t)\gs0$, свидетель~--- нормаль ребра $\xi=(Y_{v_j}-Y_{v_{j+1}},\,X_{v_{j+1}}-X_{v_j})\ge0$. Для неё $\ip{\xi}{p_s-p_t}=\chi(v_j,v_{j+1},s)-\chi(v_j,v_{j+1},t)\gs0$.
+
+    \emph{Необходимость.} Пусть $S\ne[T]$ и $U:=[T]\setminus S$. Цепочку строим «заворачиванием подарка», режим здесь не участвует. Пусть $v_0$~--- лексикографический минимум $p$ на $U$ (наименьший $X$, затем наименьший $Y$). Если ни одна точка $U$ не ниже $v_0$, то $V=(v_0)$. Иначе среди точек $U$ ниже $v_0$ берём точку $w$ наименьшего наклона $(Y_w-Y_{v_0})/(X_w-X_{v_0})$, а среди равных~--- самую правую. Точка $w$~--- лексикографический минимум множества $U':=\set{s\in U\mid Y_s\le Y_w}$, и $\abs{U'}<\abs U$. По индукции строим цепочку для $U'$ с началом $w$ и приписываем $v_0$. Выбор $w$ даёт строгую выпуклость в $w$ и неравенство $\chi(v_0,w,s)\ge0$ при $s\in U$. Точки $U\setminus U'$ удовлетворяют неравенствам следующих рёбер по двум тождествам: для ребра $ab$ цепочки и $f:=\chi(a,b,\cdot)$
+    \[
+        (X_a-X_w)f(v_0)=(X_a-X_{v_0})f(w)+(X_b-X_a)\chi(v_0,w,a),
+    \]
+    \[
+        (X_w-X_{v_0})f(s)=(X_w-X_s)f(v_0)+(X_s-X_{v_0})f(w)+(X_b-X_a)\chi(v_0,w,s)\quad(X_s<X_w).
+    \]
+    Получается цепочка $V\subset U$, у которой $U\subset C(V)$. Отсюда (i) и (ii).
+
+    Для (iii) пусть $q\in F_\star(V)\cap S$ со свидетелем $\xi$. Вершины не лежат в $S$, поэтому $\ip{\xi}{p_{v_i}-p_q}\gs0$ при всех $i$. Покажем, что это невозможно.
+    \begin{itemize}
+        \item Если $X_q>X_{v_k}$, то $p_q\ge p_{v_k}$, а в слабом режиме $p_q>p_{v_k}$. Поэтому $\ip{\xi}{p_{v_k}-p_q}\ngs0$.
+        \item Если $X_q\le X_{v_0}$, то режим строгий (в слабом $X_q>X_{v_0}$) и $p_q\ge p_{v_0}$, откуда $\ip{\xi}{p_{v_0}-p_q}\le0$.
+        \item Иначе $X_{v_j}<X_q\le X_{v_{j+1}}$ при некотором $j$. Положим $\lambda:=X_{v_{j+1}}-X_q\ge0$, $\mu:=X_q-X_{v_j}>0$, $A:=\ip{\xi}{p_{v_j}-p_q}$, $B:=\ip{\xi}{p_{v_{j+1}}-p_q}$. Тогда
+        \[
+            \lambda A+\mu B=-\xi^2\chi(v_j,v_{j+1},q)\le0.
+        \]
+        Из $A\gs0$ и $B\gs0$ следует $\lambda A+\mu B\gs0$. В строгом режиме это уже противоречие. В слабом сумма равна нулю, а $\chi(v_j,v_{j+1},q)>0$. Значит, $\xi^2=0$, $\xi^1>0$ и $A=\xi^1(X_{v_j}-X_q)<0$, противоречие.
+    \end{itemize}
+\end{proof}
+
+Для алгоритма нужно, чтобы принадлежность $C(V)$ решалась локально. Разобьём индексы $q\notin V$ на \emph{полосы}: левую $X_q\le X_{v_0}$, полосу ребра $j$ $X_{v_j}<X_q\le X_{v_{j+1}}$ и правую $X_q>X_{v_k}$. Каждый индекс вне $V$ лежит ровно в одной полосе.
+
+\begin{lemma}[локальность]\label{lem:local}
+    Пусть $V$~--- цепочка.
+    \begin{enumerate}[label=(\alph*)]
+        \item В полосе ребра $j$: $q\in C(V)\iff\chi(v_j,v_{j+1},q)\ge0$ и $q\in C^\circ(V)\iff\chi(v_j,v_{j+1},q)>0$.
+        \item В левой полосе: $q\notin C^\circ(V)$, и $q\in C(V)\iff X_q=X_{v_0},\ Y_q\ge Y_{v_0}$.
+        \item В правой полосе: $q\in C(V)\iff Y_q\ge Y_{v_k}$ и $q\in C^\circ(V)\iff Y_q>Y_{v_k}$.
+    \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+    Строгая выпуклость даёт монотонность наклонов: $(X_{v_{j+1}}-X_{v_j})(Y_{v_{i+1}}-Y_{v_i})\ge(Y_{v_{j+1}}-Y_{v_j})(X_{v_{i+1}}-X_{v_i})$ при $j\le i$. Отсюда все вершины лежат в $C(V)$. В полосе ребра $j$ при $\lambda,\mu$ как выше и $c:=\chi(v_j,v_{j+1},q)$ для каждого ребра $i$
+    \[
+        (\lambda+\mu)\chi(v_i,v_{i+1},q)=\lambda\chi(v_i,v_{i+1},v_j)+\mu\chi(v_i,v_{i+1},v_{j+1})+c\,(X_{v_{i+1}}-X_{v_i}),
+    \]
+    и аналогично для $Y_q$. В левой и правой полосах $p_q$ сравнима покоординатно с $p_{v_0}$ или $p_{v_k}$.
+\end{proof}
+
+\paragraph{Задача линейного программирования.} Построим ациклический граф $G_P$. Вершины: источник $\sigma$, сток $\tau$, вершины $A_a$ при $a\in[T]$ («цепочка начинается в $a$») и вершины $E_{ab}$ при $X_a<X_b$, $Y_a>Y_b$ («последнее ребро $ab$»). Дуги:
+\[
+    \sigma\to\tau,\quad \sigma\to A_a,\quad A_a\to\tau,\quad A_a\to E_{ab},\quad E_{ab}\to\tau,\quad E_{ab}\to E_{bc}\ \text{при}\ \chi(a,b,c)>0.
+\]
+Пути из $\sigma$ в $\tau$, кроме дуги $\sigma\to\tau$, взаимно однозначно соответствуют цепочкам. Каждой дуге $e$ сопоставим два множества индексов: $O_e$ (вне области) и $B_e$ (на границе). Это статусы по лемме~\ref{lem:local} индексов той полосы, за которую отвечает дуга.
+\begin{itemize}
+    \item Дуга в $A_a$ отвечает за левую полосу без $a$: $O_e=\set{q\ne a\mid X_q<X_a\ \text{или}\ X_q=X_a,\,Y_q<Y_a}$, $B_e=\set{q\ne a\mid X_q=X_a,\,Y_q\ge Y_a}$.
+    \item Дуга в $E_{ab}$ отвечает за полосу ребра $ab$ без $b$: $O_e=\set{q\ne b\mid X_a<X_q\le X_b,\ \chi(a,b,q)<0}$, $B_e=\set{q\ne b\mid X_a<X_q\le X_b,\ \chi(a,b,q)=0}$.
+    \item Дуга из $A_a$ или $E_{\cdot a}$ в $\tau$ отвечает за правую полосу вершины $a$: $O_e=\set{q\mid X_q>X_a,\ Y_q<Y_a}$, $B_e=\set{q\mid X_q>X_a,\ Y_q=Y_a}$.
+    \item Дуга $\sigma\to\tau$: $O_e=[T]$, $B_e=\varnothing$.
+\end{itemize}
+Положим $\beta_\star:=1$ в слабом режиме и $\beta_\star:=0$ в строгом: граничные точки свободны в слабом режиме и обязаны лежать вне $S$ в строгом.
+
+\begin{theorem}[$d=2$]\label{thm:d2}
+    Вектор $y$ разрешим в режиме $\star$ тогда и только тогда, когда разрешима система
+    \[
+        f\ \text{--- поток из}\ \sigma\ \text{в}\ \tau\ \text{в}\ G_P,\quad f\ge0,\qquad y=\sum_ef_e\mathbf 1_{O_e}+g,\qquad 0\le g\le\beta_\star\sum_ef_e\mathbf 1_{B_e}.
+    \]
+    В ней $O(T^3)$ переменных и $O(T^2)$ ограничений, поэтому $\WS_\star(2)$ решается за полиномиальное время. Задача $\COL_\star(2)$~--- поиск длиннейшего пути в $G_P$ с весами дуг $\sum_{q\in O_e}w_q+\beta_\star\sum_{q\in B_e}\max(w_q,0)$~--- решается за время $O(T^4)$.
+\end{theorem}
+
+\begin{proof}
+    По теореме~\ref{thm:chain} и лемме~\ref{lem:local} семейство $\Spm(P)$ состоит из $[T]$ и множеств $O(\pi)\cup B'$. Здесь $\pi$~--- путь, $O(\pi)$~--- объединение множеств $O_e$ по дугам пути, $B'\subset B(\pi)$~--- любое подмножество объединения множеств $B_e$ в слабом режиме и $B'=\varnothing$ в строгом. Для фиксированного пути множества полос попарно не пересекаются. Поэтому
+    \[
+        \cone\set{\mathbf 1_S\mid S\in\Spm(P)}=\Bigl\{\sum_\pi m_\pi(\mathbf 1_{O(\pi)}+z_\pi)\Bigm| m_\pi\ge0,\ 0\le z_\pi\le\beta_\star\mathbf 1_{B(\pi)}\Bigr\},
+    \]
+    так как куб $[0,1]^{B(\pi)}$~--- выпуклая оболочка индикаторов подмножеств. Положив $f:=\sum_\pi m_\pi\mathbf 1_\pi$ и $g:=\sum_\pi m_\pi z_\pi$, получаем решение системы. Обратно, поток в ациклическом графе раскладывается в сумму путей $f=\sum_\pi m_\pi\mathbf 1_\pi$. Индекс $q$ лежит не более чем в одном $B_e$ на каждом пути, поэтому $\beta_\star\sum_\pi m_\pi[q\in B(\pi)]=\beta_\star\sum_ef_e[q\in B_e]\ge g_q$. Значит, $g_q$ можно разделить между путями пропорционально.
+\end{proof}
+
+\begin{remark}
+    Строгая выпуклость нужна только для локальности. Достаточность в теореме~\ref{thm:chain} верна для любой ломаной с возрастающим $X$ и убывающим $Y$. Система теоремы~\ref{thm:d2} заменяет перебор $2^T$ множеств в алгоритме заметок. Её можно использовать и как точную задачу о столбце в генерации столбцов.
+\end{remark}
+
+\section{Размерность $3$: NP-трудность}
+
+\subsection{Гаджет}
+
+Плоскость вкладывается в $\R^3$ подъёмом на параболоид вдоль $\mathbf e=(1,1,1)$:
+\[
+    \ell(a):=(a_1,\ a_2,\ -a_1-a_2)+(1+\abs a^2)\,\mathbf e,\qquad a\in\R^2.
+\]
+Для $c\in\R^2$ положим $\xi_c:=(1-4c_1+2c_2,\ 1-4c_2+2c_1,\ 1+2c_1+2c_2)$. Тогда
+\[
+    \ip{\xi_c}{\ell(a)}=3\bigl(1+\abs{a-c}^2-\abs c^2\bigr),\qquad \ip{\xi_c}{\mathbf e}=3,
+\]
+и $\xi_c\ge0$, $\xi_c\ne0$ при $\abs{c_1}+\abs{c_2}\le\tfrac14$. Поэтому круг с центром $c$, не содержащий внутри точек $a_r$, даёт свидетеля. Это ключ к сведению.
+
+Пусть $G=([n],E)$~--- граф, $a_v\in\Q^2$ при $v\in[n]$ и $\gamma\in(0,\tfrac12]$. Ребро $uv$ назовём \emph{ребром Габриэля с запасом $\gamma$}, если $\abs{a_w-m_{uv}}^2\ge\tfrac14\abs{a_u-a_v}^2+\gamma$ при всех $w\ne u,v$, где $m_{uv}:=\tfrac12(a_u+a_v)$. Положим $L_{uv}:=\abs{a_u-a_v}^2$ и выберем высоты $\eta_{uv}$ с
+\[
+    \tfrac14L_{uv}<\eta_{uv},\qquad L_{uv}\bigl(\tfrac14+\gamma\bigr)-\eta_{uv}\gs0.
+\]
+Например, $\eta_{uv}:=L_{uv}(\tfrac14+\tfrac\gamma2)$ годится в обоих режимах. \emph{Гаджет} $P(G,a,\eta)$ состоит из $1+n+\abs E$ точек $\R^3$:
+\[
+    p_z:=\tfrac14\mathbf e,\qquad p_v:=\ell(a_v),\qquad p_{uv}:=\ell(m_{uv})+\eta_{uv}\mathbf e.
+\]
+Это маркер, \emph{награды} и \emph{тяжёлые} точки. Тяжёлая точка лежит чуть выше середины хорды $p_up_v$. Многогранник независимых множеств $\STAB(G)$~--- выпуклая оболочка индикаторов независимых множеств $G$.
+
+\begin{theorem}[гаджет]\label{thm:gadget}
+    Пусть $\abs{a_{v,1}}+\abs{a_{v,2}}\le\tfrac18$ при всех $v$, $a_u\ne a_v$ при $uv\in E$, все рёбра $G$~--- рёбра Габриэля с запасом $\gamma\in(0,\tfrac12]$, высоты выбраны как выше, а в строгом режиме точки $a_v$ попарно различны. Пусть $s\in\R^n$ и $y_z:=1$, $y_{uv}:=1$, $y_v:=1-s_v$. Тогда $y$ разрешим в режиме $\star$ при ценах $P(G,a,\eta)$ тогда и только тогда, когда $s\in\STAB(G)$. В строгом режиме при $s\le\mathbf 1$ это то же, что неоклассическая разрешимость $y$.
+\end{theorem}
+
+\begin{proof}
+    \emph{Маркер.} $p_z<p_t$ покоординатно при $t\ne z$. Поэтому всякое непустое $S\in\Spm(P)$ содержит $z$: иначе свидетель $\xi$ любого $t\in S$ дал бы $\ip{\xi}{p_z-p_t}<0$.
+
+    \emph{Пара покрывает тяжёлую точку.} $\tfrac12(\ell(a_u)+\ell(a_v))=\ell(m_{uv})+\tfrac14L_{uv}\mathbf e$, поэтому $\tfrac12(p_u+p_v)-p_{uv}=-(\eta_{uv}-\tfrac14L_{uv})\mathbf e<0$. Если тяжёлая точка лежит в $S$, а $u,v\notin S$, то её свидетель $\xi$ даёт $\ip{\xi}{p_u-p_{uv}}+\ip{\xi}{p_v-p_{uv}}<0$, что противоречит даже нестрогим неравенствам.
+
+    \emph{Независимые множества.} Пусть $I$ независимо и $S:=[T]\setminus I$. Для маркера свидетель $\mathbf e$: $\ip{\mathbf e}{p_r-p_z}>0$. Для награды $t\notin I$ свидетель $\xi_{a_t}$: $\ip{\xi_{a_t}}{p_r-p_t}=3\abs{a_r-a_t}^2\gs0$, в строгом режиме потому что точки различны. Для тяжёлой точки ребра $uv$ один из концов, скажем $v$, не лежит в $I$. Положим $c:=m_{uv}+\gamma(a_v-a_u)$. Тогда $\abs{c_1}+\abs{c_2}\le\tfrac14$, $\abs{a_u-c}^2=(\tfrac12+\gamma)^2L_{uv}$ и при $w\ne u,v$
+    \[
+        \abs{a_w-c}^2=\abs{a_w-m_{uv}}^2-2\gamma\ip{a_w-m_{uv}}{a_v-a_u}+\gamma^2L_{uv}\ge L_{uv}\bigl(\tfrac14+\gamma\bigr)+\gamma^2L_{uv},
+    \]
+    так как $2\ip{a_w-m_{uv}}{a_v-a_u}+L_{uv}\le1$ в рамке $\tfrac18$. Так как $\abs{m_{uv}-c}^2=\gamma^2L_{uv}$, при всех $r\in I$
+    \[
+        \ip{\xi_c}{p_r-p_{uv}}=3\bigl(\abs{a_r-c}^2-\eta_{uv}-\abs{m_{uv}-c}^2\bigr)\ge3\bigl(L_{uv}(\tfrac14+\gamma)-\eta_{uv}\bigr)\gs0.
+    \]
+
+    \emph{Сборка.} Пусть $y=\sum_Sm_S\mathbf 1_S$. Непустые $S$ содержат $z$, и из $y_z=1$ получаем $\sum_{S\ne\varnothing}m_S=1$. Из $y_{uv}=1$ следует, что каждое непустое $S$ с $m_S>0$ содержит все тяжёлые точки. Тогда награды вне $S$ образуют независимое множество $I_S$, и $s=\sum_{S\ne\varnothing}m_S\mathbf 1_{I_S}\in\STAB(G)$. Обратно, $s=\sum_I\mu_I\mathbf 1_I$ даёт $y=\sum_I\mu_I\mathbf 1_{[T]\setminus I}$. Наконец, цены положительны и при $s\le\mathbf 1$ вектор $y$ неотрицателен, поэтому в строгом режиме применима теорема о разрешимости из заметок.
+\end{proof}
+
+\subsection{Вложение графа}
+
+\begin{lemma}[укладка]\label{lem:draw}
+    По планарному графу $G$ степени не выше $3$ за полиномиальное время строятся граф $G''$, попарно различные точки $a\in\Q^2$ и $\gamma\in\Q$ с условиями теоремы~\ref{thm:gadget}. Граф $G''$ получен из $G$ подразделением каждого ребра чётным числом $2k_e$ новых вершин, и $\alpha(G'')=\alpha(G)+\sum_ek_e$.
+\end{lemma}
+
+\begin{proof}
+    Возьмём ортогональную укладку $G$ на решётке полиномиального размера~\cite{Valiant81,Tamassia87}: вершины в целых точках, рёбра~--- попарно непересекающиеся (кроме концов) ломаные по линиям решётки. Умножим координаты на $4$. Тогда все звенья ломаных имеют длину, кратную $4$, а длина $L_e$ ребра делится на $4$. Поставим точки во все целые точки ломаных. Исключение одно: первые две единицы первого звена каждого ребра разобьём на три куска длины $\tfrac23$. Получится $L_e+1$ кусков, то есть $L_e$ внутренних точек, их число чётно.
+
+    Все точки лежат в $\tfrac13\Z^2$ на линиях $x\in4\Z$ или $y\in4\Z$. Внутри куска других точек нет. Кратные $4$ на ломаной всегда являются точками. Пусть кусок $[a,b]$ длины $\ell\le1$ лежит на линии $y=c$, $m$~--- его середина и $q\ne a,b$. Если $q$ на той же линии, то $\abs{q_x-m_x}\ge\tfrac\ell2+\tfrac13$. Иначе $\abs{q_y-c}\ge\tfrac13$ и $q_x\notin(a_x,b_x)$. В обоих случаях $\abs{q-m}^2\ge\tfrac{\ell^2}4+\tfrac19$. После сдвига и сжатия в рамку $\abs{a_1}+\abs{a_2}\le\tfrac18$ с коэффициентом $\sigma$ все рёбра $G''$~--- рёбра Габриэля с запасом $\gamma:=\sigma^2/9\le\tfrac12$. Равенство для $\alpha$ классическое: двукратное подразделение ребра увеличивает число независимости ровно на $1$~\cite{Poljak74}.
+\end{proof}
+
+\subsection{Трудность}
+
+\begin{theorem}\label{thm:col}
+    В любом режиме $\COL_\star(3)$ NP-полна.
+\end{theorem}
+
+\begin{proof}
+    Сведение от задачи о независимом множестве в планарных графах степени не выше $3$, она NP-полна~\cite{GareyJohnson77}. Строим $G''$ по лемме~\ref{lem:draw} и гаджет с $\eta_{uv}=L_{uv}(\tfrac14+\tfrac\gamma2)$, $n$ наградами и $m$ тяжёлыми точками. Веса: $w_z:=0$, $w_v:=-1$ для наград, $w_{uv}:=n+1$ для тяжёлых. Если $S$ не содержит какую-то тяжёлую точку, то $w(S)\le(n+1)(m-1)<(n+1)m-n$. Если содержит все, то по доказательству теоремы~\ref{thm:gadget} награды вне $S$ образуют независимое множество $I$, любое независимое $I$ так получается, и $w(S)=(n+1)m-n+\abs I$. Поэтому $\max_Sw(S)=(n+1)m-n+\alpha(G'')$.
+\end{proof}
+
+\begin{theorem}\label{thm:ws}
+    В любом режиме $\WS_\star(3)$ лежит в NP и NP-трудна относительно полиномиальной сводимости по Тьюрингу. В частности, проверка неоклассической разрешимости при $d=3$ NP-трудна в этом смысле. Если $\WS_\star(3)\in$ P, то P $=$ NP.
+\end{theorem}
+
+\begin{proof}
+    По теореме~\ref{thm:gadget} проверка $s\in\STAB(G'')$ сводится к одной задаче $\WS_\star(3)$. Запросы с $s_v>1$ отвечаются «нет» без вызова оракула. Многогранник $\STAB(G'')$ полноразмерный, $0/1$-вершинный, содержит шар радиуса $\tfrac1{4n}$ с центром $\tfrac1{4n}\mathbf 1$ и лежит в шаре радиуса $\sqrt n$. По теореме Юдина--Немировского~\cite[теорема~4.3.2]{GLS} слабая принадлежность даёт слабую оптимизацию. По~\cite[теорема~6.3.2]{GLS} для многогранников с полиномиальной сложностью граней слабая оптимизация даёт сильную. Поэтому оракул $\WS_\star(3)$ позволяет за полиномиальное время найти $\alpha(G'')$, а значит и $\alpha(G)$.
+\end{proof}
+
+\begin{corollary}
+    При каждом фиксированном $d\ge3$ и в любом режиме задача $\COL_\star(d)$ NP-полна, а $\WS_\star(d)$ лежит в NP и NP-трудна относительно полиномиальной сводимости по Тьюрингу.
+\end{corollary}
+
+\begin{proof}
+    Добавим координаты $p^i_t:=p^1_t$ при $i>3$. Свидетель $\xi\in\Rp[d]$ для новых цен даёт свидетеля $(\xi^1+\sum_{i>3}\xi^i,\ \xi^2,\ \xi^3)$ для старых с теми же скалярными произведениями, а свидетель для старых цен, дополненный нулями,~--- свидетеля для новых. Поэтому семейство $\Spm$ не меняется.
+\end{proof}
+
+\begin{remark}
+    Сведение по Карпу для $\WS_\star(3)$ остаётся открытым вопросом. Оно следовало бы из NP-трудности по Карпу проверки $s\in\STAB(G)$ для графов, реализуемых гаджетом, то есть для планарных графов, рёбра которых можно подразделять. Для произвольных графов такое сведение есть: $\tfrac13\mathbf 1\in\STAB(G\,\square\,K_3)$ тогда и только тогда, когда $G$ раскрашивается в три цвета. Неравенства треугольников $\set{(v,0),(v,1),(v,2)}$ обращаются в равенства, поэтому каждое независимое множество разложения~--- правильная раскраска. Обратно, три циклических сдвига цветов одной раскраски дают в среднем $\tfrac13\mathbf 1$ (проверено перебором, \path{exp_stab_karp.py}). Но граф $G\,\square\,K_3$ не планарен, а подразделение рёбер ломает рассуждение: треугольник становится $9$-циклом, и независимое множество $\set{0,2,4,6}$ максимального размера содержит две копии одной вершины. По теореме~\ref{thm:d2} аналогичного гаджета в плоскости для всех планарных графов степени $3$ нет, если P $\ne$ NP.
+\end{remark}
+
+\section{Эксперименты}
+
+Код лежит в \path{complexity/}, всё в точной рациональной арифметике, кроме задач линейного программирования (HiGHS). Режим задаётся флагом \texttt{strict} в \path{d2_flow.py} и \path{d3_reduction.py}.
+\begin{itemize}
+    \item \path{exp_d2_family.py}, \path{exp_d2_strict.py}: на $3000$ и $4000$ случайных наборах ($T\le8$, решётки $3\times3$--$20\times20$ с совпадающими координатами и дубликатами) семейство путей графа $G_P$ совпадает с $\Spm(P)$, найденным перебором $2^T$ множеств, в обоих режимах. Длиннейший путь совпадает с перебором для задачи о столбце. На $71\%$ наборов $\Sp(P)\ne\widehat{\Sp}(P)$, так что режимы действительно различаются.
+    \item \path{exp_d2_membership.py}, \path{exp_d2_strict.py}: система теоремы~\ref{thm:d2} даёт тот же ответ, что перебор с проверкой конуса, на $6000$ векторах $y$ в слабом режиме ($2143$ разрешимы) и $4000$ в строгом ($1191$ разрешимы).
+    \item \path{exp_covers_check.py}, \path{exp_covers_strict.py}: семейства, восстановленные по минимальным покрытиям размера не больше $d$ (точная арифметика), совпадают с перебором при $d=2,3,4$.
+    \item \path{exp_d2_timing.py}: при $T=80$ граф имеет $1579$ вершин и $8768$ дуг, проверка занимает $1{,}8$~с.
+    \item \path{exp_d3_reduction.py}, \path{exp_d3_strict.py}: для графов $K_3$, $C_5$, дерева и «бабочки» минимальные покрытия гаджета~--- ровно «маркер покрывает всё» и «пара $uv$ покрывает тяжёлую точку». Множества из $\Spm(P)$, содержащие маркер и тяжёлые точки, совпадают с дополнениями независимых множеств. Ответ $\WS_\star(3)$ совпал с проверкой $s\in\STAB(G)$ на всех пробных $s$ в обоих режимах. Например, $\tfrac12\mathbf 1\notin\STAB(C_5)$ и $\tfrac25\mathbf 1\in\STAB(C_5)$.
+    \item \path{exp_d3_grid.py}: лемма~\ref{lem:draw} на ортогональной укладке $K_4$. Получается $324$ вершины, запас Габриэля $4/9\ge1/9$ в единицах решётки, все подразделения чётные, $\alpha(G'')=161=\alpha(K_4)+\tfrac12\sum_eL_e$ (MILP). После сжатия в рамку $\tfrac18$ выполнены все гипотезы теоремы~\ref{thm:gadget}.
+    \item \path{exp_stab_karp.py}: на $10$ графах, включая $K_4$ и колесо $W_5$, $\tfrac13\mathbf 1\in\STAB(G\,\square\,K_3)$ тогда и только тогда, когда $G$ раскрашивается в три цвета.
+\end{itemize}
+
+\section{Проверка в Lean}
+
+Файл \path{complexity/lean/Complexity.lean} использует определения библиотеки \path{NeoTiling} (\lean{IsWeakReachable}, \lean{IsReachable}, \lean{indicatorCone}, \lean{NeoSolvable}). Проверка: \texttt{lake env lean complexity/lean/Complexity.lean} из корня проекта. Аксиомы~--- только стандартные (\lean{propext}, \lean{Classical.choice}, \lean{Quot.sound}). Режим~--- булев параметр \lean{b}: \lean{Ok b u} означает $u>0$ при \lean{b = true} и $u\ge0$ при \lean{b = false}, а \lean{IsReachableB b} равно \lean{IsWeakReachable} или \lean{IsReachable}. Каждая теорема доказана один раз для обоих режимов. Утверждения отдельных режимов~--- следствия в несколько строк.
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Утверждение & Lean \\
+\midrule
+Теорема~\ref{thm:chain} & \lean{isReachableB_iff_chain} \\
+& следствия \lean{isWeakReachable_iff_chain}, \lean{isReachable_iff_chain} \\
+Лемма~\ref{lem:local} & \lean{inHull_iff_of_piece}, \lean{inHull_iff_of_left}, \lean{inHull_iff_of_right} \\
+Теорема~\ref{thm:gadget} & \lean{mem_indicatorCone_iff_inStabB_of_gabriel} \\
+& следствия \lean{mem_indicatorCone_iff_inStab_of_gabriel}, \lean{neoSolvable_iff_inStab_of_gabriel} \\
+\bottomrule
+\end{tabular}
+\end{center}
+Не формализованы: разложение потока на пути (теорема~\ref{thm:d2}), лемма об укладке~\ref{lem:draw}, NP-трудность задачи о независимом множестве и теоремы из~\cite{GLS}.
+
+\begin{thebibliography}{99}
+\bibitem{GLS} M.~Grötschel, L.~Lovász, A.~Schrijver, Geometric Algorithms and Combinatorial Optimization, Springer, 1988.
+\bibitem{GareyJohnson77} M.\,R.~Garey, D.\,S.~Johnson, The rectilinear Steiner tree problem is NP-complete, SIAM J. Appl. Math. 32(4) (1977) 826--834.
+\bibitem{Valiant81} L.\,G.~Valiant, Universality considerations in VLSI circuits, IEEE Trans. Comput. C-30(2) (1981) 135--140.
+\bibitem{Tamassia87} R.~Tamassia, On embedding a graph in the grid with the minimum number of bends, SIAM J. Comput. 16(3) (1987) 421--444.
+\bibitem{Poljak74} S.~Poljak, A note on stable sets and colorings of graphs, Comment. Math. Univ. Carolinae 15(2) (1974) 307--309.
+\end{thebibliography}
+
+\end{document}
