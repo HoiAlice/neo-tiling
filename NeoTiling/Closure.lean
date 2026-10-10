@@ -31,10 +31,15 @@ variable {d T : ℕ} {P : Fin T → Fin d → ℝ} {y : Fin T → ℝ}
 
 /-! ### Definitions -/
 
-/-- `y` is weakly solvable at `P`: every open neighbourhood of `P` contains positive prices at
-which `y` is solvable (`mem_closure_iff`). -/
+/-- `y` is weakly solvable at `P`: every neighbourhood of `P` contains positive prices at which
+`y` is solvable (`mem_closure_iff_nhds`). -/
 def WeakSolvable (P : Fin T → Fin d → ℝ) (y : Fin T → ℝ) : Prop :=
   P ∈ closure {Q | (∀ t, Q t ∈ orthant d) ∧ NeoSolvable Q y}
+
+/-- At positive prices a solvable `y` is weakly solvable: a set lies in its closure. -/
+theorem NeoSolvable.weakSolvable (hP : ∀ t, P t ∈ orthant d) (h : NeoSolvable P y) :
+    WeakSolvable P y :=
+  subset_closure ⟨hP, h⟩
 
 /-- `S` is weakly reachable: every `t ∈ S` has a nonzero `ξ ≥ 0` with `⟨ξ, p_s - p_t⟩ ≥ 0` for
 all `s ∉ S`. -/

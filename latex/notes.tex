@@ -106,7 +106,7 @@
 \end{proof}
 
 \begin{lemma}\label{lem:stability}
-    Пусть $h\in\Phi_d$, $P\in\Rpp[d\times T]$. Тогда существует такая окрестность $V\subset\Rpp[d\times T]$ набора $P$, что для каждого набора цен $Q\in V$ выполнено $\Sp(h,Q)\supseteq\Sp(h,P)$.
+    Пусть $h\in\Phi_d$, $P\in\Rpp[d\times T]$. Тогда существует такая окрестность $V\subset\Rpp[d\times T]$ набора $P$, что $\Sp(h,Q)\supseteq\Sp(h,P)$ для каждого набора цен $Q\in V$.
 \end{lemma}
 
 \begin{proof}
@@ -224,8 +224,12 @@
 \end{remark}
 
 \begin{definition}[Слабая разрешимость]\label{def:weak-solvability}
-    Пусть $P\in\Rp[d\times T]$~--- набор цен. Будем говорить, что вектор выпусков $y\in\Rp[T]$ \textit{слабо разрешим} при ценах $P$, если в любой открытой окрестности $U\ni P$ найдётся набор цен $Q\in U$, при котором $y$ разрешим.
+    Пусть $P\in\Rp[d\times T]$~--- набор цен. Будем говорить, что вектор выпусков $y\in\Rp[T]$ \textit{слабо разрешим} при ценах $P$, если в любой окрестности $U\ni P$, $U\subset\Rp[d\times T]$, найдётся набор цен $Q\in U\cap\Rpp[d\times T]$, при котором $y$ разрешим.
 \end{definition}
+
+\begin{remark}
+    Разрешимость определена только при положительных ценах. Слабая разрешимость распространяет её на замыкание $\Rp[d\times T]$: при $P\in\Rpp[d\times T]$ разрешимый вектор слабо разрешим, а при ценах с нулевыми координатами говорить можно только о слабой разрешимости.
+\end{remark}
 
 \begin{definition}[Слабо достижимые спектры]\label{def:weak}
     Пусть $P:=\set{p_{t}\in\Rp[d]}_{t\in[T]}$~--- набор цен. Будем говорить, что $S\subset[T]$~--- \textit{слабо достижимый спектр} при ценах $P$, если для каждого $t\in S$ существует ненулевой вектор $\xi\in\Rp[d]$, для которого $\ip{\xi}{p_s-p_t}\ge0$ при всех $s\notin S$. Такой вектор назовём \textit{слабым свидетелем} индекса $t$. Будем обозначать как $\widehat{\Sp}(P)$ семейство таких спектров.
@@ -233,7 +237,7 @@
 \end{definition}
 
 \begin{lemma}\label{lem:limit}
-    Пусть $P\in\Rp[d\times T]$. Тогда существует такая окрестность $U\ni P$, $U\subset\Rp[d\times T]$, что для каждого набора цен $Q\in U$ выполнено $\Sp(Q)\subseteq\widehat{\Sp}(P)$.
+    Пусть $P\in\Rp[d\times T]$. Тогда существует такая окрестность $V\subset\Rp[d\times T]$ набора $P$, что $\Sp(Q)\subseteq\widehat{\Sp}(P)$ для каждого набора цен $Q\in V\cap\Rpp[d\times T]$.
 \end{lemma}
 
 \begin{proof}
@@ -270,7 +274,7 @@
 \begin{proof}
     Пусть $y=\sum_Sm^0_S\mathbf 1_S$~--- какое-нибудь представление и $N:=\sum_Sm^0_S$. Представления $y=\sum_Sm_S\mathbf 1_S$ с $m_S\ge0$, $m_S=0$ при $S\notin\widehat{\Sp}(P)$ и $\sum_Sm_S\le N$ образуют непустой компакт. Возьмём на нём представление, на котором $\sum_Sm_Sc(S)$ максимальна.
     Пусть $m_u,m_{u'}>0$ и нашлись $t\in u\setminus u'$, $s\in u'\setminus u$ с $p_s=p_t$. Перенесём вес $\varepsilon:=\min(m_u,m_{u'})$ с $u$ и $u'$ на множества $A$ и $B$ из леммы~\ref{lem:uncross}. Представление и полный вес сохраняются, а $\sum_Sm_Sc(S)$ вырастает на $\varepsilon\bigl(c(A)+c(B)-c(u)-c(u')\bigr)>0$. Это противоречит выбору.
-    Значит, если $m_S>0$, $t\in S$, $s\notin S$ и $p_s=p_t$, то всякое $U$ с $m_U>0$, содержащее $s$, содержит и $t$. Поэтому все слагаемые в $y_t-y_s=\sum_Um_U\bigl(\mathbf 1_U(t)-\mathbf 1_U(s)\bigr)$ неотрицательны, а слагаемое с $U=S$ равно $m_S>0$.
+    Значит, если $m_S>0$, $t\in S$, $s\notin S$ и $p_s=p_t$, то всякое $W$ с $m_W>0$, содержащее $s$, содержит и $t$. Поэтому все слагаемые в $y_t-y_s=\sum_Wm_W\bigl(\mathbf 1_W(t)-\mathbf 1_W(s)\bigr)$ неотрицательны, а слагаемое с $W=S$ равно $m_S>0$.
 \end{proof}
 
 \begin{remark}
@@ -282,15 +286,15 @@
     \[
         Q_\delta:=\set{q_t}_{t\in[T]},\qquad q_t:=p_t+\delta\Bigl(\sum_{i\in[d]}e^{-p^i_t}-\delta y_t\Bigr)\mathbf e.
     \]
-    Тогда $Q_\delta\in\Rpp[d\times T]$ при малых $\delta>0$. Если $S\in\widehat{\Sp}(P)$ и $y_s<y_t$ при всех $t\in S$, $s\notin S$ с $p_s=p_t$, то $S\in\Sp(Q_\delta)$ при всех достаточно малых $\delta>0$.
+    Тогда $Q_\delta\to P$ при $\delta\to0$, и при всех достаточно малых $\delta>0$ выполнено $Q_\delta\in\Rpp[d\times T]$ и $S\in\Sp(Q_\delta)$ для каждого $S\in\widehat{\Sp}(P)$, у которого $y_s<y_t$ при всех $t\in S$, $s\notin S$ с $p_s=p_t$.
 \end{lemma}
 
 \begin{proof}
-    Пусть $F_r:=\sum_ie^{-p^i_r}>0$. Тогда $q^i_t\ge\delta(F_t-\delta y_t)>0$ при малых $\delta$.
+    Пусть $F_r:=\sum_ie^{-p^i_r}>0$. Тогда $q_t-p_t=\delta(F_t-\delta y_t)\mathbf e\to0$, а $q^i_t\ge\delta(F_t-\delta y_t)>0$ при малых $\delta$.
     Пусть $t\in S$, $\xi$~--- слабый свидетель индекса $t$ с $\ip{\xi}{\mathbf e}=1$, $g:=(e^{-p^1_t},\dots,e^{-p^d_t})$ и $\xi_\delta:=\xi+\delta g$. Тогда $q_s-q_t=(p_s-p_t)+\bigl(\delta(F_s-F_t)-\delta^2(y_s-y_t)\bigr)\mathbf e$. Покажем, что $\ip{\xi_\delta}{q_s-q_t}>0$ при $s\notin S$ и малых $\delta$.
     Если $p_s=p_t$, то $\ip{\xi_\delta}{q_s-q_t}=\delta^2(y_t-y_s)\bigl(1+\delta\ip{g}{\mathbf e}\bigr)>0$.
     Если $p_s\ne p_t$, то $\ip{\xi_\delta}{q_s-q_t}=\ip{\xi}{p_s-p_t}+\delta K+O(\delta^2)$ с $K:=F_s-F_t+\ip{g}{p_s-p_t}=\sum_ie^{-p^i_t}\bigl(e^{-x_i}-1+x_i\bigr)$, $x_i:=p^i_s-p^i_t$. Здесь $\ip{\xi}{p_s-p_t}\ge0$, а $K>0$, так как $e^{-x}\ge1-x$ с равенством только при $x=0$.
-    Пар $(t,s)$ конечное число, и $\xi_\delta\ge\delta g$ ненулевой, так что $\xi_\delta$~--- свидетель индекса $t$ при ценах $Q_\delta$.
+    Пар $(t,s)$ конечное число, и $\xi_\delta\ge\delta g$ ненулевой, так что $\xi_\delta$~--- свидетель индекса $t$ при ценах $Q_\delta$. Множеств $S$ конечное число, поэтому малость $\delta$ можно выбрать общей для всех.
 \end{proof}
 
 \begin{theorem}[критерий слабой разрешимости]\label{thm:closure}
@@ -299,7 +303,7 @@
 
 \begin{proof}
     Пусть $y$ слабо разрешим. По лемме~\ref{lem:limit} в некоторой окрестности $P$ выполнено $\Sp(Q)\subseteq\widehat{\Sp}(P)$, и в ней есть $Q$, при котором $y$ разрешим. По теореме~\ref{thm:solvability} $y\in\cone\set{\mathbf 1_S\mid S\in\Sp(Q)}\subseteq\cone\set{\mathbf 1_S\mid S\in\widehat{\Sp}(P)}$.
-    Обратно, возьмём представление из леммы~\ref{lem:monotone}. По лемме~\ref{lem:tilt} все его спектры, которых конечное число, лежат в $\Sp(Q_\delta)$ при малых $\delta>0$, и $Q_\delta\in\Rpp[d\times T]$. Тогда $y$ разрешим при ценах $Q_\delta$ по теореме~\ref{thm:solvability}, а $Q_\delta\to P$ при $\delta\to0$, так что $Q_\delta$ попадает в любую окрестность $P$.
+    Обратно, возьмём представление из леммы~\ref{lem:monotone}. По лемме~\ref{lem:tilt} при малых $\delta>0$ все его спектры лежат в $\Sp(Q_\delta)$ и $Q_\delta\in\Rpp[d\times T]$. Тогда $y$ разрешим при ценах $Q_\delta$ по теореме~\ref{thm:solvability}, а так как $Q_\delta\to P$, наборы $Q_\delta$ попадают в любую окрестность $P$.
 \end{proof}
 
 \end{document}
