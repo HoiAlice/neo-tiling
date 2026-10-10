@@ -192,13 +192,13 @@ Engineering findings, kept short:
 
 ## 4. Lean (0 sorry; `lake build` passes)
 
-* `NeoTiling/Cuts.lean`:
+* `Algorithms/Cuts.lean` (moved out of `NeoTiling/`; separate lake library, `lake build Algorithms`):
   - `IsBlocked`, `exists_isBlocked_of_cut`, `isBlocked_singleton_iff`, `le_of_dominates`;
   - `isBlocked_smul_iff`, `le_minPert_of_relaxation`, `IsBlocked.exists_le_sum`;
   - `IsWeakReachable.isBlocked`, `exists_weakReachable_sum_neg`;
   - `card_le_of_cut_sequence`: the combinatorial core of finiteness. The cuts are
     pairwise distinct, so there are at most as many steps as cuts.
-* `NeoTiling/Hardness.lean`:
+* `Algorithms/Hardness.lean`:
   - `cover_bound` (the fractional-cover inequality);
   - `hardness_lower`, `hardness_upper`;
   - `minPert_setCover`: ρ = kδ on the set-cover prices. `hardness_upper` needs `1 ≤ d`,

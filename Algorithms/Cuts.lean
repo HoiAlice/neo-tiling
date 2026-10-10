@@ -1,4 +1,4 @@
-import NeoTiling.Perturbation
+import Algorithms.Perturbation
 
 /-!
 # Covering cuts: a relaxation of weak solvability
@@ -190,7 +190,7 @@ theorem le_minPert_of_relaxation (hd : 2 ≤ d) (hP : ∀ t, P t ∈ orthant d) 
     L ≤ minPert P y := by
   obtain ⟨Q, hQ, hyQ, heq, -⟩ := exists_minPert hd hP hy
   rw [← heq]
-  exact hL Q (hΦ Q hQ hyQ) (totalPert_le_box hP hQ (heq ▸ hD))
+  exact hL Q (hΦ Q hQ (hyQ.mem_indicatorCone hd hy)) (totalPert_le_box hP hQ (heq ▸ hD))
 
 /-- **Finiteness of the cut loop (combinatorial core).** Points `x k` and cuts `c k` such that
 the `k`-th cut is violated at `x k` while all earlier cuts hold there: then the cuts are

@@ -144,7 +144,7 @@
 \end{proof}
 
 \begin{lemma}[склейка]\label{lem:patch}
-    Пусть $P:=\set{p_{t}\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Тогда существует кусочно-линейная $h\in\Phi_d$, для которой $\Sp(P)\subseteq\Sp(h,P)$.
+    Пусть $P:=\set{p_{t}\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Тогда существует $h\in\Phi_d$, для которой $\Sp(P)\subseteq\Sp(h,P)$.
 \end{lemma}
 
 \begin{proof}
@@ -198,7 +198,7 @@
     \[
         y=4\cdot\mathbf 1_{\set2}+1\cdot\mathbf 1_{\set3}+1\cdot\mathbf 1_{\set{1,2,3,4,5}}+2\cdot\mathbf 1_{\set{1,2,3,6}}+2\cdot\mathbf 1_{\set{1,2,3,4,6}},
     \]
-    так что $y$ неоклассически разрешим, и по лемме~\ref{lem:patch} все пять спектров этого разложения реализуются одной кусочно-линейной $h$.
+    так что $y$ неоклассически разрешим, и по лемме~\ref{lem:patch} все пять спектров этого разложения реализуются одной функцией $h\in\Phi_d$.
 \end{example}
 
 \begin{example}
@@ -212,26 +212,32 @@
 \section{Слабая разрешимость}
 
 \begin{lemma}\label{lem:open}
-    Пусть $P\in\Rpp[d\times T]$. Тогда существует такая окрестность $V\subset\Rpp[d\times T]$ набора $P$, что $\Sp(Q)\supseteq\Sp(P)$ для каждого набора цен $Q\in V$. В частности, если $y$ разрешим при ценах $P$, то $y$ разрешим при всех ценах из $V$.
+    Пусть $P\in\Rpp[d\times T]$. Тогда существует такая окрестность $V\subset\Rpp[d\times T]$ набора $P$, что $\Sp(Q)\supseteq\Sp(P)$ для каждого набора цен $Q\in V$.
 \end{lemma}
 
 \begin{proof}
-    По теореме~\ref{thm:spectrum} возьмём $h\in\Phi_d$ с $\Sp(h,P)=\Sp(P)$ и окрестность $V$ из леммы~\ref{lem:stability}. При $Q\in V$ по лемме~\ref{lem:necessity} $\Sp(P)=\Sp(h,P)\subseteq\Sp(h,Q)\subseteq\Sp(Q)$. Второе утверждение следует из теоремы~\ref{thm:solvability}.
+    По теореме~\ref{thm:spectrum} возьмём $h\in\Phi_d$ с $\Sp(h,P)=\Sp(P)$ и окрестность $V$ из леммы~\ref{lem:stability}. При $Q\in V$ по лемме~\ref{lem:necessity} $\Sp(P)=\Sp(h,P)\subseteq\Sp(h,Q)\subseteq\Sp(Q)$.
 \end{proof}
 
-\begin{definition}[Слабо достижимые спектры]\label{def:weak}
-    Пусть $P:=\set{p_{t}\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Будем говорить, что $S\subset[T]$~--- \textit{слабо достижимый спектр} при ценах $P$, если для каждого $t\in S$ существует ненулевой вектор $\xi\in\Rp[d]$, для которого $\ip{\xi}{p_s-p_t}\ge0$ при всех $s\notin S$. Такой вектор назовём \textit{слабым свидетелем} индекса $t$. Будем обозначать как $\widehat{\Sp}(P)$ семейство таких спектров. Вектор выпусков $y\in\cone\set{\mathbf 1_S\mid S\in\widehat{\Sp}(P)}$ назовём \textit{слабо разрешимым} при $P$.
+\begin{remark}
+    В частности, из теоремы~\ref{thm:solvability} следует, что если $y$ разрешим при ценах $P$, то $y$ разрешим при всех наборах цен из $V$.
+\end{remark}
+
+\begin{definition}[Слабая разрешимость]\label{def:weak-solvability}
+    Пусть $P\in\Rp[d\times T]$~--- набор цен. Будем говорить, что вектор выпусков $y\in\Rp[T]$ \textit{слабо разрешим} при ценах $P$, если в любой открытой окрестности $U\ni P$ найдётся набор цен $Q\in U$, при котором $y$ разрешим.
 \end{definition}
 
-\begin{lemma}[слоёный пирог]\label{lem:cake}
-    Пусть $z\in\Rp[T]$ и $0=\lambda_0<\lambda_1<\dots<\lambda_k$~--- все различные значения $z$ вместе с нулём. Тогда
-    \[
-        z=\sum_{j=1}^{k}(\lambda_j-\lambda_{j-1})\,\mathbf 1_{\set{z\ge\lambda_j}}.
-    \]
+\begin{definition}[Слабо достижимые спектры]\label{def:weak}
+    Пусть $P:=\set{p_{t}\in\Rp[d]}_{t\in[T]}$~--- набор цен. Будем говорить, что $S\subset[T]$~--- \textit{слабо достижимый спектр} при ценах $P$, если для каждого $t\in S$ существует ненулевой вектор $\xi\in\Rp[d]$, для которого $\ip{\xi}{p_s-p_t}\ge0$ при всех $s\notin S$. Такой вектор назовём \textit{слабым свидетелем} индекса $t$. Будем обозначать как $\widehat{\Sp}(P)$ семейство таких спектров.
+    Отметим, что $\Sp(P)\subseteq\widehat{\Sp}(P)$.
+\end{definition}
+
+\begin{lemma}\label{lem:limit}
+    Пусть $P\in\Rp[d\times T]$. Тогда существует такая окрестность $U\ni P$, $U\subset\Rp[d\times T]$, что для каждого набора цен $Q\in U$ выполнено $\Sp(Q)\subseteq\widehat{\Sp}(P)$.
 \end{lemma}
 
 \begin{proof}
-    При $z_s=\lambda_i$ в правой части остаются слагаемые с $j\le i$, и их сумма телескопируется в $\lambda_i$.
+    Иначе, поскольку спектров конечное число, нашлись бы $S\notin\widehat{\Sp}(P)$, $t\in S$ и наборы $Q_n\to P$ с $S\in\Sp(Q_n)$. Свидетелей $\xi_n$ индекса $t$ при ценах $Q_n$ нормируем условием $\ip{\xi_n}{\mathbf e}=1$. Симплекс компактен, и предел $\xi$ подпоследовательности ненулевой, неотрицательный и удовлетворяет $\ip{\xi}{p_s-p_t}\ge0$ при $s\notin S$, то есть является слабым свидетелем. Это противоречит выбору $S$ и $t$.
 \end{proof}
 
 \begin{lemma}[перепаривание]\label{lem:rematch}
@@ -242,17 +248,29 @@
     Пусть $S':=(u\setminus C)\cup L$. Для $t\in u\setminus C$ подходит его слабый свидетель для $u$: индекс $s\notin S'$ вне $C$ лежит вне $u$, а индекс $s\in C\setminus L$ имеет ту же цену, что некоторый $s_1\in C\setminus u$. Для $t\in L$ подходит слабый свидетель любого $t_1\in u\cap C$ для $u$: цены $p_t$ и $p_{t_1}$ равны, индексы $s\notin S'$ вне $C$ лежат вне $u$, а для $s\in C$ разность $p_s-p_t$ равна нулю.
 \end{proof}
 
-\begin{lemma}[монотонное представление]\label{lem:monotone}
-    Пусть $y$ слабо разрешим при ценах $P$. Тогда $y=\sum_Sm_S\mathbf 1_S$ при некоторых $m_S\ge0$, $S\in\widehat{\Sp}(P)$, причём для всякого $S$ с $m_S>0$ из $t\in S$, $s\notin S$ и $p_s=p_t$ следует $y_s<y_t$.
+Для $S\subset[T]$ обозначим через $c(S)$ число пар $(a,b)\in S\times S$ с $p_a=p_b$.
+
+\begin{lemma}[распутывание]\label{lem:uncross}
+    Пусть $u,u'\in\widehat{\Sp}(P)$, $t\in u\setminus u'$, $s\in u'\setminus u$ и $p_s=p_t$. Тогда найдутся $A,B\in\widehat{\Sp}(P)$, для которых $\mathbf 1_A+\mathbf 1_B=\mathbf 1_u+\mathbf 1_{u'}$ и $c(A)+c(B)>c(u)+c(u')$.
 \end{lemma}
 
 \begin{proof}
-    Кластером назовём множество индексов с одной и той же ценой. Возьмём любое представление $y=\sum_Sm_S\mathbf 1_S$ и исправим его по одному кластеру за раз. Пусть $C$~--- кластер, $U$~--- те $S$ с $m_S>0$, которые пересекают $C$, но не содержат его, $M:=\sum_{u\in U}m_u$ и $z:=\sum_{u\in U}m_u\mathbf 1_{u\cap C}$. Остальные спектры содержат $C$ целиком или не пересекают его, поэтому $y-z$ постоянен на $C$, и верхние множества $z$ на $C$ суть верхние множества $y$ на $C$.
-    По лемме~\ref{lem:cake} $z=\sum_{j\ge1}\nu_j\mathbf 1_{L_j}$, где $L_j:=\set{s\in C\mid z_s\ge\lambda_j}$ и $\sum_{j\ge1}\nu_j=\max z\le M$. Положим $L_0:=\varnothing$ и $\nu_0:=M-\max z$, тогда $\sum_{j\ge0}\nu_j=M=\sum_{u\in U}m_u$. Для двух наборов весов с одинаковой суммой $M$ верно тождество $\sum_{u,j}\frac{m_u\nu_j}{M}(a_u+b_j)=\sum_um_ua_u+\sum_j\nu_jb_j$, откуда
+    Пусть $C:=\set{r\in[T]\mid p_r=p_t}$. Положим
     \[
-        \sum_{u\in U}m_u\mathbf 1_u=\sum_{u\in U}m_u\mathbf 1_{u\setminus C}+z=\sum_{u\in U}\sum_{j\ge0}\frac{m_u\nu_j}{M}\,\mathbf 1_{(u\setminus C)\cup L_j}.
+        A:=(u\setminus C)\cup\bigl((u\cup u')\cap C\bigr),\qquad B:=(u'\setminus C)\cup(u\cap u'\cap C).
     \]
-    Спектры $(u\setminus C)\cup L_j$ слабо достижимы по лемме~\ref{lem:rematch}, пересекают $C$ по верхнему множеству $y$ и вне $C$ совпадают со старыми. Поэтому свойство, достигнутое для других кластеров, сохраняется.
+    Множество $u$ пересекает $C$ по $t$ и не содержит $s\in C$, а $u'$ пересекает $C$ по $s$ и не содержит $t$. Поэтому $A,B\in\widehat{\Sp}(P)$ по лемме~\ref{lem:rematch}. Вне $C$ множество $A$ совпадает с $u$, а $B$ с $u'$. На $C$ они дают объединение и пересечение $u\cap C$ и $u'\cap C$, откуда $\mathbf 1_A+\mathbf 1_B=\mathbf 1_u+\mathbf 1_{u'}$.
+    Пара $(a,b)$ с $p_a=p_b$ лежит целиком в $C$ или целиком вне $C$. Вне $C$ ничего не меняется. Пара из $C$, лежащая в $u$ или в $u'$, лежит в $A$, а лежащая в обоих~--- ещё и в $B$. Поэтому ни одна пара не теряется. Пара $(t,s)$ лежит в $A$, но не лежит ни в $u$, ни в $u'$.
+\end{proof}
+
+\begin{lemma}[монотонное представление]\label{lem:monotone}
+    Пусть $y\in\cone\set{\mathbf 1_S\mid S\in\widehat{\Sp}(P)}$. Тогда $y=\sum_Sm_S\mathbf 1_S$ при некоторых $m_S\ge0$, $S\in\widehat{\Sp}(P)$, причём для всякого $S$ с $m_S>0$ из $t\in S$, $s\notin S$ и $p_s=p_t$ следует $y_s<y_t$.
+\end{lemma}
+
+\begin{proof}
+    Пусть $y=\sum_Sm^0_S\mathbf 1_S$~--- какое-нибудь представление и $N:=\sum_Sm^0_S$. Представления $y=\sum_Sm_S\mathbf 1_S$ с $m_S\ge0$, $m_S=0$ при $S\notin\widehat{\Sp}(P)$ и $\sum_Sm_S\le N$ образуют непустой компакт. Возьмём на нём представление, на котором $\sum_Sm_Sc(S)$ максимальна.
+    Пусть $m_u,m_{u'}>0$ и нашлись $t\in u\setminus u'$, $s\in u'\setminus u$ с $p_s=p_t$. Перенесём вес $\varepsilon:=\min(m_u,m_{u'})$ с $u$ и $u'$ на множества $A$ и $B$ из леммы~\ref{lem:uncross}. Представление и полный вес сохраняются, а $\sum_Sm_Sc(S)$ вырастает на $\varepsilon\bigl(c(A)+c(B)-c(u)-c(u')\bigr)>0$. Это противоречит выбору.
+    Значит, если $m_S>0$, $t\in S$, $s\notin S$ и $p_s=p_t$, то всякое $U$ с $m_U>0$, содержащее $s$, содержит и $t$. Поэтому все слагаемые в $y_t-y_s=\sum_Um_U\bigl(\mathbf 1_U(t)-\mathbf 1_U(s)\bigr)$ неотрицательны, а слагаемое с $U=S$ равно $m_S>0$.
 \end{proof}
 
 \begin{remark}
@@ -260,28 +278,28 @@
 \end{remark}
 
 \begin{lemma}[наклон]\label{lem:tilt}
-    Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен, $y\in\Rp[T]$, и при $\delta>0$ положим
+    Пусть $P:=\set{p_t\in\Rp[d]}_{t\in[T]}$~--- набор цен, $y\in\Rp[T]$, и при $\delta>0$ положим
     \[
-        Q_\delta:=\set{q_t}_{t\in[T]},\qquad q_t:=p_t-\delta\Bigl(\sum_{i\in[d]}\ln p^i_t+\delta y_t\Bigr)\mathbf e.
+        Q_\delta:=\set{q_t}_{t\in[T]},\qquad q_t:=p_t+\delta\Bigl(\sum_{i\in[d]}e^{-p^i_t}-\delta y_t\Bigr)\mathbf e.
     \]
-    Пусть $S\in\widehat{\Sp}(P)$ и $y_s<y_t$ при всех $t\in S$, $s\notin S$ с $p_s=p_t$. Тогда $S\in\Sp(Q_\delta)$ при всех достаточно малых $\delta>0$.
+    Тогда $Q_\delta\in\Rpp[d\times T]$ при малых $\delta>0$. Если $S\in\widehat{\Sp}(P)$ и $y_s<y_t$ при всех $t\in S$, $s\notin S$ с $p_s=p_t$, то $S\in\Sp(Q_\delta)$ при всех достаточно малых $\delta>0$.
 \end{lemma}
 
 \begin{proof}
-    Пусть $t\in S$, $\xi$~--- слабый свидетель индекса $t$ с $\ip{\xi}{\mathbf e}=1$, $g:=((p^1_t)^{-1},\dots,(p^d_t)^{-1})$, $\xi_\delta:=\xi+\delta g$ и $F_r:=\sum_i\ln p^i_r$. Тогда $q_s-q_t=(p_s-p_t)-\bigl(\delta(F_s-F_t)+\delta^2(y_s-y_t)\bigr)\mathbf e$. Покажем, что $\ip{\xi_\delta}{q_s-q_t}>0$ при $s\notin S$ и малых $\delta$.
+    Пусть $F_r:=\sum_ie^{-p^i_r}>0$. Тогда $q^i_t\ge\delta(F_t-\delta y_t)>0$ при малых $\delta$.
+    Пусть $t\in S$, $\xi$~--- слабый свидетель индекса $t$ с $\ip{\xi}{\mathbf e}=1$, $g:=(e^{-p^1_t},\dots,e^{-p^d_t})$ и $\xi_\delta:=\xi+\delta g$. Тогда $q_s-q_t=(p_s-p_t)+\bigl(\delta(F_s-F_t)-\delta^2(y_s-y_t)\bigr)\mathbf e$. Покажем, что $\ip{\xi_\delta}{q_s-q_t}>0$ при $s\notin S$ и малых $\delta$.
     Если $p_s=p_t$, то $\ip{\xi_\delta}{q_s-q_t}=\delta^2(y_t-y_s)\bigl(1+\delta\ip{g}{\mathbf e}\bigr)>0$.
-    Если $p_s\ne p_t$, то $\ip{\xi_\delta}{q_s-q_t}=\ip{\xi}{p_s-p_t}+\delta K+O(\delta^2)$ с $K:=\ip{g}{p_s-p_t}-(F_s-F_t)=\sum_i(x_i-1-\ln x_i)$, $x_i:=p^i_s/p^i_t$. Здесь $\ip{\xi}{p_s-p_t}\ge0$, а $K>0$, так как $x-1-\ln x\ge0$ с равенством только при $x=1$.
+    Если $p_s\ne p_t$, то $\ip{\xi_\delta}{q_s-q_t}=\ip{\xi}{p_s-p_t}+\delta K+O(\delta^2)$ с $K:=F_s-F_t+\ip{g}{p_s-p_t}=\sum_ie^{-p^i_t}\bigl(e^{-x_i}-1+x_i\bigr)$, $x_i:=p^i_s-p^i_t$. Здесь $\ip{\xi}{p_s-p_t}\ge0$, а $K>0$, так как $e^{-x}\ge1-x$ с равенством только при $x=0$.
     Пар $(t,s)$ конечное число, и $\xi_\delta\ge\delta g$ ненулевой, так что $\xi_\delta$~--- свидетель индекса $t$ при ценах $Q_\delta$.
 \end{proof}
 
-\begin{theorem}[замыкание]\label{thm:closure}
-    Пусть $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$~--- набор цен. Вектор выпусков $y\in\Rp[T]$ слабо разрешим при ценах $P$ тогда и только тогда, когда в любой открытой окрестности $P$ найдётся набор цен $Q$, при котором $y$ разрешим.
+\begin{theorem}[критерий слабой разрешимости]\label{thm:closure}
+    Пусть $P\in\Rp[d\times T]$~--- набор цен. Вектор выпусков $y\in\Rp[T]$ слабо разрешим при ценах $P$ тогда и только тогда, когда $y\in\cone\set{\mathbf 1_S\mid S\in\widehat{\Sp}(P)}$.
 \end{theorem}
 
 \begin{proof}
-    Покажем сначала, что $\Sp(Q)\subseteq\widehat{\Sp}(P)$ для всех $Q$, достаточно близких к $P$. Иначе, поскольку спектров конечное число, нашлись бы $S\notin\widehat{\Sp}(P)$, $t\in S$ и наборы $Q_n\to P$ с $S\in\Sp(Q_n)$. Свидетелей $\xi_n$ индекса $t$ при ценах $Q_n$ нормируем условием $\ip{\xi_n}{\mathbf e}=1$. Симплекс компактен, и предел $\xi$ подпоследовательности ненулевой, неотрицательный и удовлетворяет $\ip{\xi}{p_s-p_t}\ge0$ при $s\notin S$, то есть является слабым свидетелем. Это противоречит выбору $S$ и $t$.
-    Пусть теперь в окрестности $P$, где $\Sp(Q)\subseteq\widehat{\Sp}(P)$, есть $Q$, при котором $y$ разрешим. По теореме~\ref{thm:solvability} $y\in\cone\set{\mathbf 1_S\mid S\in\Sp(Q)}\subseteq\cone\set{\mathbf 1_S\mid S\in\widehat{\Sp}(P)}$.
-    Обратно, пусть $y$ слабо разрешим. Возьмём представление из леммы~\ref{lem:monotone}. По лемме~\ref{lem:tilt} все его спектры, которых конечное число, лежат в $\Sp(Q_\delta)$ при малых $\delta>0$. Тогда $y$ разрешим при ценах $Q_\delta$ по теореме~\ref{thm:solvability}, а $Q_\delta\to P$ при $\delta\to0$, так что $Q_\delta$ попадает в любую окрестность $P$.
+    Пусть $y$ слабо разрешим. По лемме~\ref{lem:limit} в некоторой окрестности $P$ выполнено $\Sp(Q)\subseteq\widehat{\Sp}(P)$, и в ней есть $Q$, при котором $y$ разрешим. По теореме~\ref{thm:solvability} $y\in\cone\set{\mathbf 1_S\mid S\in\Sp(Q)}\subseteq\cone\set{\mathbf 1_S\mid S\in\widehat{\Sp}(P)}$.
+    Обратно, возьмём представление из леммы~\ref{lem:monotone}. По лемме~\ref{lem:tilt} все его спектры, которых конечное число, лежат в $\Sp(Q_\delta)$ при малых $\delta>0$, и $Q_\delta\in\Rpp[d\times T]$. Тогда $y$ разрешим при ценах $Q_\delta$ по теореме~\ref{thm:solvability}, а $Q_\delta\to P$ при $\delta\to0$, так что $Q_\delta$ попадает в любую окрестность $P$.
 \end{proof}
 
 \end{document}

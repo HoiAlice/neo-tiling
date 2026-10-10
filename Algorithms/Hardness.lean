@@ -1,4 +1,4 @@
-import NeoTiling.Cuts
+import Algorithms.Cuts
 
 /-!
 # Hardness: a reduction from set cover
@@ -387,7 +387,8 @@ theorem minPert_setCover (hd : 2 ≤ d) (P : Fin T → Fin d → ℝ) (A : Fin n
   obtain ⟨hQ, hyQ, hT⟩ :=
     hardness_upper (by omega) P A hδ0 s e hs hall hPs hPe y hys hye I₀ hI₀
   have hup : minPert P y ≤ k * δ := by
-    rw [← hcard]; exact (minPert_le hd hP hy hQ hyQ).trans hT.le
+    rw [← hcard]; exact (minPert_le hP hQ
+      ((weakSolvable_iff hd (fun t i => (hQ t i).le) hy).2 hyQ)).trans hT.le
   refine le_antisymm hup ?_
   refine le_minPert_of_relaxation hd hP hy hup (fun Q => ∀ j c, ∃ i, Q (e j c) i ≤ Q s i) ?_ ?_
   · intro Q _ hyQ j c
