@@ -13,8 +13,11 @@ of the answer and the report of the price changes.
 import argparse
 
 from perturbation import Problem, prepare, rational, solve, verify
+from perturbation.cppdom import pure_cut_loop
+from perturbation.cuts import certify, solve_cuts
 from perturbation.datasets import berndt_wood, euklems, select, window
 from perturbation.exact import MAX_T, weakly_solvable
+from perturbation.primal import strict_point, upper_bound
 from perturbation.report import describe
 
 
@@ -36,6 +39,47 @@ def load(args) -> Problem:
         start = problem.periods.index(first) if problem.periods else int(first)
         problem = window(problem, start, int(n))
     return problem
+
+
+def run_cuts(problem: Problem, prep, args) -> None:
+    """The covering-cut algorithm: a lower bound on rho from the master, and an exactly
+    verified answer near the master optimum, an upper bound. First the pure cut loop
+    (C++, no nonconvex solver) gives a certified starting upper bound."""
+    incumbent, _, pure_cuts = pure_cut_loop(
+        problem, prep, time_limit=args.time or 600.0
+    )
+    if incumbent is not None:
+        value = float(incumbent.total_pert)
+        print(f"pure cut loop: certified upper bound {value:.10g}")
+    solution = solve_cuts(
+        prep,
+        time_limit=args.time,
+        verbose=args.verbose,
+        upper=lambda a: upper_bound(problem, prep, a),
+        incumbent=incumbent,
+        initial_cuts=pure_cuts,
+    )
+    print(
+        f"status={solution.status}  lower bound={solution.bound:.10g}  "
+        f"upper bound={solution.upper:.10g}  iterations={solution.iterations}"
+    )
+    if solution.status != "optimal":
+        if solution.answer is not None:
+            print(solution.answer)
+        return
+    print(describe(solution, problem.periods, problem.factors))
+    check = certify(problem, prep, solution)
+    if check is None:
+        print("no exactly certified answer near the master optimum")
+        return
+    print(check)
+    strict = strict_point(problem, check)
+    if strict is not None:
+        _, total, delta = strict
+        print(
+            f"strictly solvable prices (tilt delta={float(delta):.0e}, exact strict "
+            f"witness margins): pi(P, Q) ~ {float(total):.10g}"
+        )
 
 
 def main() -> None:
@@ -71,6 +115,11 @@ def main() -> None:
     parser.add_argument("--denominator", type=int, default=10**6, help="rational check")
     parser.add_argument("--no-exact", action="store_true", help="skip the rho = 0 test")
     parser.add_argument("--verbose", action="store_true", help="show the SCIP log")
+    parser.add_argument(
+        "--cuts",
+        action="store_true",
+        help="covering-cut algorithm: proved lower bound and exact certificate",
+    )
     args = parser.parse_args()
     if args.data is None and (args.P is None or args.y is None):
         parser.error("give --P and --y, or --data")
@@ -92,6 +141,9 @@ def main() -> None:
             print(f"y is not weakly solvable at P (certified), refutation ({lam})")
     prep = prepare(problem)
     print(f"kappa={prep.kappa:.6g}  D={prep.D:.6g}")
+    if args.cuts:
+        run_cuts(problem, prep, args)
+        return
     solution = solve(
         prep,
         K=args.K,
