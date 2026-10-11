@@ -1,12 +1,11 @@
-import Complexity
+import PolyHardness.Chain
 
 /-!
 # Solvability in the plane is one linear program
 
-Part of `poly-hardness/` (not part of the `NeoTiling` library). Check with
-`lake env lean poly-hardness/lean/PolyHardness/FlowLP.lean` from the repository root.
+Part of `poly-hardness/` (not part of the `NeoTiling` library).
 
-Mode `b` as in `Complexity`: `IsReachableB false = IsWeakReachable`,
+Mode `b` as in `PolyHardness.Chain`: `IsReachableB false = IsWeakReachable`,
 `IsReachableB true = IsReachable`. Prices `P : Fin T → Fin 2 → ℝ`, `X t = P t 0`, `Y t = P t 1`.
 
 **The graph.** Nodes: a source, a sink, `start b` ("the chain begins at `b`") and `edge a b`
@@ -29,7 +28,7 @@ of the edge, the arc into `snk` the right slab of the last vertex, `src → snk`
 
 namespace NeoTiling.PolyHardness
 
-open Finset NeoTiling.Complexity
+open Finset
 open scoped Classical
 
 /-! ## Flows and paths in a finite graph -/

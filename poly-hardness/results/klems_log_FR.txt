@@ -1,5 +1,0 @@
-cost |log(q/p)|, time limit 600 s
-series  T  lower  upper  gap  iterations  cuts  pair_cuts  nodes  seconds  certified
-FR:C:KL  26  1.3913772  1.3913772  2.2e-16  1  325  0  1251  3.8  True
-FR:C:KI  26  1.2594632  1.2594632  -4.4e-16  4  328  3  45227  89.7  True
-FR:C:LI  26  2.4955938  2.4955938  4.4e-16  1  325  0  18613  47.9  True

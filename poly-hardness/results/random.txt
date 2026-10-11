@@ -1,4 +1,0 @@
-100 instances, T in [3, 8], prices on an 8x8 grid, time limit 60 s
-|log(q/p)|: closed 76/100 (rho = 0: 20, pair cuts needed: 45), median 0.02 s, max 60.1 s
-max(q/p,p/q)-1: closed 76/100 (rho = 0: 20, pair cuts needed: 42), median 0.08 s, max 333.8 s
-|q/p-1|: closed 89/100 (rho = 0: 20, pair cuts needed: 37), median 0.02 s, max 60.2 s
