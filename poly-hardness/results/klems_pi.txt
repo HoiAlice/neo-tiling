@@ -1,0 +1,4 @@
+cost max(q/p,p/q)-1, time limit 600 s
+series  T  lower  upper  gap  iterations  cuts  pair_cuts  nodes  seconds  certified
+DE:C:KL  26  4.5211808  4.5211815  6.3e-07  1  325  0  2730  84.0  True
+DE:C:KI  26  2.2451783  2.2451794  1.1e-06  1  325  0  160  3.1  True
