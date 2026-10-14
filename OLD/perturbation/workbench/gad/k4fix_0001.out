@@ -1,3 +1,0 @@
-/Users/olegoleg/Code/neo-tiling/perturbation/experiments/iso_scipy.py:17: RuntimeWarning: overflow encountered in exp
-  return np.sum(np.exp(np.abs(u - a)) - 1)
-(0, 0, 0, 1) free conflicts 514 milp lb 87.11974 exact 94.647866 time 649

@@ -1,7 +1,0 @@
-(1, 0, 1, 1) cheapest working move at 1e-4: (0.00010000500016360547, (0, 0, 0, 0, 0, 0, 1, 0))
-  delta 0.001 feasible True dcost 1.00e-03 weak(full) True
-  delta 0.0001 feasible True dcost 1.00e-04 weak(full) True
-  delta 1e-05 feasible True dcost 1.00e-05 weak(full) True
-  delta 1e-06 feasible True dcost 1.00e-06 weak(full) True
-  delta 1e-07 feasible True dcost 1.00e-07 weak(full) True
-  delta 1e-08 feasible True dcost 1.00e-08 weak(full) True

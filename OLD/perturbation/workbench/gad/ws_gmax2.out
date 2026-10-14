@@ -1,4 +1,0 @@
-g_raw(min)=-6.62e+01 (raw units: c1=0.02, Delta=0.60) D 8.0 mult 12.0 gmax (units of y) min/median/max over 8 patterns: -1.00e+00 -1.00e+00 -0.00e+00 | in units of 0.3/scale*0.01: -6623.333333333335
-g_raw(min)=-1.30e+02 (raw units: c1=0.02, Delta=1.20) D 8.0 mult 24.0 gmax (units of y) min/median/max over 8 patterns: -1.00e+00 -1.00e+00 -0.00e+00 | in units of 0.3/scale*0.01: -13023.333333333334
-g_raw(min)=-4.97e+01 (raw units: c1=0.02, Delta=0.60) D 4.0 mult 12.0 gmax (units of y) min/median/max over 8 patterns: -1.00e+00 -1.00e+00 -1.00e+00 | in units of 0.3/scale*0.01: -4970.000000000001
-g_raw(min)=-9.77e+01 (raw units: c1=0.02, Delta=1.20) D 4.0 mult 24.0 gmax (units of y) min/median/max over 8 patterns: -1.00e+00 -1.00e+00 -1.00e+00 | in units of 0.3/scale*0.01: -9770.000000000002

@@ -1,7 +1,0 @@
-s_c: V chain [-4. -2.  0.  2.  4.  6.  8. 10. 12.] corner/arm [-5. -5. -5. -5. -5. -5.] E2 [4. 4. 4. 4. 4. 4. 4. 4. 4. 4.]
-kinks (c1,c2,s*)=(0.02,0.07,4) ratio 1.75  dominance-violations at 0 patterns [] | weakly solvable 8/16 ; failing [(0, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 0, 1, 1), (0, 1, 0, 0), (0, 1, 0, 1), (0, 1, 1, 0), (0, 1, 1, 1)]
-kinks (c1,c2,s*)=(0.02,0.08,4) ratio 1.83  dominance-violations at 0 patterns [] | weakly solvable 16/16 ; failing []
-kinks (c1,c2,s*)=(0.03,0.08,4) ratio 1.92  dominance-violations at 0 patterns [] | weakly solvable 8/16 ; failing [(0, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 0, 1, 1), (0, 1, 0, 0), (0, 1, 0, 1), (0, 1, 1, 0), (0, 1, 1, 1)]
-kinks (c1,c2,s*)=(0.02,0.12,4) ratio 2.15  dominance-violations at 0 patterns [] | weakly solvable 16/16 ; failing []
-kinks (c1,c2,s*)=(0.02,0.05,4) ratio 1.59  dominance-violations at 0 patterns [] | weakly solvable 0/16 ; failing [(0, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 0, 1, 1), (0, 1, 0, 0), (0, 1, 0, 1), (0, 1, 1, 0), (0, 1, 1, 1), (1, 0, 0, 0), (1, 0, 0, 1), (1, 0, 1, 0), (1, 0, 1, 1), (1, 1, 0, 0), (1, 1, 0, 1), (1, 1, 1, 0), (1, 1, 1, 1)]
-kinks (c1,c2,s*)=(0.03,0.12,4) ratio 2.24  dominance-violations at 0 patterns [] | weakly solvable 16/16 ; failing []

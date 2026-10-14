@@ -1,8 +1,0 @@
-   neighbour-involving non-own conflicts: smallest slacks [(np.float64(0.1952), 2, 1), (np.float64(0.1952), 8, 11), (np.float64(0.1952), 12, 14), (np.float64(0.1952), 23, 25), (np.float64(0.1952), 0, 3)]
-   non-own conflicts overall: smallest slacks [(np.float64(-0.0), 18, 7), (np.float64(-0.0), 6, 19), (np.float64(0.0), 18, 3), (np.float64(0.0), 4, 3)]
-pattern (0, 1, 0, 0) K bits [0, 1, 0, 1, 0, 0, 0, 0, 0] min slack over all K+ conflicts -0.000000 pair (18, 7) ; min slack involving a neighbour point 0.195161
-  glued cost 14.656954621  = K opt 10.231554233 + sum B(nbrs) 4.425400282
-   neighbour-involving non-own conflicts: smallest slacks [(np.float64(0.1952), 2, 1), (np.float64(0.1952), 8, 11), (np.float64(0.1952), 0, 3), (np.float64(0.1952), 10, 9), (np.float64(0.1952), 12, 14)]
-   non-own conflicts overall: smallest slacks [(np.float64(-0.0), 8, 7), (np.float64(-0.0), 4, 19), (np.float64(-0.0), 18, 5), (np.float64(0.0), 8, 19)]
-pattern (1, 0, 0, 0) K bits [1, 0, 1, 0, 0, 0, 0, 0, 0] min slack over all K+ conflicts -0.000000 pair (18, 19) ; min slack involving a neighbour point 0.195161
-  glued cost 14.656954529  = K opt 10.231554233 + sum B(nbrs) 4.425400282

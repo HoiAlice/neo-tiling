@@ -1,6 +1,0 @@
-K33 RE 6 G 16 switches 5298 points 10596 crossings 45 build 0 s
-K33 SUMMARY patterns 64 conflicts/pattern 55348020 violations 0 min slack -5.68e-14 max |cost-closed| 1.45e-10 time 40 s
-Q3 RE 6 G 16 switches 7640 points 15280 crossings 36 build 0 s
-Q3 SUMMARY patterns 22 conflicts/pattern 115000888 violations 0 min slack -5.68e-14 max |cost-closed| 3.30e-10 time 30 s
-Petersen RE 6 G 16 switches 11846 points 23692 crossings 65 build 0 s
-Petersen SUMMARY patterns 12 conflicts/pattern 277333068 violations 0 min slack -5.68e-14 max |cost-closed| 9.82e-11 time 43 s
