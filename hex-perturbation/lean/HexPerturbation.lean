@@ -1,7 +1,0 @@
-import HexPerturbation.Support
-import HexPerturbation.Box
-import HexPerturbation.Hex
-import HexPerturbation.Proj
-import HexPerturbation.LocalConstancy
-import HexPerturbation.Radius
-import HexPerturbation.Shape

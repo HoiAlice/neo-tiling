@@ -19,10 +19,10 @@ lean_lib NPHardness where
   srcDir := "np-hardness/lean"
   globs := #[.andSubmodules `NPHardness]
 
--- Hexagonal (normalized log-ℓ¹) price perturbation at d = 2 (`hex-perturbation/`).
--- Not a default target: build with `lake build HexPerturbation`.
-lean_lib HexPerturbation where
-  srcDir := "hex-perturbation/lean"
-  globs := #[.andSubmodules `HexPerturbation]
+-- Price perturbation: hexagonal / weighted log-distance, radius profiles (`price-perturbation/`).
+-- Not a default target: build with `lake build PricePerturbation`.
+lean_lib PricePerturbation where
+  srcDir := "price-perturbation/lean"
+  globs := #[.andSubmodules `PricePerturbation]
 
 require mathlib from git "https://github.com/leanprover-community/mathlib4" @ "v4.28.0-rc1"

@@ -1,0 +1,10 @@
+{'case': 'US EU-KLEMS d=3 T=26', 'rho': (0.03624, 0.036247), 'calls': 25, 'ambig': 0, 'total': 12.4, 'max_call': 0.78, 'iter_max': 4, 'iter_mean': 2.8}
+{'case': 'Berndt-Wood d=4 T=25', 'rho': (0.015419, 0.015427), 'calls': 27, 'ambig': 0, 'total': 60.9, 'max_call': 6.35, 'iter_max': 21, 'iter_mean': 8.2}
+{'case': 'BEA 12 d=4 T=40', 'rho': (0.05072, 0.050728), 'calls': 27, 'ambig': 0, 'total': 182.6, 'max_call': 13.61, 'iter_max': 18, 'iter_mean': 7.2}
+{'case': 'BEA 24 d=4 T=40', 'rho': (0.157318, 0.157326), 'calls': 24, 'ambig': 0, 'total': 74.2, 'max_call': 5.37, 'iter_max': 7, 'iter_mean': 4.9}
+{'case': 'BEA 46 d=4 T=40', 'rho': (0.015976, 0.015984), 'calls': 24, 'ambig': 0, 'total': 182.8, 'max_call': 26.56, 'iter_max': 34, 'iter_mean': 8.3}
+{'case': 'BEA 6 d=4 T=40', 'rho': (0.043327, 0.043335), 'calls': 27, 'ambig': 0, 'total': 282.4, 'max_call': 39.6, 'iter_max': 39, 'iter_mean': 9.4}
+{'case': 'BEA 12 d=7 T=40', 'error': 'RuntimeError: pricing MILP: too many sets failed the exact check', 'calls': 18, 'total': 570.5}
+{'case': 'BEA 24 d=7 T=40', 'rho': (0.188469, 0.188477), 'calls': 28, 'ambig': 0, 'total': 781.5, 'max_call': 54.98, 'iter_max': 20, 'iter_mean': 9.6}
+{'case': 'BEA 46 d=7 T=40', 'error': 'RuntimeError: pricing MILP: too many sets failed the exact check', 'calls': 11, 'total': 658.4}
+{'case': 'BEA 6 d=7 T=40', 'error': 'RuntimeError: pricing MILP: too many sets failed the exact check', 'calls': 25, 'total': 792.5}
