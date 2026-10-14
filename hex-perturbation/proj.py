@@ -599,6 +599,36 @@ def least_radius_exact(P, y, oracle, roots=None):
                   cache.get(hi_i - 1) if hi_i - 1 >= -1 else None, cache[hi_i], notes)
 
 
+def least_radius_bisect(P, y, oracle, tol=1e-6, rho_hi=1.0):
+    """Bracket rho* to width `tol` by bisection in rho, without enumerating breakpoints (for large
+    d, where there are C(2T+d, d+1) minors).  Rational query points k = e^{rho} (limit_denominator).
+    Returns (rho_lo, rho_hi, calls): infeasible at rho_lo (or rho_lo = 0 feasible), feasible at rho_hi.
+    Exactness would need bisection down to 1/H^2 (H = Hadamard bound of the minors) and a
+    Stern-Brocot search for the unique breakpoint left; not implemented."""
+    P = [tuple(F(c) for c in p) for p in P]
+    T = len(P)
+    lo, hi = box_bounds(T, [F(v) for v in y])
+    calls = [0]
+
+    def feasible(rho):
+        calls[0] += 1
+        k = F(math.exp(rho)).limit_denominator(10**9) if rho > 0 else F(1)
+        return as_answer(oracle(corners(P, k), lo, hi)).feasible
+
+    if feasible(0.0):
+        return 0.0, 0.0, calls[0]
+    a, b = 0.0, rho_hi
+    while not feasible(b):
+        a, b = b, 2 * b
+    while b - a > tol:
+        mid = (a + b) / 2
+        if feasible(mid):
+            b = mid
+        else:
+            a = mid
+    return a, b, calls[0]
+
+
 # ---------------------------------------------------------------- certificates
 
 

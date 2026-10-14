@@ -92,6 +92,15 @@ the cube `|u_i| <= rho` and contains the diagonal, so the problem is BOX at the 
   `lambda(S) >= 0` is delegated to an optional column oracle) work when the oracle supplies them.
 * `example_d3.py`: breakpoint statistics for the US data at d = 3.
 
+## Data
+
+* `data/us_tot.csv`: EU KLEMS 2023, US total economy, 1995-2020 (T = 26).
+* `data/bea_klems_1963_2016.csv`: BEA-BLS integrated industry-level production account, research
+  extension (Eldridge et al. 2020, public domain), 63 industries x 1963-2016 (T up to 54).  Built
+  by `data/build_bea.py` from `KLEMS-Research-Tables-Underlying-Data_0.xlsx` (bea.gov): prices
+  `pK`, `pL` (chained Tornqvist aggregates of 5 capital / 2 labour types), `pII`, `pGO`, output
+  quantity `GO_Q`.  d = 2 instance: points `(pK/pII, pL/pII)`, `y = GO_Q`.
+
 ## PLACEHOLDER MILP oracle (`milp_oracle.py`)
 
 `oracle_milp(W, lo, hi)`: temporary stand-in for the real MILP oracle, to be replaced.  The
@@ -102,3 +111,10 @@ simplex with big-M `M_st = max_i |W_s^i - W_t^i|`, bounds `lo <= sum_k v[k,r] <=
 carry no Farkas vector.  `tests/test_milp_oracle.py` checks it against `oracle_brute` (d = 3,
 T <= 4) and `oracle_flow` (d = 2).  On the US data at d = 3 (52 corners) it gives no decision
 within 300 s.
+
+`oracle_cg(W, lo, hi)` (also a placeholder): column generation, LP master over weakly reachable
+sets, pricing = one-set MILP `price_milp` with big-M witnesses, each witness row divided by its M
+(this normalization is essential: without it 10 of 63 BEA industries at T = 40 failed).  The
+no-good retry loop in `price_milp` never triggers at d = 2 after the normalization, but at d = 7
+(BEA, T = 40) it triggers and 2 of 4 industries fail anyway: a workaround, not part of the method.
+The proper fix is a pricing MILP with exact geometry (lazy covering cuts).

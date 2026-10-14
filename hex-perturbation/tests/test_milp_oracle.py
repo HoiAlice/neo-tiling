@@ -59,3 +59,39 @@ def test_least_radius_d2_milp_vs_flow():
     P, y = rand_instance(rnd, 5, 2)
     assert proj.least_radius_exact(P, y, oracle_milp).z_star == \
         proj.least_radius_exact(P, y, proj.oracle_flow).z_star
+
+
+# ---------------------------------------------------------------- column generation
+
+
+from milp_oracle import oracle_cg  # noqa: E402
+
+
+@pytest.mark.parametrize("seed,T,d", [(1, 3, 3), (2, 4, 3), (3, 4, 3), (4, 3, 2), (5, 4, 2)])
+def test_cg_vs_brute_box(seed, T, d):
+    rnd = random.Random(70 + seed)
+    P, y = rand_instance(rnd, T, d)
+    lo, hi = proj.box_bounds(T, y)
+    for k in [F(1), F(11, 10), F(3, 2), F(2), F(4)]:
+        W = proj.corners(P, k)
+        ref = proj.oracle_brute(W, lo, hi).feasible
+        ans = oracle_cg(W, lo, hi)
+        assert ans.feasible == ref, (k, ref)
+        if not ans.feasible:
+            assert proj.check_farkas(None, lo, hi, ans.lam)
+            assert proj.column_oracle_brute(W, ans.lam) >= -1e-6
+
+
+@pytest.mark.parametrize("seed,T", [(4, 4), (7, 3), (21, 3)])
+def test_least_radius_d3_cg(seed, T):
+    rnd = random.Random(40 + seed)
+    P, y = rand_instance(rnd, T, 3)
+    assert proj.least_radius_exact(P, y, oracle_cg).z_star == \
+        proj.least_radius_exact(P, y, proj.oracle_brute).z_star
+
+
+def test_least_radius_d2_cg_vs_flow():
+    rnd = random.Random(5)
+    P, y = rand_instance(rnd, 5, 2)
+    assert proj.least_radius_exact(P, y, oracle_cg).z_star == \
+        proj.least_radius_exact(P, y, proj.oracle_flow).z_star
