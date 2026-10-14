@@ -1,0 +1,6 @@
+/Users/olegoleg/Code/neo-tiling/perturbation/experiments/iso_scipy.py:17: RuntimeWarning: overflow encountered in exp
+  return np.sum(np.exp(np.abs(u - a)) - 1)
+/Users/olegoleg/Code/neo-tiling/perturbation/workbench/gad/core.py:97: RuntimeWarning: overflow encountered in exp
+  def f(x): return np.sum(np.exp(np.abs(x-a.flatten()))-1)
+{'costs': [31.316062, 31.316062, 31.482546, 31.316062, 31.68163, 31.893056], 'per_combo_y_feasible': [True, True, True, True, True, True], 'joint': True, 'maxmin': 1.4494, 'weak_at_found_y': [True, True, True, True, True, True]}
+unsat patterns: {'costs': [31.66665, 31.573467], 'per_combo_y_feasible': [True, True], 'joint': True, 'maxmin': 1.4242, 'weak_at_found_y': [True, True]}

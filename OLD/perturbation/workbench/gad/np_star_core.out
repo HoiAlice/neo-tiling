@@ -1,0 +1,11 @@
+('NW', 'SW') n 3 S-sumB 1.58e-09 sat 2 min margin 0.091201 at (0, 1, 1) 3s
+('NW', 'NE') n 3 S-sumB 1.91e-11 sat 2 min margin 0.091201 at (1, 0, 0) 3s
+('SE', 'SW') n 3 S-sumB 1.58e-09 sat 2 min margin 0.091201 at (1, 0, 0) 3s
+('SE', 'NE') n 3 S-sumB 1.91e-11 sat 2 min margin 0.091201 at (0, 1, 1) 3s
+('NW', 'SE') n 3 S-sumB 9.99e-12 sat 2 min margin 0.218098 at (0, 0, 1) 3s
+('SW', 'NE') n 3 S-sumB -3.26e-11 sat 2 min margin 0.091201 at (0, 0, 1) 3s
+('NW', 'SE', 'SW') n 4 S-sumB 3.67e-11 sat 2 min margin 0.105281 at (0, 1, 1, 1) 3s
+('NW', 'SE', 'NE') n 4 S-sumB 3.67e-11 sat 2 min margin 0.105281 at (0, 1, 1, 1) 3s
+('NW', 'SW', 'NE') n 4 S-sumB 1.65e-11 sat 2 min margin 0.091201 at (0, 1, 1, 0) 3s
+('SE', 'SW', 'NE') n 4 S-sumB 1.65e-11 sat 2 min margin 0.091201 at (1, 0, 0, 1) 3s
+('NW', 'SE', 'SW', 'NE') n 5 S-sumB 3.97e-11 sat 2 min margin 0.105281 at (0, 1, 1, 0, 1) 4s

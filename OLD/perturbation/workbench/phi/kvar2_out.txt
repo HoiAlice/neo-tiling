@@ -1,0 +1,17 @@
+-- pow3 h=0.2
+pow3 u=1.50 dV=5 vs=1.00 nsat 4 spread 2.3e-09 X=0.07517  min viol-excess 0.00000 at (0, 1, 1, 0) | V 0.0000 Ub0011 0.0267 Ub0000 0.0327
+pow3 u=1.50 dV=6 vs=1.00 nsat 4 spread 1.8e-10 X=0.12010  min viol-excess -0.00487 at (0, 0, 1, 1) | V 0.0021 Ub0011 -0.0049 Ub0000 0.0469
+pow3 u=1.75 dV=5 vs=1.00 nsat 4 spread 6.5e-09 X=0.07226  min viol-excess 0.00077 at (0, 1, 0, 1) | V 0.0008 Ub0011 0.0073 Ub0000 0.0071
+pow3 u=1.75 dV=6 vs=1.00 nsat 4 spread 1.1e-09 X=0.10989  min viol-excess 0.00556 at (1, 0, 1, 0) | V 0.0056 Ub0011 0.0204 Ub0000 0.0336
+pow3 u=2.00 dV=5 vs=1.00 nsat 4 spread 3.1e-10 X=0.07527  min viol-excess -0.01592 at (0, 0, 0, 0) | V 0.0027 Ub0011 -0.0111 Ub0000 -0.0159
+pow3 u=2.00 dV=6 vs=1.00 nsat 4 spread 2.2e-09 X=0.10945  min viol-excess 0.00694 at (0, 0, 0, 0) | V 0.0102 Ub0011 0.0156 Ub0000 0.0069
+pow3 u=2.00 dV=4 vs=1.00 nsat 4 spread 2.2e-16 X=0.04559  min viol-excess -0.01599 at (0, 0, 0, 0) | V 0.0005 Ub0011 -0.0149 Ub0000 -0.0160
+-- pi h=1
+pi u=1.50 dV=5 vs=1.00 nsat 4 spread 1.4e-08 X=11.45277  min viol-excess -1.36656 at (0, 0, 1, 1) | V 0.0245 Ub0011 -1.3666 Ub0000 4.8963
+pi u=1.75 dV=5 vs=1.00 nsat 4 spread 3.9e-08 X=9.72223  min viol-excess 0.14774 at (0, 1, 0, 1) | V 0.1477 Ub0011 2.7981 Ub0000 3.9494
+pi u=2.00 dV=5 vs=1.00 nsat 4 spread 1.1e-07 X=9.04314  min viol-excess 0.32389 at (0, 1, 0, 1) | V 0.3239 Ub0011 1.0847 Ub0000 1.4359
+-- pow 2 dV var
+sq u=3.00 dV=4 vs=1.00 nsat 4 spread 0.0e+00 X=0.05333  min viol-excess -0.02000 at (0, 0, 0, 0) | V 0.0213 Ub0011 0.0200 Ub0000 -0.0200
+sq u=3.00 dV=4 vs=1.50 nsat 4 spread 0.0e+00 X=0.05333  min viol-excess -0.02000 at (0, 0, 0, 0) | V 0.0013 Ub0011 -0.0173 Ub0000 -0.0200
+sq u=3.00 dV=6 vs=1.00 nsat 4 spread 8.9e-16 X=0.15000  min viol-excess -0.01000 at (0, 0, 0, 0) | V 0.0500 Ub0011 0.0200 Ub0000 -0.0100
+sq u=3.00 dV=6 vs=1.50 nsat 4 spread 0.0e+00 X=0.15000  min viol-excess -0.01000 at (0, 0, 0, 0) | V 0.0120 Ub0011 0.0140 Ub0000 -0.0100

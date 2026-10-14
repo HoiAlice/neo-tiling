@@ -1,0 +1,25 @@
+== crossing core + wires (all conflicts, glued point)
+m=(1,1) (0, 1, 0, 0) cost-(sumB+X_K)=-4.20e-08  min slack outside core 0.5000 h at (2, 1)  D=3.1500 h
+m=(1,1) (1, 0, 0, 0) cost-(sumB+X_K)=1.48e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(1,1) (0, 1, 1, 1) cost-(sumB+X_K)=1.48e-08  min slack outside core 0.5000 h at (2, 1)  D=3.1500 h
+m=(1,1) (1, 0, 1, 1) cost-(sumB+X_K)=6.47e-09  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(3,3) (0, 1, 0, 0) cost-(sumB+X_K)=-4.20e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(3,3) (1, 0, 0, 0) cost-(sumB+X_K)=1.48e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(3,3) (0, 1, 1, 1) cost-(sumB+X_K)=1.48e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(3,3) (1, 0, 1, 1) cost-(sumB+X_K)=6.47e-09  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(5,5) (0, 1, 0, 0) cost-(sumB+X_K)=-4.20e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(5,5) (1, 0, 0, 0) cost-(sumB+X_K)=1.48e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(5,5) (0, 1, 1, 1) cost-(sumB+X_K)=1.48e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(5,5) (1, 0, 1, 1) cost-(sumB+X_K)=6.47e-09  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(8,8) (0, 1, 0, 0) cost-(sumB+X_K)=-4.20e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(8,8) (1, 0, 0, 0) cost-(sumB+X_K)=1.48e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(8,8) (0, 1, 1, 1) cost-(sumB+X_K)=1.48e-08  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+m=(8,8) (1, 0, 1, 1) cost-(sumB+X_K)=6.47e-09  min slack outside core 0.5000 h at (0, 3)  D=3.1500 h
+== U wire with weak kink pooled (6 switches, weak in the middle), bits equal at kink
+steps [2.5, 2.5, 3.75, 2.5, 2.5] b0 0 cost-(sumB+J_e)=0.00e+00  min slack (non-kink) 0.5000 h ; kink-pair slack 0.00e+00 ; D 2.0000 h
+steps [2.5, 2.5, 3.75, 2.5, 2.5] b0 1 cost-(sumB+J_e)=0.00e+00  min slack (non-kink) 0.5000 h ; kink-pair slack 0.00e+00 ; D 2.0000 h
+== stars with isolated optimum, all satisfied patterns
+('NW', 'SE', 'SW', 'NE') min slack over satisfied patterns 0.0000 h, cost-sumB=0.0e+00
+('NW', 'SE', 'SW') min slack over satisfied patterns 0.0000 h, cost-sumB=0.0e+00
+('NW', 'SW') min slack over satisfied patterns 0.0000 h, cost-sumB=0.0e+00
+('SE', 'NE') min slack over satisfied patterns 0.0000 h, cost-sumB=0.0e+00

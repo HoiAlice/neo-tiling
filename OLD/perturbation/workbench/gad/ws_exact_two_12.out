@@ -1,0 +1,7 @@
+D 12.0 [0, 1, 1, 1] [0, 1, 1, 1] exact True ok 31s
+D 12.0 [0, 0, 0, 0] [0, 1, 0, 1] exact True ok 29s
+D 12.0 [1, 0, 1, 0] [1, 0, 0, 0] exact True ok 30s
+D 12.0 [1, 0, 0, 0] [0, 0, 1, 1] exact True ok 30s
+D 12.0 [1, 1, 0, 0] [1, 0, 1, 0] exact True ok 30s
+D 12.0 [1, 1, 0, 0] [1, 1, 0, 1] exact True ok 30s
+D 12.0 exact certificates 6 of 6

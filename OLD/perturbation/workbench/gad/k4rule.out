@@ -1,0 +1,10 @@
+graph built 303
+s range -16.000000000000004 5.0
+lin c=0.02 max/min 1.430 weakly solvable: False t 576
+lin c=0.05 max/min 2.060 weakly solvable: False t 929
+lin c=0.2 max/min 5.210 weakly solvable: False t 1250
+conc(0.02,0.07,s*=-12) max/min 2.280 weakly solvable: False t 1611
+conc(0.02,0.07,s*=-8) max/min 2.080 weakly solvable: False t 1946
+conc(0.02,0.07,s*=-4) max/min 1.880 weakly solvable: False t 2299
+conc(0.02,0.07,s*=0) max/min 1.680 weakly solvable: False t 2601
+conc(0.02,0.07,s*=4) max/min 1.480 weakly solvable: False t 2820

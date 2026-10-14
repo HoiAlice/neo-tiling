@@ -1,0 +1,8 @@
+h 0.2 D 30.0 (0, 0, 1, 0) (0, 1, 1, 1) GLUING False local certificate fails at cluster 0: min-flow LP infeasible 16s
+h 0.2 D 30.0 (0, 0, 1, 0) (0, 0, 1, 0) GLUING True sum matches 22s
+h 0.2 D 30.0 (1, 1, 0, 0) (0, 1, 1, 0) GLUING False local certificate fails at cluster 0: min-flow LP infeasible 16s
+h 0.2 D 30.0 (0, 1, 1, 1) (1, 1, 1, 0) GLUING True sum matches 23s
+h 0.2 D 30.0 (1, 0, 0, 1) (1, 0, 0, 0) GLUING True sum matches 23s
+h 0.2 D 30.0 (1, 0, 0, 1) (0, 0, 0, 1) GLUING True sum matches 23s
+h 0.2 D 30.0 (1, 0, 1, 1) (1, 0, 0, 0) GLUING True sum matches 23s
+h 0.2 D 30.0 (0, 0, 0, 0) (0, 0, 1, 0) GLUING True sum matches 22s

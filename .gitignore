@@ -18,3 +18,6 @@ latex/*.fdb_latexmk
 
 # Raw downloads for code/data (see code/data/README.md)
 code/data/raw/
+
+# Large solver output (exceeds GitHub 100 MB limit)
+OLD/perturbation/workbench/gad/np_star.out

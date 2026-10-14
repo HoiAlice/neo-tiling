@@ -1,0 +1,8 @@
+h 0.2 D 40.0 (0, 0, 1, 0) (0, 1, 1, 1) GLUING True sum matches 23s
+h 0.2 D 40.0 (0, 0, 1, 0) (0, 0, 1, 0) GLUING True sum matches 22s
+h 0.2 D 40.0 (1, 1, 0, 0) (0, 1, 1, 0) GLUING True sum matches 22s
+h 0.2 D 40.0 (0, 1, 1, 1) (1, 1, 1, 0) GLUING True sum matches 23s
+h 0.2 D 40.0 (1, 0, 0, 1) (1, 0, 0, 0) GLUING True sum matches 24s
+h 0.2 D 40.0 (1, 0, 0, 1) (0, 0, 0, 1) GLUING True sum matches 24s
+h 0.2 D 40.0 (1, 0, 1, 1) (1, 0, 0, 0) GLUING True sum matches 23s
+h 0.2 D 40.0 (0, 0, 0, 0) (0, 0, 1, 0) GLUING True sum matches 21s

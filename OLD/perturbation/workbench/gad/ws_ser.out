@@ -1,0 +1,9 @@
+/Users/olegoleg/Code/neo-tiling/perturbation/workbench/gad/./core.py:97: RuntimeWarning: overflow encountered in exp
+  def f(x): return np.sum(np.exp(np.abs(x-a.flatten()))-1)
+/Users/olegoleg/Code/neo-tiling/perturbation/workbench/gad/./core.py:97: RuntimeWarning: overflow encountered in exp
+  def f(x): return np.sum(np.exp(np.abs(x-a.flatten()))-1)
+/Users/olegoleg/Code/neo-tiling/perturbation/workbench/gad/./core.py:97: RuntimeWarning: overflow encountered in exp
+  def f(x): return np.sum(np.exp(np.abs(x-a.flatten()))-1)
+/Users/olegoleg/Code/neo-tiling/perturbation/workbench/gad/./core.py:97: RuntimeWarning: overflow encountered in exp
+  def f(x): return np.sum(np.exp(np.abs(x-a.flatten()))-1)
+[((1, 0, 1, 1), 28.53792), ((0, 0, 1, 1), 28.58855), ((0, 1, 0, 0), 28.53792), ((1, 0, 0, 0), 28.53792)]

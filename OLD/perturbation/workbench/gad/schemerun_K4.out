@@ -1,0 +1,18 @@
+K4 switches 964 points 1928 crossings 11 kinks(levels) 12 build 0 s
+(0, 0, 0, 0) uncut 6 cost-closed 1.84e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(0, 0, 0, 1) uncut 3 cost-closed 1.86e-11 conflicts 1838304 violations 0 min slack -3.553e-15 []
+(0, 0, 1, 0) uncut 3 cost-closed 1.86e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(0, 0, 1, 1) uncut 2 cost-closed 1.84e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(0, 1, 0, 0) uncut 3 cost-closed 1.86e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(0, 1, 0, 1) uncut 2 cost-closed 1.86e-11 conflicts 1838304 violations 0 min slack -3.553e-15 []
+(0, 1, 1, 0) uncut 2 cost-closed 1.84e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(0, 1, 1, 1) uncut 3 cost-closed 1.84e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(1, 0, 0, 0) uncut 3 cost-closed 1.86e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(1, 0, 0, 1) uncut 2 cost-closed 1.84e-11 conflicts 1838304 violations 0 min slack -3.553e-15 []
+(1, 0, 1, 0) uncut 2 cost-closed 1.84e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(1, 0, 1, 1) uncut 3 cost-closed 1.86e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(1, 1, 0, 0) uncut 2 cost-closed 1.86e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(1, 1, 0, 1) uncut 3 cost-closed 1.86e-11 conflicts 1838304 violations 0 min slack -3.553e-15 []
+(1, 1, 1, 0) uncut 3 cost-closed 1.86e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+(1, 1, 1, 1) uncut 6 cost-closed 1.84e-11 conflicts 1838304 violations 0 min slack -7.105e-15 []
+K4 SUMMARY patterns 16 total violations 0 min slack -7.105427357601002e-15 max |cost-closed| 1.864464138634503e-11 time 1

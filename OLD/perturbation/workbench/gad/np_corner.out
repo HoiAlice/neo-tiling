@@ -1,0 +1,5 @@
+corner triple V0,u0,u1     ids=[0, 9, 10] S-sumB=-5.19e-11 margin=0.033468 at (1, 0, 0)
+corner triple V1,V0,u0     ids=[1, 0, 9] S-sumB=1.91e-11 margin=0.041811 at (0, 1, 1)
+corner 4: V1,V0,u0,u1      ids=[1, 0, 9, 10] S-sumB=3.67e-11 margin=0.033468 at (1, 1, 0, 0)
+corner 4: V0,u0,u1,u2      ids=[0, 9, 10, 11] S-sumB=-1.97e-12 margin=0.033468 at (1, 0, 0, 1)
+corner 4: V2,V1,V0,u0      ids=[2, 1, 0, 9] S-sumB=1.65e-11 margin=0.041811 at (0, 1, 1, 1)

@@ -1,0 +1,6 @@
+cprime h=0.2 eps=0.01 ratio 1.010 weakly solvable 16/16
+cprime h=0.2 eps=0.1 ratio 1.100 weakly solvable 16/16
+cprime h=0.2 eps=0.5 ratio 1.500 weakly solvable 16/16
+cprime h=0.1 eps=0.01 ratio 1.010 weakly solvable 16/16
+cprime h=0.1 eps=0.1 ratio 1.100 weakly solvable 16/16
+cprime h=0.1 eps=0.5 ratio 1.500 weakly solvable 16/16

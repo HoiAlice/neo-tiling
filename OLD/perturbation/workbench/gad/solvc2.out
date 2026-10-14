@@ -1,0 +1,9 @@
+/Users/olegoleg/Code/neo-tiling/perturbation/workbench/gad/core.py:97: RuntimeWarning: overflow encountered in exp
+  def f(x): return np.sum(np.exp(np.abs(x-a.flatten()))-1)
+(0, 1, 0, 1) 28.48728
+(0, 1, 1, 0) 28.48729
+(1, 0, 0, 1) 28.48729
+(1, 0, 1, 0) 28.48729
+ratio 1.280266925998875
+y levels [np.float64(1.0), np.float64(1.00197), np.float64(1.00394), np.float64(1.00535), np.float64(1.00677), np.float64(1.00789), np.float64(1.0079), np.float64(1.00902), np.float64(1.01663), np.float64(1.28026), np.float64(1.28027)]
+weak [True, True, True, True]

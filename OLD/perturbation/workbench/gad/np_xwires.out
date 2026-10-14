@@ -1,0 +1,16 @@
+mU,mV (1, 1) (0, 1, 0, 0) cost - (sumB + X_K) = 1.21e-07 min slack outside core 0.1952 (2, 1) D 0.6272
+mU,mV (1, 1) (1, 0, 0, 0) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (2, 1) D 0.6272
+mU,mV (1, 1) (0, 1, 1, 1) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (0, 3) D 0.6272
+mU,mV (1, 1) (1, 0, 1, 1) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (2, 1) D 0.6272
+mU,mV (3, 3) (0, 1, 0, 0) cost - (sumB + X_K) = 1.21e-07 min slack outside core 0.1952 (2, 1) D 0.6272
+mU,mV (3, 3) (1, 0, 0, 0) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (6, 5) D 0.6272
+mU,mV (3, 3) (0, 1, 1, 1) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (4, 7) D 0.6272
+mU,mV (3, 3) (1, 0, 1, 1) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (6, 5) D 0.6272
+mU,mV (5, 5) (0, 1, 0, 0) cost - (sumB + X_K) = 1.21e-07 min slack outside core 0.1952 (0, 3) D 0.6272
+mU,mV (5, 5) (1, 0, 0, 0) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (10, 9) D 0.6272
+mU,mV (5, 5) (0, 1, 1, 1) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (8, 11) D 0.6272
+mU,mV (5, 5) (1, 0, 1, 1) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (10, 9) D 0.6272
+mU,mV (8, 8) (0, 1, 0, 0) cost - (sumB + X_K) = 1.21e-07 min slack outside core 0.1952 (2, 5) D 0.6272
+mU,mV (8, 8) (1, 0, 0, 0) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (16, 15) D 0.6272
+mU,mV (8, 8) (0, 1, 1, 1) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (14, 17) D 0.6272
+mU,mV (8, 8) (1, 0, 1, 1) cost - (sumB + X_K) = 2.89e-08 min slack outside core 0.1952 (16, 15) D 0.6272

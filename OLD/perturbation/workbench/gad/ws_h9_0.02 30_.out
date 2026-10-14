@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/olegoleg/Code/neo-tiling/perturbation/workbench/gad/ws_h9.py", line 4, in <module>
+    DX=DY=float(os.environ.get("D","30")); N=int(os.environ.get("N","6")); h=float(os.environ.get("H","0.2"))
+ValueError: could not convert string to float: ''

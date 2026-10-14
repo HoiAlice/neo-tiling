@@ -1,0 +1,21 @@
+n 2 d [4, 4] step(for U) [3.75] rels (('ne', 1),) occ 18 S-sumB -7.8e-10 margin 0.0000 at (0, 0) t 0 s
+n 2 d [4, 4] step(for U) [3.5] rels (('ne', 2),) occ 243 S-sumB -7.8e-10 margin 0.0012 at (0, 0) t 0 s
+n 2 d [5, 4] step(for U) [None] rels (('eq', 2),) occ 18 S-sumB 1.8e-11 margin 0.0418 at (0, 1) t 0 s
+n 2 d [4, 5] step(for U) [None] rels (('eq', 2),) occ 18 S-sumB 1.8e-11 margin 0.0418 at (0, 1) t 0 s
+n 2 d [5, 5] step(for U) [None] rels (('eq', 2),) occ 1533 S-sumB -2.2e-11 margin 0.0418 at (0, 1) t 0 s
+n 2 d [4, 4] step(for U) [3.25] rels (('ne', 2),) occ 102 S-sumB -7.8e-10 margin 0.0531 at (0, 0) t 0 s
+n 2 d [4, 4] step(for U) [3.25] rels (('ne', 2),) occ 18 S-sumB -7.8e-10 margin 0.0531 at (0, 0) t 0 s
+n 2 d [4, 4] step(for U) [3.0] rels (('ne', 2),) occ 230 S-sumB -7.8e-10 margin 0.1062 at (0, 0) t 0 s
+n 2 d [4, 4] step(for U) [3.0] rels (('ne', 2),) occ 167 S-sumB -7.8e-10 margin 0.1062 at (0, 0) t 0 s
+n 2 d [4, 4] step(for U) [2.75] rels (('ne', 2),) occ 36 S-sumB -7.8e-10 margin 0.1153 at (0, 0) t 0 s
+n 2 d [5, 5] step(for U) [None] rels (('eq', 2),) occ 36 S-sumB -2.2e-11 margin 0.1423 at (0, 1) t 0 s
+n 3 d [4, 4, 4] step(for U) [3.5, 3.25] rels (('ne', 2), ('ne', 2)) occ 2 S-sumB -1.2e-09 margin 0.0012 at (0, 0, 1) t 0 s
+n 3 d [5, 5, 5] step(for U) [None, None] rels (('eq', 2), ('eq', 2)) occ 66 S-sumB -3.3e-11 margin 0.0418 at (0, 0, 1) t 0 s
+n 3 d [4, 4, 4] step(for U) [3.25, 3.0] rels (('ne', 2), ('ne', 2)) occ 3 S-sumB -1.2e-09 margin 0.0531 at (0, 0, 1) t 0 s
+n 3 d [4, 4, 4] step(for U) [3.25, 3.0] rels (('ne', 2), ('ne', 2)) occ 6 S-sumB -1.2e-09 margin 0.0531 at (0, 0, 1) t 0 s
+n 3 d [4, 4, 4] step(for U) [3.0, 3.25] rels (('ne', 2), ('ne', 2)) occ 15 S-sumB -1.2e-09 margin 0.0531 at (0, 1, 1) t 0 s
+n 3 d [4, 4, 4] step(for U) [3.0, 3.0] rels (('ne', 2), ('ne', 2)) occ 44 S-sumB -1.2e-09 margin 0.1062 at (0, 0, 1) t 0 s
+n 3 d [4, 4, 4] step(for U) [3.0, 3.0] rels (('ne', 2), ('ne', 2)) occ 7 S-sumB -1.2e-09 margin 0.1062 at (0, 0, 1) t 0 s
+n 4 d [4, 4, 4, 4] step(for U) [3.0, 3.75, 3.25] rels (('ne', 2), ('ne', 1), ('ne', 2)) occ 15 S-sumB 4.0e-15 margin -0.0000 at (0, 1, 1, 0) t 0 s
+n 4 d [4, 4, 4, 4] step(for U) [3.25, 3.75, 3.0] rels (('ne', 2), ('ne', 1), ('ne', 2)) occ 3 S-sumB -1.6e-09 margin 0.0000 at (0, 1, 1, 0) t 0 s
+MIN margin over all plain block types: -8.43769498715119e-15

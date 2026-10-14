@@ -1,0 +1,12 @@
+R corner 4: V1,V0,u0,u1      S-sumB=3.7e-11 margin=0.033468
+R corner 4: V0,u0,u1,u2      S-sumB=-2.0e-12 margin=0.033468
+R corner 4: V2,V1,V0,u0      S-sumB=1.7e-11 margin=0.041811
+R crossing-side V triple 6,7,8 S-sumB=-3.3e-11 margin=0.041811
+P corner 4: V1,V0,u0,u1      S-sumB=3.7e-11 margin=0.033468
+P corner 4: V0,u0,u1,u2      S-sumB=-2.0e-12 margin=0.033468
+P corner 4: V2,V1,V0,u0      S-sumB=1.7e-11 margin=0.041811
+P crossing-side V triple 6,7,8 S-sumB=-3.3e-11 margin=0.041811
+RP corner 4: V1,V0,u0,u1     S-sumB=3.7e-11 margin=0.033468
+RP corner 4: V0,u0,u1,u2     S-sumB=-2.0e-12 margin=0.033468
+RP corner 4: V2,V1,V0,u0     S-sumB=1.7e-11 margin=0.041811
+RP crossing-side V triple 6,7,8 S-sumB=-3.3e-11 margin=0.041811

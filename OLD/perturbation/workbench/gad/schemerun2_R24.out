@@ -1,0 +1,6 @@
+K3 RE 10 G 26 switches 1011 points 2022 crossings 2 build 0 s
+K3 SUMMARY patterns 8 conflicts/pattern 1976315 violations 0 min slack -1.42e-14 max |cost-closed| 1.82e-11 time 0 s
+K4 RE 10 G 26 switches 3036 points 6072 crossings 11 build 0 s
+K4 SUMMARY patterns 16 conflicts/pattern 17999088 violations 0 min slack -2.84e-14 max |cost-closed| 5.78e-11 time 8 s
+K33 RE 10 G 26 switches 7038 points 14076 crossings 45 build 0 s
+K33 SUMMARY patterns 64 conflicts/pattern 97685904 violations 0 min slack -5.68e-14 max |cost-closed| 3.53e-10 time 78 s

@@ -1,0 +1,12 @@
+chunk 36 keep 37 t 3
+chunk 18 keep 37 t 4
+chunk 9 keep 19 t 4
+chunk 4 keep 7 t 4
+chunk 2 keep 5 t 4
+chunk 1 keep 4 t 4
+chunk 1 keep 4 t 4
+MINIMAL failing switch set [45, 70, 71, 72]
+45 {'kind': 'arm', 'e': 0, 'u': 1, 'pos': 11} (-5.75, 63.75, 4.0) bit 0 level yb 1.097472
+70 {'kind': 'track', 'e': 0, 'm': 23} (-10.0, 65.0, 5.0) bit 1 level yb 1.105854
+71 {'kind': 'track', 'e': 0, 'm': 24} (-9.0, 66.0, 5.0) bit 1 level yb 1.097472
+72 {'kind': 'track', 'e': 0, 'm': 25} (-8.5, 66.5, 5.0) bit 1 level yb 1.089225

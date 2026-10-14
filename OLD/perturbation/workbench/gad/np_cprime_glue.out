@@ -1,0 +1,16 @@
+(0, 0, 0, 0) cost-closed 0.000000029 min slack non-core 0.0976 (26, 29) min kink-pair slack 0.00e+00 Dmax 0.6272
+(0, 0, 0, 1) cost-closed 0.000000121 min slack non-core 0.0976 (26, 29) min kink-pair slack 0.00e+00 Dmax 0.6272
+(0, 0, 1, 0) cost-closed 0.000000029 min slack non-core 0.0976 (26, 29) min kink-pair slack 0.00e+00 Dmax 0.6272
+(0, 0, 1, 1) cost-closed 0.000000121 min slack non-core 0.0976 (26, 29) min kink-pair slack 0.00e+00 Dmax 0.6272
+(0, 1, 0, 0) cost-closed 0.000000029 min slack non-core 0.0976 (28, 27) min kink-pair slack 0.00e+00 Dmax 0.6272
+(0, 1, 0, 1) cost-closed 0.000000121 min slack non-core 0.0976 (28, 27) min kink-pair slack 9.00e+00 Dmax 0.6272
+(0, 1, 1, 0) cost-closed 0.000000029 min slack non-core 0.0976 (28, 27) min kink-pair slack 9.00e+00 Dmax 0.6272
+(0, 1, 1, 1) cost-closed 0.000000121 min slack non-core 0.0976 (28, 27) min kink-pair slack 0.00e+00 Dmax 0.6272
+(1, 0, 0, 0) cost-closed 0.000000029 min slack non-core 0.0976 (26, 29) min kink-pair slack 0.00e+00 Dmax 0.6272
+(1, 0, 0, 1) cost-closed 0.000000029 min slack non-core 0.0976 (26, 29) min kink-pair slack 9.00e+00 Dmax 0.6272
+(1, 0, 1, 0) cost-closed 0.000000029 min slack non-core 0.0976 (26, 29) min kink-pair slack 9.00e+00 Dmax 0.6272
+(1, 0, 1, 1) cost-closed 0.000000029 min slack non-core 0.0976 (26, 29) min kink-pair slack 0.00e+00 Dmax 0.6272
+(1, 1, 0, 0) cost-closed 0.000000029 min slack non-core 0.0976 (28, 27) min kink-pair slack 0.00e+00 Dmax 0.6272
+(1, 1, 0, 1) cost-closed 0.000000029 min slack non-core 0.0976 (28, 27) min kink-pair slack 0.00e+00 Dmax 0.6272
+(1, 1, 1, 0) cost-closed 0.000000029 min slack non-core 0.0976 (28, 27) min kink-pair slack 0.00e+00 Dmax 0.6272
+(1, 1, 1, 1) cost-closed 0.000000029 min slack non-core 0.0976 (28, 27) min kink-pair slack 0.00e+00 Dmax 0.6272

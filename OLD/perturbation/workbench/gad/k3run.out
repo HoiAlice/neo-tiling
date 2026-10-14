@@ -1,0 +1,12 @@
+/Users/olegoleg/Code/neo-tiling/perturbation/experiments/iso_scipy.py:17: RuntimeWarning: overflow encountered in exp
+  return np.sum(np.exp(np.abs(u - a)) - 1)
+(0, 0, 0) mono-edges 3 excess 0.10126
+(0, 0, 1) mono-edges 1 excess 0.0
+(0, 1, 0) mono-edges 1 excess 1e-05
+(0, 1, 1) mono-edges 1 excess 0.0
+(1, 0, 0) mono-edges 1 excess 0.0
+(1, 0, 1) mono-edges 1 excess 0.0
+(1, 1, 0) mono-edges 1 excess 0.0
+(1, 1, 1) mono-edges 3 excess 0.10126
+optimal patterns [(0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0)]
+{'per_combo_feasible': [True, True, True, True, True, True], 'joint': True, 'weak_at_given_y': [True, False, True, True, True, False], 'weak_at_found_y': [True, True, True, True, True, True], 'minimal_infeasible': None}

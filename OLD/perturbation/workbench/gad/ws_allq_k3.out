@@ -1,0 +1,7 @@
+/Users/olegoleg/Code/neo-tiling/perturbation/experiments/iso_scipy.py:17: RuntimeWarning: overflow encountered in exp
+  return np.sum(np.exp(np.abs(u - a)) - 1)
+/Users/olegoleg/Code/neo-tiling/perturbation/experiments/iso_scipy.py:17: RuntimeWarning: overflow encountered in exp
+  return np.sum(np.exp(np.abs(u - a)) - 1)
+/Users/olegoleg/Code/neo-tiling/perturbation/experiments/iso_scipy.py:17: RuntimeWarning: overflow encountered in exp
+  return np.sum(np.exp(np.abs(u - a)) - 1)
+[((0, 0, 0), 31.6667), ((0, 0, 1), 31.31611), ((0, 1, 0), 31.6667), ((0, 1, 1), 32.04989), ((1, 0, 0), 31.52553), ((1, 0, 1), 31.68168), ((1, 1, 0), 31.89311), ((1, 1, 1), 31.57352)]

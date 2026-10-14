@@ -1,0 +1,8 @@
+corner pair (V0,u0)        ids=[0, 9] S-sumB=1.83e-11 margin=0.041811 at (0, 1)
+vertex-U pair (13,14)      ids=[13, 14] S-sumB=1.83e-11 margin=0.168708 at (0, 0)
+U-vertex pair (23,24)      ids=[23, 24] S-sumB=1.83e-11 margin=0.168708 at (0, 0)
+5-block 9..13 (weak 11-12) ids=[9, 10, 11, 12, 13] S-sumB=-9.69e-10 margin=0.000000 at (0, 1, 0, 0, 1)
+4-block 15..18 (weak 16-17) ids=[15, 16, 17, 18] S-sumB=-1.96e-12 margin=0.000000 at (0, 1, 1, 0)
+weak pair (11,12)          ids=[11, 12] S-sumB=-7.75e-10 margin=0.000000 at (0, 0)
+V pair (0,1)               ids=[0, 1] S-sumB=-2.18e-11 margin=0.041811 at (0, 1)
+V pair (7,8)               ids=[7, 8] S-sumB=-2.18e-11 margin=0.041811 at (0, 1)

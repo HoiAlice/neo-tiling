@@ -1,0 +1,8 @@
+single-pattern y-LP feasible: True time 661
+max/min 1.1945338261041847
+((0, 0, 1, 1), True) time 1388
+((0, 1, 0, 1), False) time 1433
+((1, 0, 0, 1), False) time 1489
+((1, 0, 1, 0), True) time 1518
+((0, 1, 1, 0), True) time 1522
+((1, 1, 0, 0), False) time 1770
