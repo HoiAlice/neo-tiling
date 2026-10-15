@@ -105,8 +105,8 @@ error eta = 2^{1-k}/min v). d = 2: oracle = flow LP, so (a) polynomial, (b) weak
   MILP with big-M witnesses, each witness row DIVIDED BY M_st (essential). Flow LP = compact form,
   CG = path form (Dantzig–Wolfe).
 - The no-good retry loop in `price_milp` is a workaround (triggers at d = 7, 3 of 4 BEA
-  industries still fail) — NOT part of the method. Proper fix (TODO): exact-geometry pricing with
-  lazy covering cuts x_t <= sum_{s in A} x_s, |A| <= d+1 (finite witness lists for d = 2).
+  industries still fail) — NOT part of the method. DONE 2026-10-15: exact-geometry pricing with
+  lazy cover cuts, `perturb/exact_oracle.py` (section 10).
 - Numbers in the tex (weighted formulation): d = 2 real data (US + 10 BEA industries), synthetic
   families A–E, large d (US d=3, Berndt–Wood d=4, BEA d=4, BEA d=7) — scripts and logs in
   `experiments/` and `experiments/results/`. CG faster than flow in 7/11 real cases and in all
@@ -117,10 +117,12 @@ error eta = 2^{1-k}/min v). d = 2: oracle = flow LP, so (a) polynomial, (b) weak
 
 ## 7. Open questions
 
-1. Exact pricing for large d (lazy covering cuts) — d = 7 fails today.
+1. ~~Exact pricing for large d~~ — done (section 10); speed at d = 8 is 2-10 min per rho*.
 2. Is lexicographic profile computable with polynomially many calls in the worst case, or is
-   branching unavoidable on some instance?
-3. The near-vertical-line phenomenon of profiles: theorem?
+   branching unavoidable on some instance?  The one-sided profile (section 10) sidesteps it: no
+   branching, a fixed tie-break, Pareto-minimal always, the profile itself when there is no tie.
+3. The near-vertical-line phenomenon of profiles: explained as the trivial solution (section 10:
+   it appears exactly where rho* = rho_bar); a theorem is still open.
 4. Weighted sum metric with lambda^0 > min lambda^i (2T-dimensional): rejected, but its
    complexity is open if ever needed.
 5. Lean: rationality of breakpoints in the weighted equal-weights case; the complexity theorem
@@ -140,7 +142,11 @@ All from `price-perturbation/` (Python `../.venv/bin/python`, `PYTHONDONTWRITEBY
 | meet-property counterexamples | `experiments/meet_check.py` | stdout |
 | tables of the tex (weighted) | `experiments/bench_d2_real.py`, `bench_d2_synthetic.py`, `bench_large_d.py` | `experiments/results/*.log` |
 
-Tests: `../.venv/bin/python -m pytest -q -p no:cacheprovider tests` (74 tests, ~3 min). Lean:
+Section 10 adds: `us_onesided.py [years]`, `us_onesided_d3.py`, `bea_onesided.py [--exact] ind`
+(+ `--plot`), `ratio_d3.py`, `aggregation.py`; figures `tex/figures/example_onesided*.png`; logs
+`experiments/results/{onesided_bea.jsonl, ratio_d3.log, aggregation.log}`.
+
+Tests: `../.venv/bin/python -m pytest -q -p no:cacheprovider tests` (see the README for the count). Lean:
 `lake build PricePerturbation` from the repo root. Run solvers one at a time (the laptop
 crashed with parallel solver runs before).
 
@@ -152,3 +158,49 @@ crashed with parallel solver runs before).
   `KLEMS-Research-Tables-Underlying-Data_0.xlsx` (bea.gov): Tornqvist aggregates for K and L,
   detailed prices for d = 7.
 - `data/berndt_wood_klem.*`: Berndt–Wood KLEM, US manufacturing 1947–1971 (Berndt 1991 diskette).
+
+## 10. One-sided profile, exact oracle, unsolvability measure, aggregation (2026-10-14/15)
+
+Text with proofs: `tex/onesided.tex` (Russian, separate from the main tex). Code:
+`perturb/onesided.py`, `perturb/exact_oracle.py`. Details and all numbers: README sections
+"One-sided profile", "Exact oracle", "Unsolvability measure", "One-sided profile: results",
+"Dimensions and aggregation".
+
+Owner's decisions: perturb PRICES only, never the outputs y; polynomially many oracle calls
+(linear convergence is fine); existence and uniqueness by regularization; proven guarantees;
+rational prices; the oracle must never be wrong.
+
+- **Regularization.** Units = 2T half-axes of the paths (theta_t in [-alpha_t, beta_t]);
+  lexicographic minimum of the sorted (alpha, beta). Always exists (aligning one coordinate makes
+  every set reachable). Pareto-minimal => every nonzero unit blocks => theta (hence Q) unique on
+  the paths, one nonzero half-axis per year. Off the paths: nothing strictly inside the final
+  boxes, faces through the far corner not excluded. Sorted |theta| = sorted symmetric profile
+  (magnitudes kept, signs fixed). Interpretation: strict Chebyshev approximation (Rice 1962,
+  Descloux 1963) in a set-membership error model; each nonzero correction is certifiably
+  necessary; spreads corrections (Chebyshev), unlike sparse indices (Houtman–Maks, Varian).
+  References not verified yet.
+- **Why not sums or a lattice.** The feasible theta set is not a lattice (numerical); minimizing a
+  separable sum over an abstract monotone set with a membership oracle needs exponentially many
+  queries. Only max-type objectives (box level sets) are oracle-polynomial; the leximin is the
+  refinement that keeps this at every stage.
+- **Algorithm.** Staged, no branching: bisection for the common level, blocking units by
+  splitting, fixed-priority tie-break + tightening. O(T^2 + T log(rho_bar/eps)) queries. No tie
+  in any run (85 random instances, US, BEA 15, 49, US d = 3).
+- **Exact oracle.** S is weakly reachable iff no convex combination of <= d+1 points outside S is
+  strictly below a point of S (Caratheodory) => pricing MILP with 0/1 cover cuts only, every cut
+  and every accepted set verified in rationals, exact finish with integer weights. Agrees with
+  brute force (210 queries, all NO certificates checked on all reachable sets) and with the flow
+  LP (105 queries). The old CG failed because the profile drives points to breakpoints, where
+  reachability is decided by exact equalities.
+- **Rational prices.** Guaranteed: from an exact YES certificate at the final rational box, the
+  corner-theorem construction along the price-linear segment between the corners stays in the
+  ball and gives rational Q with an exact certificate.
+- **Unsolvability measure.** rho* <= rho_bar (cost of aligning one coordinate, explicit).
+  rho*/rho_bar in [0, 1]. Profiles collapse onto p_i = const exactly where the ratio is 1
+  (US d = 2 and BEA 15 at d = 2; not at US d = 3 0.80, BEA 49 0.05).
+- **Dimensions.** The old d = 2 (K, L / II) and d = 7 (5 K, 2 L / II) versions DROP the output
+  price; the full problem is d = 8 (5 K, 2 L, II / GO). With GO as numeraire the degeneracy
+  disappears (BEA 15: ratio 1.00 -> 0.81 at d = 3). Real disaggregation lowers rho* 5-17 times,
+  a placebo disaggregation (type deviations permuted over years) only 5-25 %: the Tornqvist
+  aggregates lose information the model uses. Paper message: the 2-dimensional identification
+  problems are mostly an artefact of aggregation and of dropping the output price.

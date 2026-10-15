@@ -14,5 +14,8 @@ solvability theory.
   with a witness bound `W`. Moved here on 2026-10-09 when that problem was replaced by the one
   through weak solvability. Not built.
 
+- `year-deletion.md` — 2026-10-14 closed direction: least number of years to delete for
+  solvability and maximal solvable intervals; driven by pairwise dominance, not for the paper.
+
 The current theory lives in `latex/notes.tex` and `NeoTiling/`. Do not read, reuse or cite files
 here unless the user explicitly asks.

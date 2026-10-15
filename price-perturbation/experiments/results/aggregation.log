@@ -1,0 +1,18 @@
+# run 2026-10-15 with the scratch versions of this script (same logic); real detail:
+BEA 1 d=8 ['pKit', 'pKsoft', 'pKrd', 'pKart', 'pKoth', 'pLcol', 'pLn', 'pII']: rho* [0.03764,0.03764] rho_bar 0.35352 (pII) ratio 0.106 calls 27 212s
+BEA 6 d=8 ['pKit', 'pKsoft', 'pKrd', 'pKart', 'pKoth', 'pLcol', 'pLn', 'pII']: rho* [0.04333,0.04333] rho_bar 0.12942 (pKoth) ratio 0.335 calls 27 160s
+BEA 12 d=8 ['pKit', 'pKsoft', 'pKrd', 'pKart', 'pKoth', 'pLcol', 'pLn', 'pII']: rho* [0.03257,0.03258] rho_bar 0.08037 (pII) ratio 0.405 calls 25 54s
+BEA 24 d=8 ['pKit', 'pKsoft', 'pKrd', 'pKart', 'pKoth', 'pLcol', 'pLn', 'pII']: rho* [0.01846,0.01847] rho_bar 0.20976 (pII) ratio 0.088 calls 25 148s
+BEA 27 d=8 ['pKit', 'pKsoft', 'pKrd', 'pKart', 'pKoth', 'pLcol', 'pLn', 'pII']: rho* [0.02439,0.02440] rho_bar 0.18429 (pKrd) ratio 0.132 calls 27 598s
+BEA 31 d=8 ['pKit', 'pKsoft', 'pKrd', 'pKart', 'pKoth', 'pLcol', 'pLn', 'pII']: rho* [0.03559,0.03560] rho_bar 0.19915 (pKart) ratio 0.179 calls 25 188s
+BEA 46 d=8 ['pKit', 'pKsoft', 'pKrd', 'pKart', 'pKoth', 'pLcol', 'pLn', 'pII']: rho* [0.00253,0.00253] rho_bar 0.08402 (pII) ratio 0.030 calls 24 205s
+BEA 49 d=8 ['pKit', 'pKsoft', 'pKrd', 'pKart', 'pKoth', 'pLcol', 'pLn', 'pII']: rho* [0.00983,0.00984] rho_bar 0.08680 (pII) ratio 0.113 calls 23 546s
+BEA 63 d=8 ['pKit', 'pKsoft', 'pKrd', 'pKart', 'pKoth', 'pLcol', 'pLn', 'pII']: rho* [0.00000,0.00000] rho_bar 0.16040 (pII) ratio 0.000 calls 1 4s
+BEA 15 d=8 real: rho* 0.00565 (separate run)
+# placebo:
+BEA 15 placebo seed 1: rho* [0.09325,0.09325] calls 30 568s
+BEA 15 placebo seed 2: rho* [0.07574,0.07575] calls 25 414s
+BEA 24 placebo seed 1: rho* [0.13708,0.13708] calls 27 153s
+BEA 24 placebo seed 2: rho* [0.11723,0.11724] calls 25 138s
+BEA 1 placebo seed 1: rho* [0.17987,0.17988] calls 25 391s
+BEA 1 placebo seed 2: rho* [0.20215,0.20216] calls 25 192s

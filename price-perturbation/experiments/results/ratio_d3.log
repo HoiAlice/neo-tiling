@@ -1,0 +1,10 @@
+BEA 15 Motor vehicles, bodies and t d=3: rho* in [0.09915, 0.09916], rho_bar 0.12296 (II), ratio 0.806, 25 calls, 44s
+BEA  1 Farms                        d=3: rho* in [0.24082, 0.24083], rho_bar 0.35352 (II), ratio 0.681, 29 calls, 39s
+BEA  6 Utilities                    d=3: rho* in [0.05332, 0.05333], rho_bar 0.14870 (K), ratio 0.359, 27 calls, 71s
+BEA 12 Machinery                    d=3: rho* in [0.05072, 0.05073], rho_bar 0.08037 (II), ratio 0.631, 27 calls, 62s
+BEA 24 Petroleum and coal products  d=3: rho* in [0.15732, 0.15733], rho_bar 0.20976 (II), ratio 0.750, 24 calls, 22s
+BEA 27 Wholesale trade              d=3: rho* in [0.07186, 0.07187], rho_bar 0.07697 (K), ratio 0.934, 26 calls, 64s
+BEA 31 Water transportation         d=3: rho* in [0.13021, 0.13022], rho_bar 0.31376 (II), ratio 0.415, 26 calls, 31s
+BEA 46 Rental and leasing services  d=3: rho* in [0.01598, 0.01598], rho_bar 0.08402 (II), ratio 0.190, 24 calls, 66s
+BEA 49 Miscellaneous professional,  d=3: rho* in [0.01287, 0.01288], rho_bar 0.08680 (II), ratio 0.148, 26 calls, 94s
+BEA 63 State and local              d=3: rho* in [0.00000, 0.00000], rho_bar 0.16040 (II), ratio 0.000, 1 calls, 189s
