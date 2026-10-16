@@ -10,53 +10,30 @@ import NeoTiling.Lp.Algorithm
   spectra does, and the cone condition is monotone in the family. So the set is a finite union,
   over the finite families `A` that pass the cone condition, of the closed sets where every
   `S ∈ A` is weakly reachable at the corners.
-* `opt_pos_of_not_boxFeasible_zero`, `run_stops_of_not_boxFeasible_zero`: if the zero box fails
-  the query and the cost is bounded away from `0` off every neighbourhood of `0`, then `OPT > 0`
-  and `run_stops` applies. If the zero box passes the query, step 0 already stops
+* `opt_pos_of_not_boxFeasible_zero`, `run_stops_of_not_boxFeasible_zero`: on `D.problem S`, if
+  the zero box fails the query, then `OPT > 0` (the box cost is at least `r min c` off the
+  neighbourhood `[0, r)^ι` of `0`) and `run_stops` applies. If the zero box passes the query, step 0 already stops
   (`init_stopped_of_boxFeasible_zero`). So the excluded case `OPT = 0` of `run_stops` is covered.
 -/
 
-namespace NeoTiling.L1Perturbation
+namespace NeoTiling.Lp
 
-open NeoTiling Real Polyblock
+open Real
 
 variable {d T N : ℕ}
 
 /-- **Weak reachability is a closed condition.** For fixed `S`, the tuples `W` at which `S` is
-weakly reachable form a closed set. For each `t ∈ S` the witness `ξ ≥ 0`, `ξ ≠ 0` can be scaled
-into the compact standard simplex; the pairs `(ξ, W)` with `0 ≤ ⟨ξ, W s - W t⟩` for `s ∉ S` form a
-closed set, and its projection to `W` along the compact factor is closed. -/
+weakly reachable form a closed set: `S` is weakly reachable at `W` iff every `W t`, `t ∈ S`, is
+supported by `{W s | s ∉ S}`, a finite intersection of preimages of the closed set
+`isClosed_setOf_supported_pair`. -/
 theorem isClosed_setOf_isWeakReachable (S : Finset (Fin N)) :
     IsClosed {W : Fin N → Fin d → ℝ | IsWeakReachable W S} := by
-  haveI : CompactSpace (stdSimplex ℝ (Fin d)) :=
-    isCompact_iff_compactSpace.mp (isCompact_stdSimplex _)
-  have key : ∀ t, IsClosed {W : Fin N → Fin d → ℝ |
-      ∃ ξ : Fin d → ℝ, 0 ≤ ξ ∧ ξ ≠ 0 ∧ ∀ s ∉ S, 0 ≤ ξ ⬝ᵥ (W s - W t)} := by
-    intro t
-    let C : Set (stdSimplex ℝ (Fin d) × (Fin N → Fin d → ℝ)) :=
-      {p | ∀ s ∉ S, 0 ≤ (p.1 : Fin d → ℝ) ⬝ᵥ (p.2 s - p.2 t)}
-    have hC : IsClosed C := by
-      simp only [C, Set.setOf_forall]
-      exact isClosed_iInter fun s => isClosed_iInter fun _ => isClosed_le continuous_const
-        ((continuous_subtype_val.comp continuous_fst).dotProduct
-          (((continuous_apply s).comp continuous_snd).sub ((continuous_apply t).comp continuous_snd)))
-    convert isClosedMap_snd_of_compactSpace _ hC using 1
-    ext W
-    constructor
-    · rintro ⟨ξ, h0, hne, h⟩
-      obtain ⟨c, hc, hcξ⟩ := exists_smul_mem_stdSimplex h0 hne
-      refine ⟨(⟨c • ξ, hcξ⟩, W), fun s hs => ?_, rfl⟩
-      show 0 ≤ (c • ξ) ⬝ᵥ (W s - W t)
-      rw [smul_dotProduct]; exact mul_nonneg hc.le (h s hs)
-    · rintro ⟨⟨⟨ξ, hξ⟩, W'⟩, h, rfl⟩
-      refine ⟨ξ, hξ.1, ?_, h⟩
-      rintro rfl
-      simpa using hξ.2
-  have : {W : Fin N → Fin d → ℝ | IsWeakReachable W S} = ⋂ t ∈ S, {W : Fin N → Fin d → ℝ |
-      ∃ ξ : Fin d → ℝ, 0 ≤ ξ ∧ ξ ≠ 0 ∧ ∀ s ∉ S, 0 ≤ ξ ⬝ᵥ (W s - W t)} := by
-    ext W; simp [IsWeakReachable]
+  have : {W : Fin N → Fin d → ℝ | IsWeakReachable W S} =
+      ⋂ t ∈ S, (fun W => (W, W t)) ⁻¹' {p | Perturbation.Supported p.1 S p.2} := by
+    ext W; simp only [Set.mem_iInter, Set.mem_preimage, Set.mem_setOf_eq]; rfl
   rw [this]
-  exact isClosed_biInter fun t _ => key t
+  exact isClosed_biInter fun t _ => (Perturbation.isClosed_setOf_supported_pair S).preimage
+    (continuous_id.prodMk (continuous_apply t))
 
 /-- The corners `P (1 - α)`, `P (1 + β)` of the box with half-widths `z = (α, β)`. -/
 def corners (P : Fin T → Fin d → ℝ) (z : (Fin T × Fin d) ⊕ (Fin T × Fin d) → ℝ) :
@@ -129,45 +106,52 @@ theorem exists_coord_ge_of_not_boxFeasible_zero (P : Fin T → Fin d → ℝ) (y
   rw [Pi.zero_apply, Real.dist_eq, sub_zero, abs_of_nonneg (hz j)]
   exact hlt j
 
-/-- **`OPT > 0` when the zero box fails.** If the problem's `H` is, on the box, the set of
-half-widths passing the box query, the zero box fails the query, and the cost is bounded away
-from `0` on the points of the box with a coordinate at least `r` (for every `r > 0`), then
-`OPT > 0`. -/
-theorem opt_pos_of_not_boxFeasible_zero (P : Fin T → Fin d → ℝ) (y : Fin T → ℝ)
-    (Pr : Problem ((Fin T × Fin d) ⊕ (Fin T × Fin d)))
-    (hH : ∀ z ∈ box Pr.Mv, z ∈ Pr.H ↔ BoxFeasible P y (alphaOf z) (betaOf z))
-    (h0 : ¬ BoxFeasible P y 0 0)
-    (hf0 : ∀ r > 0, ∃ η > 0, ∀ z ∈ box Pr.Mv, (∃ j, r ≤ z j) → η ≤ Pr.f z) :
-    0 < Pr.opt := by
-  obtain ⟨r, hr, hcoord⟩ := exists_coord_ge_of_not_boxFeasible_zero P y h0
-  obtain ⟨η, hη, hfη⟩ := hf0 r hr
-  refine hη.trans_le (Pr.le_opt fun z hz hb => hfη z hb ?_)
-  exact hcoord z (fun j => (hb j).1) ((hH z hb).1 hz)
+section BoxClosed
 
-/-- **Termination when the zero box fails.** Under the hypotheses of
-`opt_pos_of_not_boxFeasible_zero`, the run stops after the explicit number of steps of
+variable (D : BoxData T d)
+
+/-- **`OPT > 0` when the zero box fails.** A neighbourhood `[0, r)^ι` of `0` fails the query
+(`exists_coord_ge_of_not_boxFeasible_zero`), and a point of the box with a coordinate at least `r`
+costs at least `r min c > 0` (`le_boxCost`). The optimum depends on the data only. -/
+theorem opt_pos_of_not_boxFeasible_zero (h0 : ¬ BoxFeasible D.P D.y 0 0) : 0 < D.opt := by
+  obtain ⟨r, hr, hcoord⟩ := exists_coord_ge_of_not_boxFeasible_zero D.P D.y h0
+  have : Nonempty (Fin T × Fin d) := ⟨(⟨0, D.hT⟩, ⟨0, by have := D.hd; omega⟩)⟩
+  obtain ⟨⟨t₀, i₀⟩, -, hmin⟩ := Finset.exists_min_image Finset.univ
+    (fun ti : Fin T × Fin d => D.c ti.1 ti.2) Finset.univ_nonempty
+  have hne : (boxCost D.p D.c '' (boxH D.P D.y D.Mv ∩ box D.Mv)).Nonempty :=
+    ⟨_, D.Mv, ⟨⟨fun j => ⟨(D.hM j).le, le_rfl⟩, D.top_mem⟩, fun j => ⟨(D.hM j).le, le_rfl⟩⟩, rfl⟩
+  refine (mul_pos (D.hc t₀ i₀) hr).trans_le (le_csInf hne ?_)
+  rintro _ ⟨z, ⟨hz, hb⟩, rfl⟩
+  have hc0 : ∀ t i, 0 ≤ D.c t i := fun t i => (D.hc t i).le
+  obtain ⟨j, hj⟩ := hcoord z (fun j => (hb j).1) hz.2
+  rcases j with ⟨t, i⟩ | ⟨t, i⟩
+  · exact (mul_le_mul_of_nonneg_right (hmin (t, i) (Finset.mem_univ _)) hr.le).trans
+      (le_boxCost D.hp hc0 hr.le t i (hj.trans (le_max_left _ _)))
+  · exact (mul_le_mul_of_nonneg_right (hmin (t, i) (Finset.mem_univ _)) hr.le).trans
+      (le_boxCost D.hp hc0 hr.le t i (hj.trans (le_max_right _ _)))
+
+variable (S : BoxOracle D)
+
+/-- **Termination when the zero box fails.** The run stops after the explicit number of steps of
 `run_stops`, for any bound `Mmax` on the sides of the box. -/
-theorem run_stops_of_not_boxFeasible_zero (P : Fin T → Fin d → ℝ) (y : Fin T → ℝ)
-    (Pr : Problem ((Fin T × Fin d) ⊕ (Fin T × Fin d)))
-    (hH : ∀ z ∈ box Pr.Mv, z ∈ Pr.H ↔ BoxFeasible P y (alphaOf z) (betaOf z))
-    (h0 : ¬ BoxFeasible P y 0 0)
-    (hf0 : ∀ r > 0, ∃ η > 0, ∀ z ∈ box Pr.Mv, (∃ j, r ≤ z j) → η ≤ Pr.f z)
-    {ε : ℝ} (hε : 0 < ε) {Mmax : ℝ} (hMmax : ∀ j, Pr.Mv j ≤ Mmax) :
-    ∃ n ≤ ⌈log (Pr.f Pr.top / (ε * Pr.opt)) / log (4 / 3)⌉₊ + 1 +
-        (⌊Mmax / (ε * Pr.opt / (2 * Pr.L))⌋₊ + 1) ^ Fintype.card ((Fin T × Fin d) ⊕ (Fin T × Fin d)),
-      Stopped ε (Pr.run ε n) :=
-  Pr.run_stops hε (opt_pos_of_not_boxFeasible_zero P y Pr hH h0 hf0) hMmax
+theorem run_stops_of_not_boxFeasible_zero (h0 : ¬ BoxFeasible D.P D.y 0 0) {ε : ℝ} (hε : 0 < ε)
+    {Mmax : ℝ} (hMmax : ∀ j, D.Mv j ≤ Mmax) :
+    ∃ n ≤ ⌈log (boxCost D.p D.c D.Mv / (ε * D.opt)) / log (4 / 3)⌉₊ + 1 +
+        (⌊Mmax / (ε * D.opt / (2 * cNorm D.p D.c))⌋₊ + 1) ^
+          Fintype.card ((Fin T × Fin d) ⊕ (Fin T × Fin d)),
+      Stopped ε ((D.problem S).run ε n) :=
+  (D.problem S).run_stops hε (opt_pos_of_not_boxFeasible_zero D h0) hMmax
 
-/-- **Step 0 stops when the zero box passes.** Then `0 ∈ H`, the oracle answers YES at `0`, and
-`init` has `UB = LB = f 0`. -/
-theorem init_stopped_of_boxFeasible_zero (P : Fin T → Fin d → ℝ) (y : Fin T → ℝ)
-    (Pr : Problem ((Fin T × Fin d) ⊕ (Fin T × Fin d)))
-    (hH : ∀ z ∈ box Pr.Mv, z ∈ Pr.H ↔ BoxFeasible P y (alphaOf z) (betaOf z))
-    (h0 : BoxFeasible P y 0 0) {ε : ℝ} (hε : 0 ≤ ε) : Stopped ε Pr.init := by
-  have hb : (0 : (Fin T × Fin d) ⊕ (Fin T × Fin d) → ℝ) ∈ box Pr.Mv :=
-    fun j => ⟨le_rfl, (Pr.M_pos j).le⟩
-  have hO : Pr.O 0 = true := (Pr.O_spec 0 hb).2 ((hH 0 hb).2 h0)
-  simp only [Stopped, Problem.init, hO, if_true, sub_self]
-  exact mul_nonneg hε (Pr.f_nonneg 0)
+/-- **Step 0 stops when the zero box passes.** Then the oracle answers YES at `0`, and `init` has
+`UB = LB = f 0`. -/
+theorem init_stopped_of_boxFeasible_zero (h0 : BoxFeasible D.P D.y 0 0) {ε : ℝ} (hε : 0 ≤ ε) :
+    Stopped ε (D.problem S).init := by
+  have hb : (0 : (Fin T × Fin d) ⊕ (Fin T × Fin d) → ℝ) ∈ box D.Mv :=
+    fun j => ⟨le_rfl, (D.hM j).le⟩
+  have hO0 : S.O 0 = true := (S.hO 0 hb).2 h0
+  simp only [Stopped, Problem.init, BoxData.problem, hO0, if_true, sub_self]
+  exact mul_nonneg hε (Real.rpow_nonneg (lpPow_nonneg D.p (fun t i => (D.hc t i).le) _) _)
 
-end NeoTiling.L1Perturbation
+end BoxClosed
+
+end NeoTiling.Lp

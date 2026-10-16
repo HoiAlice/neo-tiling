@@ -2,20 +2,20 @@ import NeoTiling.Hardness.Size
 import NeoTiling.Core.Costed
 
 /-!
-# Counted cost: a cost monad and the reduction as a program
+# Counted cost: the reduction as a program
 
-* `Costed`: a value together with the number of operations spent on it; `pure` is free and
-  `bind` adds the costs.
+The programs run in the cost monad `Costed` (`Core/Costed.lean`).
 * Primitives `qadd`, …, `neq`: one arithmetic operation or comparison, one tick each.
 * `priceM`, `outputM`: the programs that compute one price and one output, written with the
   primitives only; `val_priceM`, `val_outputM`: they compute `priceQ`, `outputQ`;
   `cost_priceM_le`, `cost_outputM_le`: at most `120` and `6` operations.
+  The ends of a link (`linkUM`, `linkVM`, `endsM`) are computed with the primitives too, at most
+  `5` operations each.
 * `allX`: an explicit list of all `Option (G.Node ⊕ G.Link)`, without repetitions;
-  `enumM`: its enumeration, one tick per element.
-* `val_mapM`, `cost_mapM`: `List.mapM` in `Costed` maps the values and sums the costs.
+  `enumM`: its traversal, one tick per element. This is the only declared charge.
 -/
 
-namespace NeoTiling.NPHardness
+namespace NeoTiling.Hardness
 
 
 open Costed
@@ -126,12 +126,63 @@ def liftQM (a0 a1 : ℚ) : Costed (Fin 3 → ℚ) := do
   let z ← qsub c u
   pure ![x, y, z]
 
-/-- The ends of the link `k`, charged `5` operations each: the index arithmetic in `linkU`,
-`linkV` is at most `lo k`, `hi k` (one comparison each) and `colLen k - 1` (three more), or
-`jA k i = 12k + 4i + 4` (four), or `j + 1`, or `t + 1` in `Fin 3` (two). -/
+/-- An index `r < N` as an element of `Fin N` (free, like the coercions; `r % N = r` on the
+indices below). -/
+def toFin {N : ℕ} (hN : 0 < N) (r : ℕ) : Fin N := ⟨r % N, Nat.mod_lt r hN⟩
+
+/-- `hi`: one comparison. -/
+def hiM (k : Fin m) : Costed (Fin n) := do
+  let b ← nlt (G.ev k) (G.eu k)
+  pure (if b then G.eu k else G.ev k)
+
+/-- `jA k i = 12 k + 4 i + 4`: four operations. -/
+def jAM (k : Fin m) (i : Fin 3) : Costed (Fin (12 * m + 1)) := do
+  let a ← nmul 12 (k : ℕ)
+  let b ← nmul 4 (i : ℕ)
+  let c ← nadd a b
+  let r ← nadd c 4
+  pure (toFin (by omega) r)
+
+/-- `linkU`: at most five operations (`colLen k - 1 = 4 (hi k - lo k) - 1`). -/
+def linkUM : G.Link → Costed G.Node
+  | .inl (v, i, j) => pure (G.row v i j.castSucc)
+  | .inr (.inl ⟨k, i, j⟩) => pure (G.col k i ⟨j, by have := j.isLt; omega⟩)
+  | .inr (.inr (.inl (k, i, false))) => pure (G.col k i ⟨0, G.colLen_pos k⟩)
+  | .inr (.inr (.inl (k, i, true))) => do
+      let l ← G.loM k
+      let h ← G.hiM k
+      let a ← nsub h l
+      let b ← nmul 4 a
+      let r ← nsub b 1
+      pure (G.col k i (toFin (G.colLen_pos k) r))
+  | .inr (.inr (.inr (v, t))) => pure (G.row v t 0)
+
+/-- `linkV`: at most five operations (`j + 1`, or `lo k` / `hi k` and `jA k i`, or `t + 1` in
+`Fin 3`). -/
+def linkVM : G.Link → Costed G.Node
+  | .inl (v, i, j) => do
+      let r ← nadd (j : ℕ) 1
+      pure (G.row v i (toFin (by omega) r))
+  | .inr (.inl ⟨k, i, j⟩) => do
+      let r ← nadd (j : ℕ) 1
+      pure (G.col k i (toFin (G.colLen_pos k) r))
+  | .inr (.inr (.inl (k, i, false))) => do
+      let l ← G.loM k
+      let a ← jAM k i
+      pure (G.row l i a)
+  | .inr (.inr (.inl (k, i, true))) => do
+      let h ← G.hiM k
+      let a ← jAM k i
+      pure (G.row h i a)
+  | .inr (.inr (.inr (v, t))) => do
+      let s ← nadd (t : ℕ) 1
+      let r ← nmod s 3
+      pure (G.row v (toFin (by omega) r) 0)
+
+/-- The ends of the link `k`: at most ten operations. -/
 def endsM (k : G.Link) : Costed (G.Node × G.Node) := do
-  let u ← tickN 5 (G.linkU k)
-  let v ← tickN 5 (G.linkV k)
+  let u ← G.linkUM k
+  let v ← G.linkVM k
   pure (u, v)
 
 /-- `etaQ`: at most `52` operations. -/
@@ -217,8 +268,18 @@ def allLinks : List G.Link :=
 def allX : List (Option (G.Node ⊕ G.Link)) :=
   none :: (sumList G.allNodes G.allLinks).map some
 
-/-- The enumeration, one operation per element. -/
-def enumM : Costed (List (Option (G.Node ⊕ G.Link))) := ⟨G.allX, G.allX.length⟩
+/-- The enumeration: a traversal of the explicit list `allX`, one tick per element. This is the
+only declared charge of the reduction: building the list itself (nested loops over
+`List.finRange`) is free, like building tuples. -/
+def enumM : Costed (List (Option (G.Node ⊕ G.Link))) := G.allX.mapM tick
+
+lemma val_enumM : G.enumM.val = G.allX := by simp [enumM]
+
+lemma cost_enumM : G.enumM.cost = G.allX.length := by
+  simp only [enumM, cost_mapM, tick]
+  induction G.allX with
+  | nil => rfl
+  | cons a l ih => simp [add_comm]
 
 lemma nodup_sumList {α β : Type u} {l₁ : List α} {l₂ : List β} (h₁ : l₁.Nodup)
     (h₂ : l₂.Nodup) : (sumList l₁ l₂).Nodup := by
@@ -261,14 +322,34 @@ lemma length_allX : G.allX.length = G.numPrices := by
 
 /-! ### The programs compute the instance -/
 
+lemma val_loM (k : Fin m) : (G.loM k).val = G.lo k := by
+  simp only [loM, nlt, tick, val_bind, val_pure, decide_eq_true_eq, lo]
+  split_ifs with h <;> apply Fin.ext <;> simp only [Fin.coe_min] <;> omega
+
+lemma val_hiM (k : Fin m) : (G.hiM k).val = G.hi k := by
+  simp only [hiM, nlt, tick, val_bind, val_pure, decide_eq_true_eq, hi]
+  split_ifs with h <;> apply Fin.ext <;> simp only [Fin.coe_max] <;> omega
+
+lemma val_jAM (k : Fin m) (i : Fin 3) : (jAM k i).val = jA k i := by
+  have := k.isLt; have := i.isLt
+  simp only [jAM, nmul, nadd, tick, val_bind, val_pure, toFin, jA, Fin.ext_iff]
+  exact Nat.mod_eq_of_lt (by omega)
+
+lemma val_endsM (k : G.Link) : (G.endsM k).val = (G.linkU k, G.linkV k) := by
+  have hc := G.colLen_pos
+  rcases k with ⟨v, i, j⟩ | ⟨k, i, j⟩ | ⟨k, i, _ | _⟩ | ⟨v, t⟩
+  all_goals simp only [endsM, linkUM, linkVM, linkU, linkV, nadd, nsub, nmul, nmod, tick,
+    val_bind, val_pure, val_loM, val_hiM, val_jAM, row, col, toFin, Prod.mk.injEq,
+    Sum.inl.injEq, Sum.inr.injEq, Sigma.mk.inj_iff, heq_eq_eq, Fin.ext_iff, true_and, and_true]
+  · have := j.isLt; rw [Fin.val_succ]; exact Nat.mod_eq_of_lt (by omega)
+  · have := j.isLt; exact Nat.mod_eq_of_lt (by omega)
+  · have := hc k; simp only [colLen] at this ⊢; exact Nat.mod_eq_of_lt (by omega)
+  · simp [Fin.val_add]
+
 lemma val_posM (w : G.Node) : (G.posM w).val = G.pos w := by
   rcases w with ⟨v, i, j⟩ | ⟨k, i, j⟩
   · simp [posM, x0M, pos, x0, Fin.ext_iff]
-  · have : (if G.ev k < G.eu k then G.ev k else G.eu k) = G.lo k := by
-      simp only [lo]; split_ifs with h
-      · exact (min_eq_right h.le).symm
-      · exact (min_eq_left (not_lt.1 h)).symm
-    simp [posM, colXM, loM, pos, colX, Fin.ext_iff, this]
+  · simp [posM, colXM, val_loM, pos, colX, Fin.ext_iff]
 
 lemma val_aM (w : G.Node) : (G.aM w).val = (G.aQ w 0, G.aQ w 1) := by
   simp [aM, val_posM, scaleM, aQ, scaleQ]
@@ -280,13 +361,13 @@ lemma liftQ_vec (a : Fin 2 → ℚ) : liftQ ![a 0, a 1] = liftQ a := by
   congr 1; funext j; fin_cases j <;> rfl
 
 lemma val_etaM(k : G.Link) : (G.etaM k).val = G.etaQ k := by
-  simp [etaM, endsM, val_posM, scaleM, etaQ, scaleQ, nrm, sq]
+  simp [etaM, val_endsM, val_posM, scaleM, etaQ, scaleQ, nrm, sq]
 
 theorem val_priceM (x : Option (G.Node ⊕ G.Link)) : (G.priceM x).val = G.priceQ x := by
   rcases x with _ | v | k
   · rfl
   · simp only [priceM, val_bind, val_aM, val_liftQM, priceQ, liftQ_vec]
-  · simp only [priceM, val_bind, val_aM, val_liftQM, val_etaM, endsM, priceQ]
+  · simp only [priceM, val_bind, val_aM, val_liftQM, val_etaM, val_endsM, priceQ]
     rw [← liftQ_vec (fun j => (G.aQ (G.linkU k) j + G.aQ (G.linkV k) j) / 2)]
     funext i; fin_cases i <;> rfl
 
@@ -301,6 +382,10 @@ theorem val_outputM (x : Option (G.Node ⊕ G.Link)) : (G.outputM x).val = G.out
 lemma cost_posM_le (w : G.Node) : (G.posM w).cost ≤ 13 := by
   rcases w with ⟨v, i, j⟩ | ⟨k, i, j⟩ <;> simp [posM, x0M, colXM, loM]
 
+lemma cost_endsM_le (k : G.Link) : (G.endsM k).cost ≤ 10 := by
+  rcases k with ⟨v, i, j⟩ | ⟨k, i, j⟩ | ⟨k, i, _ | _⟩ | ⟨v, t⟩ <;>
+    simp [endsM, linkUM, linkVM, loM, hiM, jAM]
+
 lemma cost_aM_le (w : G.Node) : (G.aM w).cost ≤ 21 := by
   have := G.cost_posM_le w
   simp [aM, scaleM]; omega
@@ -314,11 +399,12 @@ theorem cost_priceM_le (x : Option (G.Node ⊕ G.Link)) : (G.priceM x).cost ≤ 
     have := G.cost_aM_le (G.linkV k)
     have := G.cost_posM_le (G.linkU k)
     have := G.cost_posM_le (G.linkV k)
-    simp [priceM, liftQM, sqnM, etaM, endsM, scaleM]; omega
+    have := G.cost_endsM_le k
+    simp [priceM, liftQM, sqnM, etaM, scaleM, val_endsM]; omega
 
 theorem cost_outputM_le (x : Option (G.Node ⊕ G.Link)) : (G.outputM x).cost ≤ 6 := by
   rcases x with _ | ⟨_, _, j⟩ | ⟨_, _, j⟩ | k <;> simp [outputM, svalM] <;> split <;> simp
 
 end Graph
 
-end NeoTiling.NPHardness
+end NeoTiling.Hardness

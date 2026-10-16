@@ -6,7 +6,7 @@ import Mathlib
 `Costed α`: a value together with a count of operations; `pure` is free and `bind` adds the
 counts. `tick` spends one unit, `tickN c` spends `c`. `val_mapM`, `cost_mapM`: `List.mapM` maps the
 values and sums the costs. What a unit means is fixed by the user of the monad: one arithmetic
-operation in `Hardness.Costed`, one oracle call in `Perturbation.Search`.
+operation or comparison in `Hardness.Costed`.
 -/
 
 namespace NeoTiling

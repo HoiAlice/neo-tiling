@@ -3,18 +3,16 @@ import NeoTiling.Hardness.Main
 /-!
 # The reduction as a computable rational instance
 
-`Main.lean` builds the instance over `ℝ` and numbers it by the noncomputable `Fintype.equivFin`.
-Here the same instance is written over `ℚ` with computable definitions:
+`Main.lean` builds the instance over `ℝ`. Here the prices and outputs are written over `ℚ` with
+computable definitions:
 
 * `priceQ`, `outputQ`: the prices and outputs over `ℚ`; `priceQ_cast`, `outputQ_cast`: their
-  casts to `ℝ` are `Gadget.price` and `output`;
-* `indexQ`: an explicit numbering of the prices, built from `finProdFinEquiv`,
-  `finSumFinEquiv`, `finSigmaFinEquiv`, `finSuccEquiv`;
-* `pricesQ`, `outputsQ`: the computable instance, and `weakSolvableQ_iff_colorable`,
-  `neoSolvableQ_iff_colorable`.
+  casts to `ℝ` are `Gadget.price` and `output`.
+
+The numbering of the prices is the enumeration `enumM` of `Costed.lean`.
 -/
 
-namespace NeoTiling.NPHardness
+namespace NeoTiling.Hardness
 
 open Finset
 
@@ -83,87 +81,6 @@ lemma outputQ_cast (x : Option (G.Node ⊕ G.Link)) :
     ((G.outputQ x : ℚ) : ℝ) = output (E := G.Link) G.sval x := by
   rcases x with _ | v | k <;> simp [outputQ, output, svalQ_cast]
 
-/-! ### An explicit numbering -/
-
-/-- The number of row nodes. -/
-def numRowNodes : ℕ := n * (3 * (12 * m + 1))
-
-/-- The number of column nodes. -/
-def numColNodes : ℕ := ∑ k, 3 * G.colLen k
-
-/-- The number of nodes. -/
-def numNodesQ : ℕ := numRowNodes (n := n) (m := m) + G.numColNodes
-
-/-- The number of links. -/
-def numLinksQ : ℕ :=
-  n * (3 * (12 * m)) + ((∑ k, 3 * (G.colLen k - 1)) + (m * (3 * 2) + n * 3))
-
-/-- The number of prices, an explicit expression. -/
-def numPricesQ : ℕ := G.numNodesQ + G.numLinksQ + 1
-
-/-- Numbering of `Fin a × Fin b × Fin c`. -/
-def triple (a b c : ℕ) : Fin a × Fin b × Fin c ≃ Fin (a * (b * c)) :=
-  (Equiv.prodCongr (Equiv.refl _) finProdFinEquiv).trans finProdFinEquiv
-
-/-- Numbering of the nodes. -/
-def nodeEquiv : G.Node ≃ Fin G.numNodesQ :=
-  (Equiv.sumCongr (triple _ _ _)
-    ((Equiv.sigmaCongrRight fun _ => finProdFinEquiv).trans finSigmaFinEquiv)).trans
-    finSumFinEquiv
-
-/-- Numbering of the links. -/
-def linkEquiv : G.Link ≃ Fin G.numLinksQ :=
-  (Equiv.sumCongr (triple _ _ _)
-    (Equiv.sumCongr ((Equiv.sigmaCongrRight fun _ => finProdFinEquiv).trans finSigmaFinEquiv)
-      (Equiv.sumCongr
-        ((Equiv.prodCongr (Equiv.refl _)
-          (Equiv.prodCongr (Equiv.refl _) finTwoEquiv.symm)).trans (triple _ _ _))
-        finProdFinEquiv |>.trans finSumFinEquiv) |>.trans finSumFinEquiv)).trans
-    finSumFinEquiv
-
-/-- The explicit numbering of the prices. -/
-def indexQ : Option (G.Node ⊕ G.Link) ≃ Fin G.numPricesQ :=
-  (Equiv.optionCongr ((Equiv.sumCongr G.nodeEquiv G.linkEquiv).trans finSumFinEquiv)).trans
-    (finSuccEquiv _).symm
-
-lemma numPricesQ_eq : G.numPricesQ = G.numPrices := by
-  rw [numPrices, Fintype.card_congr G.indexQ, Fintype.card_fin]
-
-lemma numPricesQ_le : G.numPricesQ ≤ 100 * (n + 1) * (m + 1) :=
-  G.numPricesQ_eq ▸ G.numPrices_le
-
-/-! ### The computable instance -/
-
-/-- The prices, computable and rational. -/
-def pricesQ (t : Fin G.numPricesQ) : Fin 3 → ℚ := G.priceQ (G.indexQ.symm t)
-
-/-- The outputs, computable and rational. -/
-def outputsQ (t : Fin G.numPricesQ) : ℚ := G.outputQ (G.indexQ.symm t)
-
-lemma pricesQ_cast :
-    (fun t i => ((G.pricesQ t i : ℚ) : ℝ)) = fun t => G.gadget.price (G.indexQ.symm t) := by
-  funext t i; exact G.priceQ_cast _ i
-
-lemma outputsQ_cast :
-    (fun t => ((G.outputsQ t : ℚ) : ℝ)) = fun t => output (E := G.Link) G.sval (G.indexQ.symm t) := by
-  funext t; exact G.outputQ_cast _
-
-/-- **Main theorem (weak), rational form.** -/
-theorem weakSolvableQ_iff_colorable :
-    WeakSolvable (fun t i => ((G.pricesQ t i : ℚ) : ℝ)) (fun t => ((G.outputsQ t : ℚ) : ℝ)) ↔
-      G.Colorable := by
-  rw [pricesQ_cast, outputsQ_cast]
-  exact (G.gadget.weakSolvable_iff G.gadget_valid G.indexQ G.sval G.sval_le_one).trans
-    G.inStab_iff_colorable
-
-/-- **Main theorem (strict), rational form.** -/
-theorem neoSolvableQ_iff_colorable :
-    NeoSolvable (fun t i => ((G.pricesQ t i : ℚ) : ℝ)) (fun t => ((G.outputsQ t : ℚ) : ℝ)) ↔
-      G.Colorable := by
-  rw [pricesQ_cast, outputsQ_cast]
-  exact (G.gadget.neoSolvable_iff G.gadget_valid G.indexQ G.sval G.sval_le_one).trans
-    G.inStab_iff_colorable
-
 end Graph
 
-end NeoTiling.NPHardness
+end NeoTiling.Hardness

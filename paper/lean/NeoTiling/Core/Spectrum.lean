@@ -3,7 +3,7 @@ import NeoTiling.Core.Neoclassical
 /-!
 # Realization and the spectrum
 
-Demand sets (`demandSet`), realization of outputs (`Realizes`), neoclassical solvability
+Active sets (`activeSet`), realization of outputs (`Realizes`), neoclassical solvability
 (`NeoSolvable`), open chambers (`specRegion`), the spectrum of nonempty chambers (`spectrum`) and
 the cone spanned by indicators of a family of sets (`indicatorCone`).
 
@@ -25,14 +25,14 @@ variable {d : ℕ}
 
 /-! ### Definitions -/
 
-/-- The demand set `{x ∈ ℝᵈ₊₊ | h (p * x) < 1}` of the price `p`. -/
-def demandSet (h : (Fin d → ℝ) → ℝ) (p : Fin d → ℝ) : Set (Fin d → ℝ) :=
+/-- The active set `{x ∈ ℝᵈ₊₊ | h (p * x) < 1}` of the price `p`. -/
+def activeSet (h : (Fin d → ℝ) → ℝ) (p : Fin d → ℝ) : Set (Fin d → ℝ) :=
   {x | x ∈ orthant d ∧ h (p * x) < 1}
 
 /-- `h` realizes outputs `y` at prices `P`: some measure absolutely continuous w.r.t. Lebesgue
-gives mass `y t` to the demand set of `P t`. -/
+gives mass `y t` to the active set of `P t`. -/
 def Realizes (h : (Fin d → ℝ) → ℝ) {T : ℕ} (P : Fin T → Fin d → ℝ) (y : Fin T → ℝ) : Prop :=
-  ∃ μ : Measure (Fin d → ℝ), μ ≪ volume ∧ ∀ t, μ (demandSet h (P t)) = ENNReal.ofReal (y t)
+  ∃ μ : Measure (Fin d → ℝ), μ ≪ volume ∧ ∀ t, μ (activeSet h (P t)) = ENNReal.ofReal (y t)
 
 /-- `y` is neoclassically solvable at `P`: one neoclassical `h` realizes `y` at all prices near
 `P`. -/
@@ -52,6 +52,27 @@ def spectrum (h : (Fin d → ℝ) → ℝ) {T : ℕ} (P : Fin T → Fin d → �
 /-- The cone spanned by the indicators `1_S`, `S ∈ A`. -/
 def indicatorCone {T : ℕ} (A : Set (Finset (Fin T))) : PointedCone ℝ (Fin T → ℝ) :=
   PointedCone.span ℝ ((fun S : Finset (Fin T) => (S : Set (Fin T)).indicator 1) '' A)
+
+/-- A linear functional nonnegative on the indicators `1_S`, `S ∈ A`, is nonnegative on the cone. -/
+theorem indicatorCone_pairing_nonneg {T : ℕ} {A : Set (Finset (Fin T))}
+    (f : (Fin T → ℝ) →ₗ[ℝ] ℝ) (hf : ∀ S ∈ A, 0 ≤ f ((S : Set (Fin T)).indicator 1))
+    {y : Fin T → ℝ} (hy : y ∈ indicatorCone A) : 0 ≤ f y :=
+  (Submodule.span_le (p := (PointedCone.positive ℝ ℝ).comap f)).2
+    (by rintro _ ⟨S, hS, rfl⟩; exact hf S hS) hy
+
+/-- Vectors of an indicator cone are nonnegative. -/
+theorem indicatorCone_nonneg {T : ℕ} {A : Set (Finset (Fin T))} {y : Fin T → ℝ}
+    (hy : y ∈ indicatorCone A) : 0 ≤ y :=
+  (Submodule.span_le (p := PointedCone.positive ℝ (Fin T → ℝ))).2
+    (by rintro _ ⟨S, hS, rfl⟩; exact Set.indicator_nonneg (fun _ _ => zero_le_one)) hy
+
+/-- Reindexing by `g` maps `indicatorCone A` into `indicatorCone B` if it maps `A` into `B`. -/
+theorem indicatorCone_comp {T k : ℕ} {A : Set (Finset (Fin T))} {B : Set (Finset (Fin k))}
+    (g : Fin k → Fin T) (hAB : ∀ S ∈ A, Finset.univ.filter (fun r => g r ∈ S) ∈ B)
+    {x : Fin T → ℝ} (hx : x ∈ indicatorCone A) : (fun r => x (g r)) ∈ indicatorCone B :=
+  (Submodule.span_le (p := (indicatorCone B).comap (LinearMap.funLeft ℝ ℝ g))).2
+    (by rintro _ ⟨S, hS, rfl⟩; exact Submodule.subset_span ⟨_, hAB S hS, by
+      funext r; simp [Set.indicator_apply, LinearMap.funLeft]⟩) hx
 
 /-- **Level sets are null.** The set `{x ∈ ℝᵈ₊₊ | h (p * x) = c}` is the dilate by `c` of the
 level set `1`; among the disjoint level sets `c > 0` only countably many have positive measure,
@@ -107,9 +128,9 @@ theorem eq_of_mem_specRegion {S S' : Finset (Fin T)} {x : Fin d → ℝ}
 
 /-- For `μ ≪ volume`, `μ (A_t)` is the sum of the masses of the chambers `R_S`, `S ∋ t`: a point
 of `A_t` off the null level sets lies in the chamber of `S = {u | h (p_u * x) < 1}`. -/
-theorem measure_demandSet_eq_sum (hg : IsNeoclassical g) (hP : ∀ t, P t ∈ orthant d)
+theorem measure_activeSet_eq_sum (hg : IsNeoclassical g) (hP : ∀ t, P t ∈ orthant d)
     {μ : Measure (Fin d → ℝ)} (hμ : μ ≪ volume) (t : Fin T) :
-    μ (demandSet g (P t)) = ∑ S with t ∈ S, μ (specRegion g P S) := by
+    μ (activeSet g (P t)) = ∑ S with t ∈ S, μ (specRegion g P S) := by
   classical
   set L := ⋃ s, {x | x ∈ orthant d ∧ g (P s * x) = 1}
   have hL : μ L = 0 := hμ (measure_iUnion_null fun s => hg.volume_levelSet_eq_zero (hP s))
@@ -148,7 +169,7 @@ theorem realizes_indicator (hc : ContinuousOn h (orthant d)) (hP : ∀ t, P t �
     ProbabilityTheory.cond_absolutelyContinuous, fun t => ?_⟩
   rw [ProbabilityTheory.cond_apply measurableSet_ball]
   by_cases ht : t ∈ S
-  · rw [(inter_eq_left (t := demandSet h (P t))).2 fun z hz => ⟨(hB hz).1, (hB hz).2.1 t ht⟩,
+  · rw [(inter_eq_left (t := activeSet h (P t))).2 fun z hz => ⟨(hB hz).1, (hB hz).2.1 t ht⟩,
       ENNReal.inv_mul_cancel (Metric.measure_ball_pos volume x hr).ne' measure_ball_ne_top]
     simp [ht]
   · rw [(eq_empty_iff_forall_notMem (s := Metric.ball x r ∩ _)).2 fun z hz =>
@@ -157,7 +178,7 @@ theorem realizes_indicator (hc : ContinuousOn h (orthant d)) (hP : ∀ t, P t �
 
 /-- **Realizable outputs.** For neoclassical `h` and positive prices, outputs `y ≥ 0` are
 realized by `h` at `P` iff `y` lies in the cone spanned by the indicators of the spectrum
-`Sp(h, P)`. A realization `μ` gives `y = ∑_S μ (R_S) • 1_S` (`measure_demandSet_eq_sum`), and
+`Sp(h, P)`. A realization `μ` gives `y = ∑_S μ (R_S) • 1_S` (`measure_activeSet_eq_sum`), and
 `R_S = ∅` for `S ∉ Sp(h, P)`. Conversely, realizable outputs form a cone containing the
 indicators of the spectrum (`realizes_indicator`). -/
 theorem IsNeoclassical.realizes_iff_mem_indicatorCone (hh : IsNeoclassical h)
@@ -169,7 +190,7 @@ theorem IsNeoclassical.realizes_iff_mem_indicatorCone (hh : IsNeoclassical h)
   · rintro ⟨μ, hμ, hμy⟩
     have hy' : y = ∑ S, (μ (specRegion h P S)).toReal • (S : Set (Fin T)).indicator 1 := by
       ext t
-      have hsum := (measure_demandSet_eq_sum hh hP hμ t).symm.trans (hμy t)
+      have hsum := (measure_activeSet_eq_sum hh hP hμ t).symm.trans (hμy t)
       have hntop : (∑ S with t ∈ S, μ (specRegion h P S)) ≠ ⊤ := hsum ▸ ENNReal.ofReal_ne_top
       rw [← ENNReal.toReal_ofReal (hy t), ← hsum,
         ENNReal.toReal_sum fun S hS => ENNReal.sum_ne_top.1 hntop S hS]
@@ -281,5 +302,54 @@ theorem exists_coef_of_mem_indicatorCone {T : ℕ} {A : Set (Finset (Fin T))} {y
       simp [hμR S h', not_imp_comm.1 (hmR S) h'] at hS
   · simp_rw [sub_smul, Finset.sum_sub_distrib, mul_smul, ← Finset.smul_sum, hμ, smul_zero,
       sub_zero, hmy]
+
+section Cube
+
+variable {T : ℕ}
+
+/-- `1_S` as a vector. -/
+noncomputable def ind (S : Finset (Fin T)) : Fin T → ℝ := (S : Set (Fin T)).indicator 1
+
+/-- **The cube is the hull of its vertices.** If `O ∩ B = ∅` and `0 ≤ z ≤ 1_B`, then `1_O + z` is a
+nonnegative combination of the indicators `1_{O ∪ B'}`, `B' ⊆ B`. Induction on `B`: for
+`B = insert q B₀`, `1_O + z = (1 - z_q)(1_O + z|B₀) + z_q (1_{O ∪ {q}} + z|B₀)`. -/
+theorem cube_mem_span (O B : Finset (Fin T)) (hOB : Disjoint O B) (z : Fin T → ℝ)
+    (hz0 : ∀ q, 0 ≤ z q) (hz1 : ∀ q, z q ≤ ind B q) :
+    (fun q => ind O q + z q) ∈
+      PointedCone.span ℝ ((fun B' => ind (O ∪ B')) '' {B' | B' ⊆ B}) := by
+  induction B using Finset.induction_on generalizing O z with
+  | empty =>
+    obtain rfl : z = 0 := funext fun q => le_antisymm (by simpa [ind] using hz1 q) (hz0 q)
+    exact PointedCone.subset_span ⟨∅, by simp, by ext; simp⟩
+  | insert q B₀ hq ih =>
+    obtain ⟨hqO, hOB₀⟩ := Finset.disjoint_insert_right.1 hOB
+    -- zero out the `q`-coordinate of `z`
+    set z₀ := Function.update z q 0 with hz₀
+    have h0 : ∀ r, 0 ≤ z₀ r := fun r => by by_cases h : r = q <;> simp [hz₀, h, hz0]
+    have h1 : ∀ r, z₀ r ≤ ind B₀ r := fun r => by
+      by_cases h : r = q
+      · simp [hz₀, h, ind, Set.indicator_nonneg]
+      · simpa [hz₀, h, ind, Set.indicator] using hz1 r
+    have hc1 : z q ≤ 1 := by simpa [ind] using hz1 q
+    -- `1_O + z = (1 - z_q) (1_O + z₀) + z_q (1_{O ∪ {q}} + z₀)`
+    have key : (fun r => ind O r + z r) =
+        (⟨1 - z q, by linarith⟩ : NNReal) • (fun r => ind O r + z₀ r) +
+        (⟨z q, hz0 q⟩ : NNReal) • (fun r => ind (insert q O) r + z₀ r) := by
+      funext r
+      by_cases h : r = q
+      · subst h; simp [hz₀, ind, hqO]
+      · simp [hz₀, ind, Set.indicator, h]; ring
+    rw [key]
+    -- both endpoints of the edge lie in the span of the big generator set
+    refine Submodule.add_mem _
+      (Submodule.smul_mem _ _ (Submodule.span_mono ?_ (ih O hOB₀ z₀ h0 h1)))
+      (Submodule.smul_mem _ _ (Submodule.span_mono ?_
+        (ih (insert q O) (Finset.disjoint_insert_left.2 ⟨hq, hOB₀⟩) z₀ h0 h1)))
+    · exact Set.image_mono fun B' h => h.trans (Finset.subset_insert _ _)
+    · rintro _ ⟨B', hB', rfl⟩
+      exact ⟨insert q B', Finset.insert_subset_insert _ hB',
+        by simp [Finset.insert_union, Finset.union_insert]⟩
+
+end Cube
 
 end NeoTiling

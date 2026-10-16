@@ -10,9 +10,7 @@ prices `Q s`, `s ∉ S`, is strictly below `Q t` in every coordinate. This is th
 covers that use at most `d + 1` years.
 -/
 
-namespace NeoTiling.L1Perturbation
-
-open NeoTiling
+namespace NeoTiling.Lp
 
 variable {d T : ℕ}
 
@@ -32,102 +30,48 @@ theorem convex_convComb (v : Fin T → Fin d → ℝ) (A : Finset (Fin T)) :
 /-- **Gordan's alternative.** If no convex combination of the vectors `v s`, `s ∈ A`, is strictly
 negative in every coordinate, then some nonzero `ξ ≥ 0` has `⟨ξ, v s⟩ ≥ 0` for all `s ∈ A`.
 
-Proof. Separate the open convex cone `N = {x | ∀ i, x i < 0}` from the convex set `convComb v A`
-(disjoint by hypothesis, nonempty since `A ≠ ∅`) by `geometric_hahn_banach_open`: `f a < u ≤ f b`
-for `a ∈ N`, `b ∈ convComb v A`. Put `ξ i := f (Pi.single i 1)`, so `f x = ξ ⬝ᵥ x`. Testing
-`a = -λ e_i - ε 1` with `λ → ∞` gives `ξ i ≥ 0`; testing `a = -ε 1` with `ε → 0` gives `u ≥ 0`,
-hence `⟨ξ, v s⟩ = f (v s) ≥ u ≥ 0`. If `ξ = 0` then `f = 0` and `0 < u ≤ 0`. -/
+Proof. Separate the open convex orthant `N = {x | ∀ i, x i < 0}` from the convex set
+`convComb v A` (disjoint by hypothesis) by `geometric_hahn_banach_open`: `f a < u ≤ f b` for
+`a ∈ N`, `b ∈ convComb v A`. Then `f ≤ u` on the closure `{x ≤ 0}`, a cone, so `u ≥ 0` and
+`f ≤ 0` there; with `ξ i := f e_i` this gives `ξ ≥ 0` and `⟨ξ, v s⟩ = f (v s) ≥ u ≥ 0`. If `ξ = 0`
+then `f = 0` and `0 < u ≤ 0`. -/
 theorem gordan (v : Fin T → Fin d → ℝ) {A : Finset (Fin T)} (hA : A.Nonempty)
     (h : ∀ μ : Fin T → ℝ, (∀ s, 0 ≤ μ s) → (∀ s ∉ A, μ s = 0) → ∑ s, μ s = 1 →
       ¬ ∀ i, ∑ s, μ s * v s i < 0) :
     ∃ ξ : Fin d → ℝ, 0 ≤ ξ ∧ ξ ≠ 0 ∧ ∀ s ∈ A, 0 ≤ ξ ⬝ᵥ v s := by
   classical
-  set N : Set (Fin d → ℝ) := {x | ∀ i, x i < 0} with hN
-  have hNo : IsOpen N := by
-    have : N = ⋂ i, {x : Fin d → ℝ | x i < 0} := by ext x; simp [hN]
-    rw [this]
-    exact isOpen_iInter_of_finite fun i => isOpen_lt (continuous_apply i) continuous_const
-  have hNc : Convex ℝ N := by
-    intro x hx y hy a b ha hb hab i
-    have h1 := hx i
-    have h2 := hy i
-    simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
-    rcases ha.eq_or_lt with rfl | ha'
-    · have : 0 < b := by linarith
-      nlinarith
-    · nlinarith
-  have hdis : Disjoint N (convComb v A) := by
-    rw [Set.disjoint_left]
-    intro x hx ⟨μ, h0, hA', h1, hb⟩
-    apply h μ h0 hA' h1
-    intro i
-    have := hx i
-    rw [hb] at this
-    simpa [Finset.sum_apply] using this
-  obtain ⟨f, u, hfa, hfb⟩ := geometric_hahn_banach_open hNc hNo (convex_convComb v A) hdis
-  have hfx : ∀ x, f x = (fun i => f (Pi.single i 1)) ⬝ᵥ x := by
-    intro x
-    conv_lhs => rw [pi_eq_sum_univ x]
-    simp only [map_sum, map_smul, dotProduct, smul_eq_mul]
-    refine Finset.sum_congr rfl fun j _ => ?_
-    have e1 : (fun k => if j = k then (1:ℝ) else 0) = Pi.single j 1 := by
-      ext k; simp [Pi.single_apply, eq_comm]
-    rw [e1, mul_comm]
-  set ξ : Fin d → ℝ := fun i => f (Pi.single i 1) with hξ
-  set c : ℝ := f (fun _ => 1) with hc
-  have hcξ : c = ∑ j, ξ j := by rw [hc, hfx]; simp [dotProduct]
-  have hξ0 : 0 ≤ ξ := by
-    intro i
-    show (0:ℝ) ≤ ξ i
-    by_contra hneg
-    push_neg at hneg
-    set l : ℝ := (|u + c| + 1) / (-ξ i) with hl
-    have hlpos : 0 < l := div_pos (by positivity) (by linarith)
-    have ha : ((-l) • (Pi.single i 1 : Fin d → ℝ) + (-1 : ℝ) • ((fun _ => 1) : Fin d → ℝ)) ∈ N := by
-      intro j; by_cases hj : j = i <;> simp [hj]
-      linarith
-    have := hfa _ ha
-    rw [map_add, map_smul, map_smul] at this
-    have e : l * (-ξ i) = |u + c| + 1 := by
-      have : -ξ i ≠ 0 := by linarith
-      rw [hl, div_mul_cancel₀ _ this]
-    have := le_abs_self (u + c)
-    simp only [smul_eq_mul, ← hξ, ← hc] at *
-    nlinarith
-  have hc0 : 0 ≤ c := by rw [hcξ]; exact Finset.sum_nonneg fun j _ => hξ0 j
-  have hu0 : 0 ≤ u := by
-    by_contra hneg
-    push_neg at hneg
-    set e : ℝ := -u / (2 * (c + 1)) with he
-    have hepos : 0 < e := div_pos (by linarith) (by linarith)
-    have ha : (e • ((fun _ => -1) : Fin d → ℝ)) ∈ N := by
-      intro j; simp [hepos]
-    have h1 := hfa _ ha
-    have h2 : ((fun _ => -1) : Fin d → ℝ) = (-1 : ℝ) • ((fun _ => 1) : Fin d → ℝ) := by ext; simp
-    rw [h2, smul_smul, map_smul] at h1
-    have h3 : e * (c + 1) = -u / 2 := by rw [he]; field_simp
-    simp only [smul_eq_mul, ← hc] at h1
-    nlinarith
-  have hm : ∀ s ∈ A, v s ∈ convComb v A := by
-    intro s hs
-    refine ⟨fun r => if r = s then 1 else 0, fun r => by dsimp only; split_ifs <;> norm_num,
-      fun r hr => ?_, by simp, by simp⟩
-    have : r ≠ s := fun e => hr (e ▸ hs)
-    simp [this]
-  have hvs : ∀ s ∈ A, 0 ≤ ξ ⬝ᵥ v s := by
-    intro s hs
-    have := hfb _ (hm s hs)
-    rw [hfx] at this
+  obtain ⟨f, u, hfa, hfb⟩ := geometric_hahn_banach_open (s := Set.univ.pi fun _ => Set.Iio 0)
+    (convex_pi fun _ _ => convex_Iio 0) (isOpen_set_pi Set.finite_univ fun _ _ => isOpen_Iio)
+    (convex_convComb v A) (Set.disjoint_left.2 fun x hx ⟨μ, h0, hA', h1, hb⟩ =>
+      h μ h0 hA' h1 fun i => by simpa [hb, Finset.sum_apply] using hx i trivial)
+  -- `f ≤ u` on the closure `{x ≤ 0}` of the open orthant, a cone, so `f ≤ 0` there
+  have hcl : ∀ x : Fin d → ℝ, x ≤ 0 → f x ≤ u := fun x hx =>
+    closure_minimal (fun a ha => (hfa a ha).le) (isClosed_le f.continuous continuous_const)
+      (by rw [closure_pi_set]; exact fun i _ => by rw [closure_Iio]; exact hx i)
+  have hle : ∀ x : Fin d → ℝ, x ≤ 0 → f x ≤ 0 := fun x hx => by
+    by_contra! hpos
+    have := hcl (((u + 1) / f x) • x) (smul_nonpos_of_nonneg_of_nonpos (by
+      have := hcl 0 le_rfl; simp at this; positivity) hx)
+    rw [map_smul, smul_eq_mul, div_mul_cancel₀ _ hpos.ne'] at this
     linarith
-  refine ⟨ξ, hξ0, ?_, hvs⟩
-  intro hz
-  obtain ⟨s, hs⟩ := hA
-  have ha : ((fun _ => -1) : Fin d → ℝ) ∈ N := fun j => by simp
-  have h1 := hfa _ ha
-  have h2 := hfb _ (hm s hs)
-  rw [hfx, hz] at h1 h2
-  simp at h1 h2
-  linarith
+  set ξ : Fin d → ℝ := fun i => f fun j => if i = j then 1 else 0
+  have hfx (x : Fin d → ℝ) : f x = ξ ⬝ᵥ x := by
+    rw [← f.coe_coe, f.toLinearMap.pi_apply_eq_sum_univ]
+    simp [ξ, dotProduct, mul_comm]
+  have hu : 0 ≤ u := by simpa using hcl 0 le_rfl
+  have hm (s) (hs : s ∈ A) : v s ∈ convComb v A :=
+    ⟨Pi.single s 1, fun r => by simp [Pi.single_apply]; split_ifs <;> norm_num,
+      fun r hr => by simp [show r ≠ s by rintro rfl; exact hr hs], by simp, by simp⟩
+  refine ⟨ξ, fun i => ?_, fun h0 => ?_, fun s hs => hfx (v s) ▸ hu.trans (hfb _ (hm s hs))⟩
+  · have := hle (fun j => -if i = j then 1 else 0) fun j => by dsimp; split_ifs <;> norm_num
+    have e : (fun j => -if i = j then (1:ℝ) else 0) = -fun j => if i = j then 1 else 0 := rfl
+    rw [e, map_neg] at this
+    exact neg_nonpos.1 this
+  · obtain ⟨s, hs⟩ := hA
+    have h1 := hfa (-1) fun i _ => by simp
+    have h2 := hfb _ (hm s hs)
+    rw [hfx, h0, zero_dotProduct] at h1 h2
+    linarith
 
 /-- **No cover.** For `d ≥ 1`, `S` is weakly reachable at `Q` iff no `t ∈ S` is covered by the
 years outside `S`: no convex combination of `Q s`, `s ∉ S`, is strictly below `Q t`.
@@ -164,69 +108,37 @@ theorem isWeakReachable_iff_no_cover (hd : 0 < d) {Q : Fin T → Fin d → ℝ}
 /-- **Carathéodory.** A convex combination of `Q s`, `s ∈ A`, is also a convex combination of at
 most `d + 1` of them.
 
-Proof. `∑ μ s • Q s ∈ convexHull ℝ (Q '' A)`; by `convexHull_eq_union` it lies in the hull of an
-affinely independent finite `F ⊆ Q '' A`, so `F.card ≤ d + 1`
-(`AffineIndependent.card_le_finrank_succ`, `Module.finrank_fin_fun`). Write the point with weights
-`w` on `F` (`Finset.mem_convexHull`), choose `σ p ∈ A` with `Q (σ p) = p`, and put
-`μ' s := ∑ p ∈ F with σ p = s, w p`; its support lies in `F.image σ`. -/
+Proof. `∑ μ s • Q s ∈ convexHull ℝ (Q '' A)`; by `eq_pos_convex_span_of_mem_convexHull` it is a
+positive combination `∑ w i • z i` of affinely independent points `z i ∈ Q '' A`, `i : ι`, so
+`card ι ≤ d + 1` (`AffineIndependent.card_le_finrank_succ`). Choose `σ i ∈ A` with
+`Q (σ i) = z i` and put `μ' s := ∑ i with σ i = s, w i`; its support lies in the image of `σ`. -/
 theorem exists_small_conv (Q : Fin T → Fin d → ℝ) {A : Finset (Fin T)} (μ : Fin T → ℝ)
     (hμ0 : ∀ s, 0 ≤ μ s) (hμA : ∀ s ∉ A, μ s = 0) (hμ1 : ∑ s, μ s = 1) :
     ∃ μ' : Fin T → ℝ, (∀ s, 0 ≤ μ' s) ∧ (∀ s ∉ A, μ' s = 0) ∧ ∑ s, μ' s = 1 ∧
       (Finset.univ.filter (μ' · ≠ 0)).card ≤ d + 1 ∧ ∑ s, μ' s • Q s = ∑ s, μ s • Q s := by
   classical
   have hx : ∑ s, μ s • Q s ∈ convexHull ℝ (Q '' (A : Set (Fin T))) := by
-    have hsub : ∑ s ∈ A, μ s • Q s = ∑ s, μ s • Q s :=
-      Finset.sum_subset (Finset.subset_univ _) (fun s _ hs => by simp [hμA s hs])
-    rw [← hsub]
-    refine (convex_convexHull ℝ _).sum_mem (fun s _ => hμ0 s) ?_ (fun s hs => ?_)
-    · rw [Finset.sum_subset (Finset.subset_univ A) (fun s _ hs => hμA s hs)]; exact hμ1
-    · exact subset_convexHull ℝ _ ⟨s, hs, rfl⟩
-  rw [convexHull_eq_union] at hx
-  simp only [Set.mem_iUnion] at hx
-  obtain ⟨F, hFs, hai, hxF⟩ := hx
-  have hcard : F.card ≤ d + 1 := by
-    have := hai.card_le_finrank_succ
-    have h2 := Submodule.finrank_le (vectorSpan ℝ (Set.range ((↑) : F → Fin d → ℝ)))
-    simp only [Module.finrank_fin_fun] at h2
-    simp only [Fintype.card_coe] at this
-    omega
-  obtain ⟨w, hw0, hw1, hwc⟩ := Finset.mem_convexHull.mp hxF
-  obtain ⟨q, hq⟩ : F.Nonempty := by
-    by_contra h
-    rw [Finset.not_nonempty_iff_eq_empty] at h
-    simp [h] at hw1
-  obtain ⟨s0, -, -⟩ := hFs hq
-  have hex : ∀ p : Fin d → ℝ, ∃ s : Fin T, p ∈ F → s ∈ A ∧ Q s = p := by
-    intro p
-    by_cases hp : p ∈ F
-    · obtain ⟨s, hs, hsp⟩ := hFs hp
-      exact ⟨s, fun _ => ⟨hs, hsp⟩⟩
-    · exact ⟨s0, fun h => absurd h hp⟩
-  choose σ hσ using hex
-  refine ⟨fun s => ∑ p ∈ F, if σ p = s then w p else 0, ?_, ?_, ?_, ?_, ?_⟩
-  · intro s
-    exact Finset.sum_nonneg (fun p hp => by split_ifs <;> simp [hw0 p hp])
-  · intro s hs
-    refine Finset.sum_eq_zero (fun p hp => ?_)
-    have := (hσ p hp).1
-    rw [if_neg (fun h : σ p = s => hs (h ▸ this))]
-  · simp only
-    rw [Finset.sum_comm]
-    simpa using hw1
-  · refine le_trans (Finset.card_le_card (t := F.image σ) ?_) ((Finset.card_image_le).trans hcard)
-    intro s hs
-    simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hs
+    rw [← Finset.sum_subset A.subset_univ fun s _ hs => by simp [hμA s hs]]
+    exact (convex_convexHull ℝ _).sum_mem (fun s _ => hμ0 s)
+      (by rwa [Finset.sum_subset A.subset_univ fun s _ hs => hμA s hs])
+      fun s hs => subset_convexHull ℝ _ ⟨s, hs, rfl⟩
+  obtain ⟨ι, _, z, w, hz, hai, hw0, hw1, hwz⟩ := eq_pos_convex_span_of_mem_convexHull hx
+  choose σ hσA hσ using fun i => hz ⟨i, rfl⟩
+  have hcard : Fintype.card ι ≤ d + 1 := by
+    have := (Submodule.finrank_le (vectorSpan ℝ (Set.range z))).trans_eq (Module.finrank_fin_fun ℝ)
+    have := hai.card_le_finrank_succ; omega
+  refine ⟨fun s => ∑ i, if σ i = s then w i else 0, fun s => Finset.sum_nonneg fun i _ => by
+      split_ifs <;> simp [(hw0 i).le], fun s hs => Finset.sum_eq_zero fun i _ =>
+      if_neg fun (h : σ i = s) => hs (h ▸ hσA i), by rw [Finset.sum_comm]; simpa using hw1, ?_, ?_⟩
+  · refine (Finset.card_le_card (t := Finset.univ.image σ) fun s hs => ?_).trans
+      (Finset.card_image_le.trans hcard)
     by_contra hn
-    apply hs
-    refine Finset.sum_eq_zero (fun p hp => ?_)
-    rw [if_neg (fun h => hn (Finset.mem_image.mpr ⟨p, hp, h⟩))]
-  · rw [← hwc, Finset.centerMass_eq_of_sum_1 _ _ hw1]
-    simp only [id, Finset.sum_smul]
+    exact (Finset.mem_filter.1 hs).2 (Finset.sum_eq_zero fun i _ =>
+      if_neg fun h => hn (Finset.mem_image.2 ⟨i, Finset.mem_univ _, h⟩))
+  · rw [← hwz]
+    simp only [Finset.sum_smul, ite_smul, zero_smul]
     rw [Finset.sum_comm]
-    refine Finset.sum_congr rfl (fun p hp => ?_)
-    simp only [ite_smul, zero_smul]
-    rw [Finset.sum_ite_eq]
-    simp [(hσ p hp).2]
+    simp [hσ]
 
 /-- **No small cover.** In `isWeakReachable_iff_no_cover` it suffices to exclude covers by at
 most `d + 1` years.
@@ -251,4 +163,4 @@ theorem isWeakReachable_iff_no_small_cover (hd : 0 < d) {Q : Fin T → Fin d →
     simp only [Finset.sum_apply, Pi.smul_apply, smul_eq_mul] at this
     rw [this]; exact hlt i
 
-end NeoTiling.L1Perturbation
+end NeoTiling.Lp

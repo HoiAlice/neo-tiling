@@ -1,10 +1,7 @@
 import NeoTiling.Core.Closure
-import NeoTiling.Planar.FlowLP
 
 /-!
 # Supporting functionals for the box criterion
-
-Copied unchanged from `OLD/box-perturbation/lean` (not part of the `NeoTiling` library).
 
 For prices `P` and a set `S`, a point `z` is *supported* if some nonzero `ξ ≥ 0` has
 `⟨ξ, P r - z⟩ ≥ 0` for every `r ∉ S` (it is not interior to the hull of `{P r | r ∉ S}` plus the
@@ -12,9 +9,9 @@ orthant), and *strictly supported* if the inequalities are strict. `S` is weakly
 every `P t`, `t ∈ S`, is supported. These two properties carry the proof of `box_iff`.
 -/
 
-namespace NeoTiling.BoxPerturbation
+namespace NeoTiling.Perturbation
 
-open NeoTiling Finset
+open Finset
 open scoped Classical
 
 variable {d N M : ℕ}
@@ -44,12 +41,6 @@ theorem Supported.mono {z z' : Fin d → ℝ} (h : Supported P S z) (hz : z' ≤
     Supported P S z' :=
   let ⟨ξ, h0, hne, h⟩ := h; ⟨ξ, h0, hne, fun r hr => (h r hr).trans (dotProduct_sub_le h0 hz _)⟩
 
-/-- Strictly supported points form a down-set. -/
-theorem StrictlySupported.mono {z z' : Fin d → ℝ} (h : StrictlySupported P S z) (hz : z' ≤ z) :
-    StrictlySupported P S z' :=
-  let ⟨ξ, h0, hne, h⟩ := h
-  ⟨ξ, h0, hne, fun r hr => (h r hr).trans_le (dotProduct_sub_le h0 hz _)⟩
-
 /-- A point of a weakly reachable set is supported: this is the definition. -/
 theorem IsWeakReachable.supported (hS : IsWeakReachable P S) {t : Fin N} (ht : t ∈ S) :
     Supported P S (P t) :=
@@ -78,29 +69,36 @@ theorem isWeakReachable_of_supported {W : Fin M → Fin d → ℝ} {R : Finset (
     simp only [dotProduct_sub]; ring
   linarith [hξ r hr]
 
-/-- Supported points form a closed set: normalise `ξ` into the compact standard simplex. -/
-theorem isClosed_setOf_supported : IsClosed {z : Fin d → ℝ | Supported P S z} := by
+/-- The pairs `(P, z)` with `z` supported by `{P r | r ∉ S}` form a closed set: normalise `ξ`
+into the compact standard simplex and project along it. -/
+theorem isClosed_setOf_supported_pair (S : Finset (Fin N)) :
+    IsClosed {p : (Fin N → Fin d → ℝ) × (Fin d → ℝ) | Supported p.1 S p.2} := by
   haveI : CompactSpace (stdSimplex ℝ (Fin d)) :=
     isCompact_iff_compactSpace.mp (isCompact_stdSimplex _)
-  let C : Set (stdSimplex ℝ (Fin d) × (Fin d → ℝ)) :=
-    {p | ∀ r ∉ S, 0 ≤ (p.1 : Fin d → ℝ) ⬝ᵥ (P r - p.2)}
+  let C : Set (stdSimplex ℝ (Fin d) × ((Fin N → Fin d → ℝ) × (Fin d → ℝ))) :=
+    {q | ∀ r ∉ S, 0 ≤ (q.1 : Fin d → ℝ) ⬝ᵥ (q.2.1 r - q.2.2)}
   have hC : IsClosed C := by
     simp only [C, Set.setOf_forall]
     exact isClosed_iInter fun r => isClosed_iInter fun _ => isClosed_le continuous_const
       ((continuous_subtype_val.comp continuous_fst).dotProduct
-        (continuous_const.sub continuous_snd))
+        (((continuous_apply r).comp (continuous_fst.comp continuous_snd)).sub
+          (continuous_snd.comp continuous_snd)))
   convert isClosedMap_snd_of_compactSpace _ hC using 1
-  ext z
+  ext p
   constructor
   · rintro ⟨ξ, h0, hne, h⟩
     obtain ⟨c, hc, hcξ⟩ := exists_smul_mem_stdSimplex h0 hne
-    refine ⟨(⟨c • ξ, hcξ⟩, z), fun r hr => ?_, rfl⟩
-    show 0 ≤ (c • ξ) ⬝ᵥ (P r - z)
+    refine ⟨(⟨c • ξ, hcξ⟩, p), fun r hr => ?_, rfl⟩
+    show 0 ≤ (c • ξ) ⬝ᵥ (p.1 r - p.2)
     rw [smul_dotProduct]; exact mul_nonneg hc.le (h r hr)
-  · rintro ⟨⟨⟨ξ, hξ⟩, z'⟩, h, rfl⟩
+  · rintro ⟨⟨⟨ξ, hξ⟩, p'⟩, h, rfl⟩
     refine ⟨ξ, hξ.1, ?_, h⟩
     rintro rfl
     simpa using hξ.2
+
+/-- Supported points form a closed set: a slice of `isClosed_setOf_supported_pair`. -/
+theorem isClosed_setOf_supported : IsClosed {z : Fin d → ℝ | Supported P S z} :=
+  (isClosed_setOf_supported_pair S).preimage (continuous_const.prodMk continuous_id)
 
 /-- Strictly supported points form an open set: finitely many strict inequalities. -/
 theorem isOpen_setOf_strictlySupported : IsOpen {z : Fin d → ℝ | StrictlySupported P S z} := by
@@ -115,79 +113,20 @@ theorem isOpen_setOf_strictlySupported : IsOpen {z : Fin d → ℝ | StrictlySup
 
 /-- **A point between two semicontinuous functions.** If `lo ≤ hi` on `[0, 1]`, `hi` is upper and
 `lo` lower semicontinuous, `c ≤ hi 0` and `lo 1 ≤ c`, then `lo s ≤ c ≤ hi s` for some
-`s ∈ [0, 1]`. Take `s = sup {s ∈ [0, 1] | c ≤ hi s}`, attained since the set is closed. If
-`c < lo s` and `s < 1`, points slightly to the right have `c < lo ≤ hi`, against maximality. -/
+`s ∈ [0, 1]`. The closed sets `{lo ≤ c}` and `{c ≤ hi}` cover the connected `[0, 1]` (as
+`lo ≤ hi`) and meet it at `1` and `0`, so they intersect (`isPreconnected_closed_iff`). -/
 theorem exists_mem_Icc_between {hi lo : ℝ → ℝ} {c : ℝ} (hhi : UpperSemicontinuous hi)
     (hlo : LowerSemicontinuous lo) (hle : ∀ s ∈ Set.Icc (0 : ℝ) 1, lo s ≤ hi s)
     (h0 : c ≤ hi 0) (h1 : lo 1 ≤ c) :
     ∃ s ∈ Set.Icc (0 : ℝ) 1, lo s ≤ c ∧ c ≤ hi s := by
-  have hA : IsClosed {s ∈ Set.Icc (0 : ℝ) 1 | c ≤ hi s} :=
-    isClosed_Icc.inter (hhi.isClosed_preimage c)
-  have hne : {s ∈ Set.Icc (0 : ℝ) 1 | c ≤ hi s}.Nonempty := ⟨0, ⟨le_rfl, zero_le_one⟩, h0⟩
-  have hbdd : BddAbove {s ∈ Set.Icc (0 : ℝ) 1 | c ≤ hi s} := ⟨1, fun s hs => hs.1.2⟩
-  obtain ⟨⟨hs0, hs1⟩, hcs⟩ := hA.csSup_mem hne hbdd
-  set s := sSup {s ∈ Set.Icc (0 : ℝ) 1 | c ≤ hi s} with hs
-  refine ⟨s, ⟨hs0, hs1⟩, ?_, hcs⟩
-  by_contra hlt
-  push_neg at hlt
-  rcases hs1.eq_or_lt with h | h
-  · exact absurd (h ▸ h1) (not_le.2 hlt)
-  -- points slightly to the right of `s` still have `c < lo ≤ hi`
-  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 (hlo.isOpen_preimage c) s hlt
-  have hm : min 1 (s + ε / 2) ∈ Metric.ball s ε := by
-    rw [Metric.mem_ball, Real.dist_eq, abs_lt]
-    have h1 := min_le_right 1 (s + ε / 2)
-    have h2 := le_min h.le (by linarith : s ≤ s + ε / 2)
-    constructor <;> linarith
-  have hgt : s < min 1 (s + ε / 2) := lt_min h (by linarith)
-  have hI : min 1 (s + ε / 2) ∈ Set.Icc (0 : ℝ) 1 := ⟨by linarith, min_le_left _ _⟩
-  have hmem : min 1 (s + ε / 2) ∈ {s ∈ Set.Icc (0 : ℝ) 1 | c ≤ hi s} :=
-    ⟨hI, (le_of_lt (show c < lo _ from hball hm)).trans (hle _ hI)⟩
-  exact absurd (le_csSup hbdd hmem) (not_le.2 hgt)
-
-/-- **A point of the box between the two weights.** For weights `m ≥ 0` on sets `S k`, if the
-lower corner `l` has supported weight `≥ c` and the upper corner `u` strictly supported weight
-`≤ c`, then some `q ∈ [l, u]` has strictly supported weight `≤ c ≤` supported weight. Apply
-`exists_mem_Icc_between` on the segment `l + s • (u - l)`: the weights are sums of indicators of
-closed and open sets. -/
-theorem exists_point_between {n : ℕ} {S : Fin n → Finset (Fin N)} (m : Fin n → ℝ)
-    (hm : ∀ k, 0 ≤ m k) {l u : Fin d → ℝ} (hlu : l ≤ u) {c : ℝ}
-    (h0 : c ≤ ∑ k, if Supported P (S k) l then m k else 0)
-    (h1 : (∑ k, if StrictlySupported P (S k) u then m k else 0) ≤ c) :
-    ∃ q, l ≤ q ∧ q ≤ u ∧ (∑ k, if StrictlySupported P (S k) q then m k else 0) ≤ c ∧
-      c ≤ ∑ k, if Supported P (S k) q then m k else 0 := by
-  let z : ℝ → Fin d → ℝ := fun s => l + s • (u - l)
-  have hz : Continuous z := by fun_prop
-  have hzb : ∀ s ∈ Set.Icc (0 : ℝ) 1, l ≤ z s ∧ z s ≤ u := by
-    intro s ⟨hs0, hs1⟩
-    have hd : 0 ≤ u - l := sub_nonneg.2 hlu
-    refine ⟨fun i => ?_, fun i => ?_⟩
-    · have := mul_nonneg hs0 (hd i); simp [z]; simpa using this
-    · have := mul_le_mul_of_nonneg_right hs1 (hd i); simp [z] at this ⊢; linarith
-  -- both weights are sums of indicators of closed (resp. open) sets of parameters
-  have hsum : ∀ (p : Finset (Fin N) → (Fin d → ℝ) → Prop) (s : ℝ),
-      (∑ k, if p (S k) (z s) then m k else 0) =
-        ∑ k, Set.indicator {s | p (S k) (z s)} (fun _ => m k) s := by
-    intro p s; simp [Set.indicator]
-  have hup : UpperSemicontinuous fun s => ∑ k, if Supported P (S k) (z s) then m k else 0 := by
-    simp_rw [hsum]
-    exact upperSemicontinuous_sum fun k _ =>
-      (isClosed_setOf_supported.preimage hz).upperSemicontinuous_indicator (hm k)
-  have hlow : LowerSemicontinuous fun s =>
-      ∑ k, if StrictlySupported P (S k) (z s) then m k else 0 := by
-    simp_rw [hsum]
-    exact lowerSemicontinuous_sum fun k _ =>
-      (isOpen_setOf_strictlySupported.preimage hz).lowerSemicontinuous_indicator (hm k)
-  obtain ⟨s, hs, h1', h2'⟩ := exists_mem_Icc_between hup hlow
-    (fun s _ => Finset.sum_le_sum fun k _ => by
-      by_cases h : StrictlySupported P (S k) (z s)
-      · simp [h, h.supported]
-      · simp only [h, if_false]; split_ifs <;> simp [hm k])
-    (by simpa [z] using h0) (by simpa [z] using h1)
-  exact ⟨z s, (hzb s hs).1, (hzb s hs).2, h1', h2'⟩
+  obtain ⟨s, hs, h2, h3⟩ := isPreconnected_closed_iff.1 isPreconnected_Icc _ _
+    (hlo.isClosed_preimage c) (hhi.isClosed_preimage c)
+    (fun s hs => (le_total (lo s) c).imp id fun h => h.trans (hle s hs))
+    ⟨1, ⟨zero_le_one, le_rfl⟩, h1⟩ ⟨0, ⟨le_rfl, zero_le_one⟩, h0⟩
+  exact ⟨s, hs, h2, h3⟩
 
 /-- **Between two indicators.** If every `R` with `Rmin ⊆ R ⊆ Rmax` lies in `A` and
-`1_Rmin ≤ v ≤ 1_Rmax`, then `v` lies in the cone of `A` (`PolyHardness.cube_mem_span` with
+`1_Rmin ≤ v ≤ 1_Rmax`, then `v` lies in the cone of `A` (`cube_mem_span` with
 `O = Rmin`, `B = Rmax \ Rmin`). -/
 theorem mem_indicatorCone_of_ind_le {T : ℕ} {A : Set (Finset (Fin T))}
     {Rmin Rmax : Finset (Fin T)} (hA : ∀ R, Rmin ⊆ R → R ⊆ Rmax → R ∈ A) (v : Fin T → ℝ)
@@ -203,11 +142,11 @@ theorem mem_indicatorCone_of_ind_le {T : ℕ} {A : Set (Finset (Fin T))}
     linarith
   set z : Fin T → ℝ := fun t => v t - (Rmin : Set (Fin T)).indicator 1 t with hzdef
   have hz0 : ∀ q, 0 ≤ z q := fun q => sub_nonneg.2 (hlo q)
-  have hz1 : ∀ q, z q ≤ PolyHardness.ind (Rmax \ Rmin) q := by
+  have hz1 : ∀ q, z q ≤ ind (Rmax \ Rmin) q := by
     intro q
     have h1 := hlo q
     have h2 := hhi q
-    simp only [hzdef, PolyHardness.ind]
+    simp only [hzdef, ind]
     by_cases hq : q ∈ Rmin
     · simp [hq, hsub hq] at h1 h2 ⊢
       linarith
@@ -216,9 +155,9 @@ theorem mem_indicatorCone_of_ind_le {T : ℕ} {A : Set (Finset (Fin T))}
         simpa [hq, hq'] using h2
       · simp [hq, hq'] at h2 ⊢
         linarith
-  have hmem := PolyHardness.cube_mem_span Rmin (Rmax \ Rmin) Finset.disjoint_sdiff z hz0 hz1
-  have hv : (fun q => PolyHardness.ind Rmin q + z q) = v := by
-    funext q; simp [hzdef, PolyHardness.ind]
+  have hmem := cube_mem_span Rmin (Rmax \ Rmin) Finset.disjoint_sdiff z hz0 hz1
+  have hv : (fun q => ind Rmin q + z q) = v := by
+    funext q; simp [hzdef, ind]
   rw [hv] at hmem
   refine Submodule.span_mono ?_ hmem
   rintro _ ⟨B', hB', rfl⟩
@@ -321,4 +260,4 @@ theorem exists_corner_set {T : ℕ} {Q L U : Fin T → Fin d → ℝ} {S : Finse
       Finset.sum_nonpos fun i _ => mul_nonpos_of_nonneg_of_nonpos (h0 i) (by simp [(hQ t i).2])
     linarith
 
-end NeoTiling.BoxPerturbation
+end NeoTiling.Perturbation

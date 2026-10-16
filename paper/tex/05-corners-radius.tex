@@ -1,117 +1,67 @@
 %% Lean: NeoTiling.Perturbation.{Support,Box}, NeoTiling.Lp.Cover.
 \section{The box oracle}\label{sec:corners}
 
-Throughout, $d\ge2$ and $y\in\Rp[T]$. A family $W=(w_r)_{r\in R}$ of points of $\R^d$ may be indexed by any finite set $R$; $\wSp(W)$ is the family of its weakly reachable spectra (\cref{def:weak}), and an element $w\in\cone\set{\ind S\mid S\in\wSp(W)}$ is regarded as a function $w\colon R\to\R_+$. For $L_t\le U_t$ the box $[L_t,U_t]$ is the set of $q\in\R^d$ with $L_t\le q\le U_t$ coordinatewise; zero widths are allowed. For two families $L=(L_t)_{t\in[T]}$ and $U=(U_t)_{t\in[T]}$ we write $W:=(L,U)$ for the family of $2T$ points indexed by two disjoint copies of $[T]$, so that $w(L_t)$ and $w(U_t)$ denote the values of $w$ at the lower and the upper corner of $t$.
+Throughout, $d\ge2$ (except in \cref{lem:cover}, where $d\ge1$) and $y\in\Rp[T]$. A family $W=(W_r)_{r\in R}$ of points of $\Rp[d]$ may be indexed by any finite set $R$; $\wSp(W)$ is the family of its weakly reachable spectra, defined as in \cref{def:weak} for finite families of points (in $\Rp[d]$, except in \cref{lem:cover}, where any points of $\R^d$ are allowed), and $w\in\cone\set{\ind S\mid S\in\wSp(W)}$ is regarded as a function $w\colon R\to\R_+$. For two families $L=(L_t)_{t\in[T]}$, $U=(U_t)_{t\in[T]}$ we write $W:=(L,U)$ for the family of $2T$ points indexed by two disjoint copies of $[T]$, and $w^-_t:=w(L_t)$, $w^+_t:=w(U_t)$ for the values of $w$ at the lower and the upper corner of $t$. Boxes $L_t\le q\le U_t$ of zero width are allowed.
 
-\subsection{Supporting functionals}
-Let $V=(v_r)_{r\in N}$ be a finite family in $\R^d$, $S\subset N$ and $z\in\R^d$. The point $z$ is \emph{supported} by $V$ off $S$ if there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{v_r-z}\ge0$ for all $r\notin S$, and \emph{strictly supported} if $\ip{\xi}{v_r-z}>0$ for all $r\notin S$. \hfill\lean{Supported}, \lean{StrictlySupported}
+Let $V=(v_r)_{r\in N}$ be a finite family, $S\subset N$ and $z\in\R^d$. The point $z$ is \emph{supported} by $V$ off $S$ if $\ip{\xi}{v_r-z}\ge0$ for all $r\notin S$ for some nonzero $\xi\in\Rp[d]$, and \emph{strictly supported} if moreover the inequalities are strict. Thus $S\in\wSp(V)$ if and only if $v_t$ is supported off $S$ for every $t\in S$. Since $\xi\ge0$, both properties pass from $z$ to every $z'\le z$. By the separation theorems \citep[Thms.~11.3, 11.4]{Rockafellar1970}, $z$ is supported if and only if $z\notin\interior K_S$, and strictly supported if and only if $z\notin K_S$, where $K_S:=\conv\set{v_r\mid r\notin S}+\Rp[d]$.
 
-With $K_S:=\conv\set{v_r\mid r\notin S}+\Rp[d]$ ($K_N:=\varnothing$), the separation theorem shows that $z$ is supported if and only if $z\notin\interior K_S$, and strictly supported if and only if $z\notin K_S$. The Lean development works with the functionals $\xi$ directly.
-
-\begin{lemma}[reachability and support]\label{lem:interior}
-Let $V$, $S$ be as above.
-\begin{enumerate}[label=(\roman*)]
-\item $S\in\wSp(V)$ if and only if $v_t$ is supported by $V$ off $S$ for every $t\in S$. \hfill\lean{IsWeakReachable.supported}
-\item If $v_r$ is strictly supported by $V$ off $S$, then $r\in S$. \hfill\lean{StrictlySupported.mem}
-\item If $z$ is strictly supported, then it is supported. If $z$ is (strictly) supported and $z'\le z$, then $z'$ is (strictly) supported. \hfill\lean{StrictlySupported.supported}, \lean{Supported.mono}, \lean{StrictlySupported.mono}
-\item The set of supported points is closed and the set of strictly supported points is open. \hfill\lean{isClosed_setOf_supported}, \lean{isOpen_setOf_strictlySupported}
-\item (transfer) Let $W=(w_u)_{u\in M}$ be another finite family and $R\subset M$. If $w_u$ is supported by $V$ off $S$ for $u\in R$, and $w_u$ is not strictly supported for $u\notin R$, then $R\in\wSp(W)$. \hfill\lean{isWeakReachable_of_supported}
-\end{enumerate}
-\end{lemma}
-\begin{proof}
-(i) is the definition. (ii) For $r\notin S$ strict support would give $0<\ip{\xi}{v_r-v_r}=0$. (iii) The first claim is immediate. For $\xi\ge0$ the value $\ip{\xi}{g-z}$ does not decrease when $z$ decreases. (iv) A nonzero $\xi\ge0$ may be normalized into the compact standard simplex, so the supported points are the projection of a closed subset of simplex${}\times\R^d$ along a compact factor. Strict support is a union over $\xi$ of finite intersections of open conditions. (v) Let $t\in R$ and let $\xi$ be the functional by which $w_t$ is supported. If $\ip{\xi}{w_u-w_t}<0$ for some $u\notin R$, then $\ip{\xi}{v_r-w_u}>\ip{\xi}{v_r-w_t}\ge0$ for all $r\notin S$, so $w_u$ is strictly supported, contrary to the hypothesis. Hence $\xi$ is a weak witness of $t$ for $R$ at $W$.
-\end{proof}
-
-\begin{lemma}[exit along the path]\label{lem:ray}
-Let $\mathrm{hi},\mathrm{lo}\colon[0,1]\to\R$ be upper and lower semicontinuous with $\mathrm{lo}\le\mathrm{hi}$, and let $c\le\mathrm{hi}(0)$, $\mathrm{lo}(1)\le c$. Then there is $s\in[0,1]$ with $\mathrm{lo}(s)\le c\le\mathrm{hi}(s)$. \hfill\lean{exists_mem_Icc_between}
-
-Consequently, let $V$ be a finite family, $S_k\subset N$ and $m_k\ge0$ for $k\in[n]$, and let $z\colon[0,1]\to\R^d$ be continuous. If
-\[
-c\le\sum_km_k\mathbf 1[z(0)\text{ is supported by }V\text{ off }S_k],\qquad \sum_km_k\mathbf 1[z(1)\text{ is strictly supported by }V\text{ off }S_k]\le c,
-\]
-then there is $s\in[0,1]$ such that the strictly supported weight at $z(s)$ is at most $c$ and the supported weight at $z(s)$ is at least $c$. In particular this holds on the segment $z(s)=l+s(u-l)$ between two points $l$ and $u$. \hfill\lean{exists_path_between}, \lean{exists_point_between}, \lean{exists_segment_between}
-\end{lemma}
-\begin{proof}
-The set $\set{s\in[0,1]\mid c\le\mathrm{hi}(s)}$ is closed and contains $0$; let $s$ be its maximum. If $\mathrm{lo}(s)>c$, then $s<1$ because $\mathrm{lo}(1)\le c$. By lower semicontinuity $\mathrm{lo}>c$, hence $\mathrm{hi}>c$, at points slightly to the right of $s$, contradicting maximality. For the second statement the supported weight along $z$ is a finite sum of indicators of closed sets (\cref{lem:interior}(iv)) and the strictly supported weight a finite sum of indicators of open sets, with nonnegative coefficients; so they are upper and lower semicontinuous, and the former dominates the latter because strict support implies support (\cref{lem:interior}(iii)).
-\end{proof}
-
-\begin{lemma}[cube]\label{lem:cube-corners}
-Let $\mathcal A\subset2^{[T]}$, $m_k\ge0$ and $A_k\subset B_k\subset[T]$ for $k\in[n]$, and suppose that every $R$ with $A_k\subset R\subset B_k$ lies in $\mathcal A$. If $\sum_km_k\ind{A_k}\le y\le\sum_km_k\ind{B_k}$ coordinatewise, then $y\in\cone\set{\ind R\mid R\in\mathcal A}$. \hfill\lean{mem_indicatorCone_of_between}, \lean{mem_indicatorCone_of_ind_le}
-\end{lemma}
-\begin{proof}
-Write $\mathrm{lo}:=\sum_km_k\ind{A_k}$, $\mathrm{hi}:=\sum_km_k\ind{B_k}$ and $y_t=\mathrm{lo}_t+\theta_t(\mathrm{hi}_t-\mathrm{lo}_t)$ with $\theta_t\in[0,1]$ ($\theta_t:=0$ if $\mathrm{lo}_t=\mathrm{hi}_t$). Then $y=\sum_km_kx_k$ with $x_k:=\ind{A_k}+\theta\circ(\ind{B_k}-\ind{A_k})$, and $\ind{A_k}\le x_k\le\ind{B_k}$. A vector $x$ with $\ind A\le x\le\ind B$ lies in the cone of $\set{\ind R\mid A\subset R\subset B}$: the vector $x-\ind A$ lies in the cube $[0,1]^{B\setminus A}$, which is the convex hull of the indicators of subsets of $B\setminus A$ (\cref{lem:cube}).
-\end{proof}
-
-\subsection{Reduction to corners}
 \begin{theorem}[corners]\label{thm:corners}
-Let $d\ge2$, $y\in\Rp[T]$, and let $L_t\in\Rp[d]$, $U_t\in\R^d$ with $L_t\le U_t$ for $t\in[T]$. Put $W:=(L,U)$, a family of $2T$ points. The following are equivalent:
+Let $L_t\in\Rp[d]$, $U_t\in\R^d$ with $L_t\le U_t$ for $t\in[T]$, and $W:=(L,U)$. The following are equivalent:
 \begin{enumerate}[label=(\Alph*)]
-\item there is $Q=(q_t)_{t\in[T]}$ with $L_t\le q_t\le U_t$ for all $t\in[T]$ such that $y$ is weakly solvable at $Q$;
-\item there is $w\in\cone\set{\ind S\mid S\in\wSp(W)}$ with $w(L_t)\ge y_t\ge w(U_t)$ for all $t\in[T]$.
+\item there is $Q=(q_t)_{t\in[T]}$ with $L_t\le q_t\le U_t$ for all $t$ such that $y$ is weakly solvable at $Q$;
+\item there is $w\in\cone\set{\ind S\mid S\in\wSp(W)}$ with $w^-_t\ge y_t\ge w^+_t$ for all $t\in[T]$.
 \end{enumerate}
-Moreover, if $z_t\colon[0,1]\to\Rp[d]$ are continuous with $z_t(0)=L_t$ and $z_t(1)=U_t$, then (B) implies
-\begin{enumerate}[label=(A$'$)]
-\item there are $s_t\in[0,1]$ such that $y$ is weakly solvable at $(z_t(s_t))_{t\in[T]}$.
-\end{enumerate}
-In particular one may take the diagonal $z_t(s)=L_t+s(U_t-L_t)$, which lies in the box, so that (A), (A$'$) and (B) are equivalent.
-\hfill\lean{box_iff}, \lean{path_of_corners}, \lean{diag_of_corners}
+Moreover, if $z_t\colon[0,1]\to\Rp[d]$ are continuous paths with $z_t(0)=L_t$ and $z_t(1)=U_t$, then (B) implies that $y$ is weakly solvable at $(z_t(s_t))_{t\in[T]}$ for some $s_t\in[0,1]$. The diagonal $z_t(s)=L_t+s(U_t-L_t)$ is such a path and lies in the box.
 \end{theorem}
+
 \begin{proof}
-(A)$\Rightarrow$(B). By \cref{thm:closure} (\lean{weakSolvable_iff}) $y\in\cone\set{\ind S\mid S\in\wSp(Q)}$, and since the property in (B) is preserved under sums and nonnegative multiples, it suffices to treat $y=\ind S$ with $S\in\wSp(Q)$ (an induction over the cone, in Lean). Let $S'$ consist of the lower corners $L_t$ supported by $Q$ off $S$ and the upper corners $U_t$ strictly supported by $Q$ off $S$. By \cref{lem:interior}(iii),(v), applied to the family $Q$ and the points $W$, $S'\in\wSp(W)$. If $t\in S$, then $q_t$ is supported by $Q$ off $S$ (\cref{lem:interior}(i)), so $L_t\le q_t$ is supported by (iii) and $L_t\in S'$. If $t\notin S$ and $U_t\in S'$, then a functional $\xi$ of strict support gives $0<\ip{\xi}{q_t-U_t}\le0$ because $q_t\le U_t$ and $\xi\ge0$, a contradiction. Hence $w:=\ind{S'}$ satisfies $w(L_t)\ge\ind S(t)\ge w(U_t)$. \hfill\lean{exists_corner_set}
+(A)$\Rightarrow$(B). By \cref{thm:closure}, $y\in\cone\set{\ind S\mid S\in\wSp(Q)}$. Property (B) is preserved under sums and nonnegative multiples, so let $y=\ind S$ with $S\in\wSp(Q)$. Let $S'$ consist of the lower corners supported by $Q$ off $S$ and the upper corners strictly supported by $Q$ off $S$. Then $S'\in\wSp(W)$. Indeed, let $c\in S'$ be supported by $\xi$, and suppose $\ip{\xi}{c'-c}<0$ for a corner $c'\notin S'$. Then $\ip{\xi}{q_r-c'}>\ip{\xi}{q_r-c}\ge0$ for all $r\notin S$, so $c'$ is strictly supported, hence $c'\in S'$, a contradiction. If $t\in S$, then $q_t$ is supported off $S$, hence so is $L_t\le q_t$, and $L_t\in S'$. If $t\notin S$ and $U_t\in S'$ with functional $\xi$, then $0<\ip{\xi}{q_t-U_t}\le0$, which is impossible. Hence $w:=\ind{S'}$ satisfies (B).
 
-(B)$\Rightarrow$(A$'$). Write $w=\sum_km_k\ind{S_k}$ with $m_k\ge0$ and $S_k\in\wSp(W)$. Fix $t$ and apply \cref{lem:ray} with $V:=W$, the path $z_t$ and $c:=y_t$. The lower corner $L_t=z_t(0)$ is supported off $S_k$ whenever it belongs to $S_k$ (\cref{lem:interior}(i)), so the supported weight at $z_t(0)$ is at least $w(L_t)\ge y_t$. The upper corner is strictly supported off $S_k$ only if it belongs to $S_k$ (\cref{lem:interior}(ii)), so the strictly supported weight at $z_t(1)$ is at most $w(U_t)\le y_t$. We obtain $s_t\in[0,1]$ for which the strictly supported weight is at most $y_t$ and the supported weight at least $y_t$. Put $q_t:=z_t(s_t)$, $Q:=(q_t)$, and
-\[
-A_k:=\set{t\mid q_t\text{ strictly supported off }S_k},\qquad B_k:=\set{t\mid q_t\text{ supported off }S_k}.
-\]
-Then $A_k\subset B_k$ and $\sum_km_k\ind{A_k}\le y\le\sum_km_k\ind{B_k}$. If $A_k\subset R\subset B_k$, then $q_t$ is supported for $t\in R$ and not strictly supported for $t\notin R$, so $R\in\wSp(Q)$ by \cref{lem:interior}(v) (with $V:=W$ and $W:=Q$). By \cref{lem:cube-corners}, $y\in\cone\set{\ind R\mid R\in\wSp(Q)}$, and $y$ is weakly solvable at $Q$ by \cref{thm:closure} (\lean{weakSolvable_iff}; here $d\ge2$ and $Q\ge0$ are used). The paths are used only through continuity, the end values and nonnegativity. \hfill\lean{path_of_corners}
-
-(B)$\Rightarrow$(A). The diagonal is continuous, has the end values $L_t$, $U_t$, and is nonnegative because $L_t\ge0$ and $U_t-L_t\ge0$; apply (B)$\Rightarrow$(A$'$). The points $L_t+s_t(U_t-L_t)$ with $s_t\in[0,1]$ lie in the boxes. \hfill\lean{diag_of_corners}
+(B)$\Rightarrow$(paths). Write $w=\sum_km_k\ind{S_k}$ with $m_k>0$, $S_k\in\wSp(W)$. Normalizing $\xi$ to the standard simplex $\Delta$, the supported points are the projection of a closed subset of $\Delta\times\R^d$ along the compact factor, hence closed \citep[Lemma~26.8]{Munkres2000}; the strictly supported points form an open set. Fix $t$. The supported weight $\overline h(s):=\sum_km_k\mathbf 1[z_t(s)\text{ supported by }W\text{ off }S_k]$ is therefore upper semicontinuous in $s$, the strictly supported weight $\underline h(s)$ is lower semicontinuous, and $\underline h\le\overline h$. A corner in $S_k$ is supported off $S_k$, and a corner strictly supported off $S_k$ lies in $S_k$; hence $\overline h(0)\ge w^-_t\ge y_t$ and $\underline h(1)\le w^+_t\le y_t$. Let $s_t$ be the maximum of the closed set $\set{s\mid\overline h(s)\ge y_t}\ni0$. If $\underline h(s_t)>y_t$, then $s_t<1$, and $\underline h>y_t$, hence $\overline h>y_t$, slightly to the right of $s_t$, contradicting maximality. So $\underline h(s_t)\le y_t\le\overline h(s_t)$. Put $q_t:=z_t(s_t)$ and let $A_k\subset B_k\subset[T]$ be the sets of $t$ with $q_t$ strictly supported, respectively supported, by $W$ off $S_k$. Then $\sum_km_k\ind{A_k}\le y\le\sum_km_k\ind{B_k}$. If $A_k\subset R\subset B_k$, then $R\in\wSp(Q)$ by the argument of the first part: a functional supporting $q_t$, $t\in R$, is a weak witness of $t$, since otherwise some $q_u$, $u\notin R$, would be strictly supported. Write $y_t=\underline y_t+\theta_t(\overline y_t-\underline y_t)$ with $\theta_t\in[0,1]$ ($\theta_t:=0$ if $\underline y_t=\overline y_t$), where $\underline y:=\sum_km_k\ind{A_k}$ and $\overline y:=\sum_km_k\ind{B_k}$. Then $y=\sum_km_k\bigl(\ind{A_k}+\theta\circ\ind{B_k\setminus A_k}\bigr)$, and by \cref{lem:cube} each summand lies in $\cone\set{\ind R\mid A_k\subset R\subset B_k}\subset\cone\set{\ind R\mid R\in\wSp(Q)}$. Since $Q\ge0$, $y$ is weakly solvable at $Q$ by \cref{thm:closure}. The diagonal is continuous and nonnegative because $L_t\ge0$ and $U_t-L_t\ge0$, which gives (B)$\Rightarrow$(A).
 \end{proof}
 
 \paragraph{The box oracle.} Given a finite family $W$ indexed by $R$ and bounds $\mathrm{lo},\mathrm{hi}\in[-\infty,\infty]^R$, the \emph{box oracle} $\mathcal O(W,\mathrm{lo},\mathrm{hi})$ decides whether there is
 \[
 w\in\cone\set{\ind S\mid S\in\wSp(W)}\qquad\text{with}\qquad \mathrm{lo}\le w\le\mathrm{hi}.
 \]
-With $W=P$ and $\mathrm{lo}=\mathrm{hi}=y$ the answer is YES exactly when $y$ is weakly solvable at $P$ (\cref{thm:closure}). With $W=(L,U)$, $\mathrm{lo}=(y,0)$ and $\mathrm{hi}=(\infty,y)$, that is, $w(L_t)\ge y_t$ and $w(U_t)\le y_t$, the answer is YES exactly when condition (B) of \cref{thm:corners} holds; this is the \emph{box query}. Thus the question whether some $Q$ with $L\le Q\le U$ makes $y$ weakly solvable is \emph{one} call of the same oracle on $2T$ points, with inequalities in place of equalities. For $d=2$ the oracle is one linear program (\cref{thm:lp}).
+With $W=P$ and $\mathrm{lo}=\mathrm{hi}=y$ the answer is YES exactly when $y$ is weakly solvable at $P$ (\cref{thm:closure}). With $W=(L,U)$, $\mathrm{lo}=(y,0)$ and $\mathrm{hi}=(\infty,y)$ the answer is YES exactly when (B) of \cref{thm:corners} holds; this is the \emph{box query}. Thus weak solvability and the box query are \emph{one} call of the same oracle, on $2T$ points and with inequalities in place of equalities in the latter.
+
+\begin{remark}[$d=2$]\label{rem:oracle-planar}
+For $d=2$ the oracle is one linear program: the system of \cref{thm:lp} in the weak mode with a variable vector $w$ in place of $y$ and the bound constraints $\mathrm{lo}\le w\le\mathrm{hi}$, where repeated points and points with zero coordinates are allowed, since the chain construction of \cref{sec:planar} extends to them verbatim.
+\end{remark}
 
 \subsection{The exact oracle for every $d$}
-\begin{lemma}[Gordan's alternative]\label{lem:gordan}
-Let $v_s\in\R^d$ for $s\in A\ne\varnothing$. If no convex combination of the $v_s$ is strictly negative in every coordinate, then there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{v_s}\ge0$ for all $s\in A$. \hfill\lean{gordan}
-\end{lemma}
-\begin{proof}
-The open convex cone $N=\set{x\mid x^i<0\ \forall i}$ and the convex hull of $\set{v_s}$ are disjoint, so they are separated: there are a linear functional $f$ and $u$ with $f(a)<u\le f(b)$ for $a\in N$ and $b$ in the hull. Put $\xi^i:=f(e_i)$, so that $f(x)=\ip{\xi}{x}$. Testing $a=-\lambda e_i-\varepsilon\e$ with $\lambda\to\infty$ gives $\xi^i\ge0$, and testing $a=-\varepsilon\e$ with $\varepsilon\to0$ gives $u\ge0$; hence $\ip{\xi}{v_s}=f(v_s)\ge u\ge0$. If $\xi=0$, then $f=0$ and $0<u\le0$, impossible.
-\end{proof}
-
-\begin{lemma}[Carath\'eodory]\label{lem:caratheodory}
-A convex combination of the points $w_s$, $s\in A$, is a convex combination of at most $d+1$ of them. \hfill\lean{exists_small_conv}
-\end{lemma}
-\begin{proof}
-The point lies in the hull of an affinely independent subset of $\set{w_s\mid s\in A}$, which has at most $d+1$ elements; choose for each of its points one index $s\in A$ carrying it and collect the weights.
-\end{proof}
 
 \begin{lemma}[cover inequalities]\label{lem:cover}
-Let $d\ge1$ and $W=(w_r)_{r\in R}\subset\R^d$. For $S\subset R$ the following are equivalent:
+Let $d\ge1$, $W=(W_r)_{r\in R}\subset\R^d$ and $S\subset R$. The following are equivalent:
 \begin{enumerate}[label=(\roman*)]
 \item $S\in\wSp(W)$;
-\item for every $t\in S$ no convex combination of the points $w_s$, $s\notin S$, is strictly below $w_t$ in every coordinate;
-\item for every $t\in S$ and every $A\subset R\setminus S$ with $\abs A\le d+1$ the hull of $\set{w_s\mid s\in A}$ contains no point strictly below $w_t$.
+\item for every $t\in S$ no convex combination of the points $W_s$, $s\notin S$, is strictly below $W_t$ in every coordinate;
+\item for every $t\in S$ and every $A\subset R\setminus S$ with $\abs A\le d+1$ the hull of $\set{W_s\mid s\in A}$ contains no point strictly below $W_t$.
 \end{enumerate}
-A pair $(t,A)$ for which the hull of $\set{w_s\mid s\in A}$ has a point strictly below $w_t$ is a \emph{cover}; it gives the $0/1$ inequality $x_t\le\sum_{s\in A}x_s$ for the indicator $x$ of $S$, and the indicators of weakly reachable sets are exactly the $0/1$ vectors satisfying all of them. \hfill\lean{isWeakReachable_iff_no_cover}, \lean{isWeakReachable_iff_no_small_cover}
+A pair $(t,A)$ with $t\in R$, $A\subset R$, for which the hull of $\set{W_s\mid s\in A}$ has a point strictly below $W_t$ in every coordinate is a \emph{cover present in $W$}. It gives the \emph{cover inequality} $x_t\le\sum_{s\in A}x_s$. A set $S\subset R$ \emph{respects} a set $\mathcal C$ of covers if $S\cap A\ne\varnothing$ whenever $t\in S$, for each $(t,A)\in\mathcal C$. Thus $\wSp(W)$ consists exactly of the sets that respect all covers present in $W$, and their indicators are exactly the $0/1$ vectors $x$ satisfying all cover inequalities.
 \end{lemma}
+
 \begin{proof}
-(i)$\Rightarrow$(ii): let $\xi$ be a weak witness of $t$ and $\mu$ a convex combination over $s\notin S$ with $\sum_s\mu_sw_s<w_t$. Then $0\le\sum_s\mu_s\ip{\xi}{w_s-w_t}=\ip{\xi}{\sum_s\mu_sw_s-w_t}<0$, since $\xi\ge0$ is nonzero (\lean{meets_of_conv_lt}). (ii)$\Rightarrow$(i): fix $t\in S$. If $S=R$ any nonzero $\xi\ge0$ is a witness. Otherwise apply \cref{lem:gordan} to $v_s:=w_s-w_t$, $s\notin S$: since $\sum_s\mu_s=1$, a strictly negative combination is exactly a cover. (ii)$\Leftrightarrow$(iii): (ii)$\Rightarrow$(iii) is trivial, and a cover $\mu$ yields by \cref{lem:caratheodory} (with $A:=R\setminus S$) a cover with the same point supported on at most $d+1$ indices. The reformulation as $0/1$ inequalities is (iii): $x_t\le\sum_{s\in A}x_s$ fails exactly when $t\in S$ and $A\subset R\setminus S$.
+(i)$\Rightarrow$(ii). If $\xi$ is a weak witness of $t$ and $\sum_s\mu_sW_s<W_t$ for a convex combination $\mu$, then $0\le\ip{\xi}{\sum_s\mu_sW_s-W_t}<0$, since $\xi\ge0$ is nonzero. (ii)$\Rightarrow$(i). Fix $t\in S$. If $S=R$, any nonzero $\xi\ge0$ is a witness. Otherwise let $M$ be the matrix with columns $W_s-W_t$, $s\notin S$. By (ii) there is no $\mu\ge0$ with $M\mu<0$, hence no $\mu>0$ with $M\mu<0$. By Gordan's alternative \citep[Ch.~2, Thm.~2.4.5]{Mangasarian1969} applied to the system $M\mu<0$, $-\mu<0$, there are $\xi,\eta\ge0$, not both zero, with $M^\top\xi=\eta$. Then $\xi\ne0$ and $\ip{\xi}{W_s-W_t}\ge0$ for $s\notin S$. (ii)$\Leftrightarrow$(iii). One direction is trivial. For the other, a point of $\conv\set{W_s\mid s\notin S}$ strictly below $W_t$ lies in the hull of at most $d+1$ of these points by Carath\'eodory's theorem \citep[Thm.~17.1]{Rockafellar1970}. The inequality $x_t\le\sum_{s\in A}x_s$ fails at $x=\ind S$ exactly when $t\in S$ and $A\subset R\setminus S$, so the last claim is (iii).
 \end{proof}
 
 \paragraph{Column generation with exact geometry (not formalized).}
-The oracle $\mathcal O(W,\mathrm{lo},\mathrm{hi})$ is column generation. The master problem is the linear program for $m\ge0$ with $\mathrm{lo}\le\sum_Sm_S\ind S\le\mathrm{hi}$ over the weakly reachable sets $S$ found so far. Its dual variables give weights $g\in\R^R$, and the pricing problem is $\max\set{g(S)\mid S\in\wSp(W)}$, where $g(S):=\sum_{r\in S}g_r$. It is a mixed-integer program with binary variables $x_r$, $r\in R$, and the cover inequalities $x_t\le\sum_{s\in A}x_s$, $\abs A\le d+1$ (\cref{lem:cover}); these have coefficients $0,\pm1$, so solver tolerances do not affect feasibility. The inequalities are added lazily, and every candidate $S$ is verified exactly in rational arithmetic: for each $t\in S$ either a cover $A$ is found, and then the violated inequality is checked by an exact linear program on at most $d+1$ points and added, or a witness $\xi$ is found, rounded to rationals and verified by exact substitution; if the rounding fails, an exact linear program over all points is solved. Floating-point formulations of the witness constraints $\ip{\xi}{w_s-w_t}\ge0$ fail at degeneracies, because a solver with tolerance accepts sets that are not weakly reachable; the cover formulation never solves the geometry in floating point. After the column generation has converged, the cone problem over the columns found is solved in rationals. If it is feasible, the answer is YES with exact masses. Otherwise its Farkas vector $\lambda$ is rational, and the pricing problem is solved once more with the integer weights $-\lambda$ times the common denominator, looking for a weakly reachable $S$ with $\lambda(S)<0$. An improving set then has value at least $1$ and is not hidden by the optimality tolerance. If one is found, it is added as a column and the step repeats; otherwise the answer is NO with the exact $\lambda$.
+The oracle $\mathcal O(W,\mathrm{lo},\mathrm{hi})$ is standard column generation. The master problem is the linear program for $m\ge0$ with $\mathrm{lo}\le\sum_Sm_S\ind S\le\mathrm{hi}$ over the sets $S\in\wSp(W)$ found so far. Its duals give weights $g\in\R^R$, and the pricing problem $\max\set{\sum_{r\in S}g_r\mid S\in\wSp(W)}$ is a mixed-integer program in binary $x_r$ with the cover inequalities of \cref{lem:cover}. These have coefficients $0,\pm1$, so solver tolerances do not affect feasibility. They are added lazily to a set $\mathcal C$ of covers present in $W$, and each candidate $S$ is verified in rationals. For each $t\in S$ either a cover is found and checked by an exact linear program on at most $d+1$ points, or a rounded witness $\xi$ is verified by substitution, with an exact linear program over all points if rounding fails. Floating-point witness constraints would accept sets that are not weakly reachable at degeneracies. After convergence the master is solved in rationals. If it is feasible, the answer is YES. Otherwise its rational Farkas vector $\lambda$, scaled to integers, is priced once more over the sets respecting $\mathcal C$: an improving set has value at most $-1$, so the optimality tolerance cannot hide it; it is added and the step repeats. If there is none, the answer is NO.
 
 \begin{proposition}[exact oracle]\label{prop:oracle}
-The answer of the column generation is exact. A YES answer comes with weakly reachable sets $S_k$ and rational masses $m_k$, verified exactly; for the box query, the parameters $s_t$ and the prices $Q$ with $L\le Q\le U$ are built from them as in the proof of (B)$\Rightarrow$(A$'$) in \cref{thm:corners}, and $y=\sum_j\mu_j\ind{C_j}$ with $C_j\in\wSp(Q)$ can be checked. A NO answer comes with a rational $\lambda\in\R^R$ with $\sum_r\lambda_r^-\mathrm{lo}_r>\sum_r\lambda_r^+\mathrm{hi}_r$ and $\lambda(S)\ge0$ for all $S\in\wSp(W)$; this is Farkas' lemma for the system $m\ge0$, $\mathrm{lo}\le\sum_Sm_S\ind S\le\mathrm{hi}$. The last property rests only on the correct solution of an integer program with integer coefficients. (Not formalized.)
+The answer of the column generation is exact. A YES answer comes with sets $S_k\in\wSp(W)$ and rational masses $m_k$, verified exactly; for the box query the prices $Q$ with $L\le Q\le U$ are built from them as in the proof of \cref{thm:corners}, and $y=\sum_j\mu_j\ind{C_j}$ with $C_j\in\wSp(Q)$ can be checked. A NO answer comes with a rational $\lambda\in\Q^R$ and a finite set $\mathcal C$ of covers present in $W$ such that, with the convention $0\cdot\infty=0$ for infinite bounds,
+\begin{enumerate}[label=(F\arabic*)]
+\item $\sum_r\lambda_r^+\mathrm{hi}_r-\sum_r\lambda_r^-\mathrm{lo}_r<0$;
+\item $\lambda(S):=\sum_{r\in S}\lambda_r\ge0$ for every $S\subset R$ that respects $\mathcal C$.
+\end{enumerate}
+Such $\lambda$ is given by Farkas' lemma for the master system \citep[Cor.~7.1d]{Schrijver1986}. Conversely, (F1) and (F2) exclude every $w\in\cone\set{\ind S\mid S\in\wSp(W)}$ with $\mathrm{lo}\le w\le\mathrm{hi}$: each $S\in\wSp(W)$ respects $\mathcal C$ by \cref{lem:cover}, so $\ip\lambda w\ge0$, while the bounds give $\ip\lambda w\le\sum_r\lambda_r^+\mathrm{hi}_r-\sum_r\lambda_r^-\mathrm{lo}_r<0$. Property (F2) rests only on the correct solution of an integer program with integer coefficients.
 \end{proposition}
 
 \begin{proposition}[rational solutions]\label{prop:rational-Q}
-Let $L_t\in\Rp[d]$ and $U_t$ be rational with $L_t\le U_t$ for $t\in[T]$, and let an exact YES certificate of the box query (sets $S_k\in\wSp(L,U)$ and rational masses $m_k$) be given. Then there is a rational $Q$ with $L\le Q\le U$ at which $y$ is weakly solvable, and it is computed from the certificate in rational arithmetic. (Not formalized.)
+Let $L_t\in\Rp[d]$ and $U_t$ be rational with $L_t\le U_t$ for $t\in[T]$, and let an exact YES certificate of the box query (sets $S_k\in\wSp(L,U)$ and rational masses $m_k$) be given. Then there is a rational $Q$ with $L\le Q\le U$ at which $y$ is weakly solvable, and it is computed from the certificate in rational arithmetic.
 \end{proposition}
+
 \begin{proof}
-Take the diagonal $z_t(s)=L_t+s(U_t-L_t)$ in the proof of (B)$\Rightarrow$(A$'$) in \cref{thm:corners}. The parameter $s_t$ given by \cref{lem:ray} is the maximum of the set $\set{s\in[0,1]\mid y_t\le\mathrm{hi}(s)}$, where $\mathrm{hi}(s)$ is the supported weight at $z_t(s)$. Since $z_t$ is nondecreasing and supported points form a down-set (\cref{lem:interior}(iii)), the set of $s$ at which $z_t(s)$ is supported off $S_k$ is empty, $[0,1]$, or an interval $[0,\beta_{k,t}]$, where $\beta_{k,t}=\inf\set{s\in[0,1]\mid z_t(s)\in\interior K_{S_k}}$. The polyhedron $K_{S_k}$ is rational, so $\interior K_{S_k}$ is described by finitely many strict rational linear inequalities and $\beta_{k,t}$ is rational. The function $\mathrm{hi}$ is a step function with jumps only at the $\beta_{k,t}$, so $s_t$ is $0$, $1$ or one of the $\beta_{k,t}$. Hence $q_t=z_t(s_t)$ is rational.
+Take the diagonal in the proof of \cref{thm:corners}; there $s_t$ is the maximum of $\set{s\in[0,1]\mid y_t\le\overline h(s)}$. Since $z_t$ is nondecreasing and supported points form a down-set, the set of $s$ at which $z_t(s)$ is supported off $S_k$ is empty, $[0,1]$, or $[0,s_{k,t}]$ with $s_{k,t}=\inf\set{s\in[0,1]\mid z_t(s)\in\interior K_{S_k}}$. The polyhedron $K_{S_k}$ is rational, so $s_{k,t}$ is rational. The step function $\overline h$ jumps only at the $s_{k,t}$, so $s_t\in\set{0,1}\cup\set{s_{k,t}}_k$, and $q_t=z_t(s_t)$ is rational.
 \end{proof}

@@ -19,23 +19,32 @@ only. The cost is counted by the monad `Costed` (`Costed.lean`), not declared.
   weak and to neoclassical solvability in dimension `3`, with `C = 2^40`, `k = 4`.
 -/
 
-namespace NeoTiling.NPHardness
+namespace NeoTiling.Hardness
 
 open Finset Costed
 
 /-! ### Karp reductions -/
 
-/-- A Karp reduction in the unit-cost model: a map `f` with an explicit cost, correct, with cost
-and output size bounded by `C * (size + 1)^k`. -/
+/-- A Karp reduction in the unit-cost model: a program `prog` in the cost monad, correct, with
+counted cost and output size bounded by `C * (size + 1)^k`. The map and its cost are the value
+and the cost of the program (`KarpReduction.f`, `KarpReduction.cost`), so the cost is not
+declared. -/
 structure KarpReduction {α β : Type*} (A : α → Prop) (B : β → Prop) (sizeA : α → ℕ)
     (sizeB : β → ℕ) where
-  f : α → β
-  cost : α → ℕ
+  prog : α → Costed β
   C : ℕ
   k : ℕ
-  correct : ∀ x, A x ↔ B (f x)
-  cost_le : ∀ x, cost x ≤ C * (sizeA x + 1) ^ k
-  size_le : ∀ x, sizeB (f x) ≤ C * (sizeA x + 1) ^ k
+  correct : ∀ x, A x ↔ B (prog x).val
+  cost_le : ∀ x, (prog x).cost ≤ C * (sizeA x + 1) ^ k
+  size_le : ∀ x, sizeB (prog x).val ≤ C * (sizeA x + 1) ^ k
+
+/-- The map of a Karp reduction: the value of its program. -/
+def KarpReduction.f {α β : Type*} {A : α → Prop} {B : β → Prop} {sizeA : α → ℕ}
+    {sizeB : β → ℕ} (R : KarpReduction A B sizeA sizeB) (x : α) : β := (R.prog x).val
+
+/-- The cost of a Karp reduction: the counted cost of its program. -/
+def KarpReduction.cost {α β : Type*} {A : α → Prop} {B : β → Prop} {sizeA : α → ℕ}
+    {sizeB : β → ℕ} (R : KarpReduction A B sizeA sizeB) (x : α) : ℕ := (R.prog x).cost
 
 /-- A rational instance of (weak) solvability in dimension `3`: `T` prices and outputs. -/
 structure QInstance where
@@ -102,7 +111,7 @@ lemma bijective_sigmaX {T : ℕ} (hT : T = G.allX.length) : Function.Bijective (
 /-- **The program computes the instance**, numbered by `allX`. -/
 theorem val_instanceM :
     G.instanceM.val = G.instOf (G.sigmaX (T := (G.allX.mapM G.entryM).val.length) (by simp)) := by
-  simp only [instanceM, enumM, val_bind, val_pure, QInstance.ofList, instOf,
+  simp only [instanceM, val_enumM, val_bind, val_pure, QInstance.ofList, instOf,
     QInstance.mk.injEq, heq_eq_eq, true_and]
   constructor <;> funext t <;> simp [sigmaX, entryM, val_priceM, val_outputM]
 
@@ -144,7 +153,8 @@ theorem cost_instanceM_le : G.instanceM.cost ≤ 12700 * (n + 1) * (m + 1) := by
   have h2 := List.sum_le_card_nsmul _ _ h1
   have h3 := G.numPrices_le
   simp only [List.length_map, smul_eq_mul, G.length_allX] at h2
-  simp only [instanceM, enumM, cost_bind, cost_mapM, cost_pure, G.length_allX]
+  simp only [instanceM, cost_bind, G.cost_enumM, G.val_enumM, cost_mapM, cost_pure,
+    G.length_allX]
   generalize (G.allX.map fun x => (G.entryM x).cost).sum = S at h2 ⊢
   generalize G.numPrices = N at h2 h3 ⊢
   nlinarith
@@ -223,13 +233,12 @@ theorem size_reduceM_le (g : GraphIn) : (reduceM g).val.size ≤ 2 ^ 40 * (sizeG
   rw [val_mapM, List.length_map, G.length_allX]; exact G.numPrices_le
 
 /-- **3-colourability Karp-reduces to weak solvability in dimension `3`** in the unit-cost
-model, with `C = 2^40`, `k = 4`. The map and its cost are the value and the counted cost of the
-program `reduceM`. (A `def`, since a `KarpReduction` is data.) -/
+model, with `C = 2^40`, `k = 4`. The program is `reduceM`. (A `def`, since a `KarpReduction`
+is data.) -/
 def karp_threeCol_weakSolvable :
     KarpReduction (fun g : GraphIn => g.2.2.Colorable) QInstance.WeakSolvable sizeG
       QInstance.size where
-  f g := (reduceM g).val
-  cost g := (reduceM g).cost
+  prog := reduceM
   C := 2 ^ 40
   k := 4
   correct := fun ⟨_, _, G⟩ => by
@@ -243,8 +252,7 @@ program. -/
 def karp_threeCol_neoSolvable :
     KarpReduction (fun g : GraphIn => g.2.2.Colorable) QInstance.NeoSolvable sizeG
       QInstance.size where
-  f g := (reduceM g).val
-  cost g := (reduceM g).cost
+  prog := reduceM
   C := 2 ^ 40
   k := 4
   correct := fun ⟨_, _, G⟩ => by
@@ -253,4 +261,4 @@ def karp_threeCol_neoSolvable :
   cost_le := cost_reduceM_le
   size_le := size_reduceM_le
 
-end NeoTiling.NPHardness
+end NeoTiling.Hardness

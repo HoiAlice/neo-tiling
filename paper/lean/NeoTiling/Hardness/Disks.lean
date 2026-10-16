@@ -19,9 +19,7 @@ circle move out by the shift, every other vertex has `|w - m|² ≥ |a - b|²/4 
 outside (`Drawing.gadget_valid`).
 -/
 
-set_option linter.unusedSectionVars false
-
-namespace NeoTiling.NPHardness
+namespace NeoTiling.Hardness
 
 open Finset
 
@@ -31,7 +29,7 @@ def nrm (p : ℤ × ℤ) : ℤ := p.1 ^ 2 + p.2 ^ 2
 /-- A lattice point as a point of the plane. -/
 def toR (p : ℤ × ℤ) : Fin 2 → ℝ := ![(p.1 : ℝ), (p.2 : ℝ)]
 
-variable {V E : Type*} [Fintype V] [DecidableEq V] [Fintype E]
+variable {V E : Type*} [Fintype V] [DecidableEq V]
 
 /-- The vertices other than `eu k`, `ev k` on the circle with diameter the edge `k`. -/
 def onCircle (pos : V → ℤ × ℤ) (eu ev : E → V) (k : E) : Finset V :=
@@ -241,4 +239,4 @@ theorem gadget_valid {σ : ℝ} (hσ : 0 < σ) (hσ1 : σ ≤ 1 / 16)
 
 end Drawing
 
-end NeoTiling.NPHardness
+end NeoTiling.Hardness

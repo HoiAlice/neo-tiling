@@ -12,16 +12,14 @@ Prices `P t ∈ ℝ^d_{>0}`, outputs `y ≥ 0`. New prices are written `Q t = P 
   `[P (1 - α), P (1 + β)]` passes ONE box query (`BoxFeasible`), at cost `lpPow p c (max α β)`.
   The feasible half-widths form an upward closed set (`BoxFeasible.mono`).
 * `exists_oneSigned_le`: optimal prices can be taken to move every year in one direction.
-* `le_sum_of_conv_lt`, `le_of_lt`: necessary conditions; dominance `Q s < Q t` forces
+* `le_sum_of_conv_lt`, `le_of_dominated`: necessary conditions; dominance `Q s < Q t` forces
   `y t ≤ y s`.
 * `BoxFeasible.restrict`: a NO on a subset of the years is a NO on all of them.
 * `not_boxCone_of_certificate`: the NO certificate of the box query.
 * `separated_bound`: the packing bound behind the termination of the algorithm.
 -/
 
-namespace NeoTiling.L1Perturbation
-
-open NeoTiling
+namespace NeoTiling.Lp
 
 variable {d T : ℕ}
 
@@ -71,7 +69,7 @@ theorem boxFeasible_of_weakSolvable (hd : 2 ≤ d) {P : Fin T → Fin d → ℝ}
     (hQ : ∀ t, Q t ∈ orthant d) (hws : WeakSolvable Q y) :
     BoxFeasible P y (fun t i => max (-relDev (P t) (Q t) i) 0)
       (fun t i => max (relDev (P t) (Q t) i) 0) := by
-  refine (BoxPerturbation.box_iff hd _ _ y (fun t i => ?_) (fun t i => ?_) hy).1
+  refine (Perturbation.box_iff hd _ _ y (fun t i => ?_) (fun t i => ?_) hy).1
     ⟨Q, fun t i => (mem_relBox (hP t i) (hQ t i)).2, hws⟩
   · exact mul_nonneg (hP t i).le (sub_nonneg.2 (mem_relBox (hP t i) (hQ t i)).1.le)
   · obtain ⟨-, h1, h2⟩ := mem_relBox (hP t i) (hQ t i)
@@ -98,7 +96,7 @@ theorem exists_oneSigned_of_boxFeasible (hd : 2 ≤ d) {P : Fin T → Fin d → 
     have := mul_le_mul_of_nonneg_left h1 (hα t i)
     have := mul_nonneg (hβ t i) (le_max_right (2 * r - 1) 0)
     linarith [hα1 t i]
-  obtain ⟨s, hs, hws⟩ := PricePerturbation.path_of_corners hd (fun t i => P t i * (1 - α t i))
+  obtain ⟨s, hs, hws⟩ := Perturbation.path_of_corners hd (fun t i => P t i * (1 - α t i))
     (fun t i => P t i * (1 + β t i))
     (fun t r i => P t i * (1 - α t i * max (1 - 2 * r) 0 + β t i * max (2 * r - 1) 0))
     (fun t => by fun_prop) (fun t => by funext i; norm_num) (fun t => by funext i; norm_num)
@@ -204,9 +202,9 @@ theorem BoxFeasible.mono (hd : 2 ≤ d) {P : Fin T → Fin d → ℝ} (hP : ∀ 
     have h1 : (0 : ℝ) ≤ a t i := ha t i
     have h2 : (0 : ℝ) ≤ b t i := hb t i
     exact mul_le_mul_of_nonneg_left (by linarith) (hP t i).le
-  obtain ⟨Q, hQ, hws⟩ := (BoxPerturbation.box_iff hd _ _ y
+  obtain ⟨Q, hQ, hws⟩ := (Perturbation.box_iff hd _ _ y
     (hL α fun t i => (hαα' t i).trans (hα' t i)) (hLU α β hα hβ) hy).2 h
-  refine (BoxPerturbation.box_iff hd _ _ y (hL α' hα')
+  refine (Perturbation.box_iff hd _ _ y (hL α' hα')
     (hLU α' β' (hα.trans hαα') (hβ.trans hββ')) hy).1 ⟨Q, fun t i => ⟨?_, ?_⟩, hws⟩
   · exact (mul_le_mul_of_nonneg_left (by linarith [hαα' t i]) (hP t i).le).trans (hQ t i).1
   · exact (hQ t i).2.trans (mul_le_mul_of_nonneg_left (by linarith [hββ' t i]) (hP t i).le)
@@ -230,20 +228,11 @@ theorem BoxFeasible.restrict {P : Fin T → Fin d → ℝ} {y : Fin T → ℝ} {
       simp only [g, W, Fin.append_left, Fin.append_right]
   -- restriction maps the cone of all corners into the cone of the kept corners
   have hcone : ∀ x ∈ indicatorCone (weakReachableSpectra W),
-      (fun r => x (g r)) ∈ indicatorCone (weakReachableSpectra (fun r => W (g r))) := by
-    intro x hx
-    induction hx using Submodule.span_induction with
-    | mem x hx =>
-      obtain ⟨S, hS, rfl⟩ := hx
-      refine Submodule.subset_span ⟨Finset.univ.filter (fun r => g r ∈ S), ?_, ?_⟩
-      · intro t ht
-        rw [Finset.mem_filter] at ht
-        obtain ⟨ξ, h0, hne, hξ⟩ := hS (g t) ht.2
-        exact ⟨ξ, h0, hne, fun s hs => hξ (g s) (by simpa using hs)⟩
-      · funext r; simp [Set.indicator_apply]
-    | zero => exact zero_mem _
-    | add x z _ _ hx hz => exact add_mem hx hz
-    | smul a x _ hx => exact Submodule.smul_mem _ a hx
+      (fun r => x (g r)) ∈ indicatorCone (weakReachableSpectra (fun r => W (g r))) :=
+    fun x hx => indicatorCone_comp g (fun S hS => by
+      intro t ht
+      obtain ⟨ξ, h0, hne, hξ⟩ := hS (g t) (Finset.mem_filter.1 ht).2
+      exact ⟨ξ, h0, hne, fun s hs => hξ (g s) (by simpa using hs)⟩) hx
   unfold BoxFeasible
   rw [hg]
   refine ⟨fun r => w (g r), hcone w hw, fun j => ?_, fun j => ?_⟩
@@ -299,34 +288,18 @@ theorem le_sum_of_conv_lt (hd : 2 ≤ d) {Q : Fin T → Fin d → ℝ} (hQ : ∀
     (hμ1 : ∑ s, μ s = 1) (hlt : ∀ i, ∑ s, μ s * Q s i < Q t i) :
     y t ≤ ∑ s ∈ A, y s := by
   classical
-  rw [weakSolvable_iff hd hQ hy] at hws
-  suffices H : ∀ x ∈ indicatorCone (weakReachableSpectra Q), x t ≤ ∑ s ∈ A, x s from H y hws
-  intro x hx
-  induction hx using Submodule.span_induction with
-  | mem x hx =>
-    obtain ⟨S, hS, rfl⟩ := hx
-    beta_reduce
-    by_cases htS : t ∈ S
-    · obtain ⟨s, hsA, hsS⟩ := meets_of_conv_lt μ hμ0 hμA hμ1 hlt hS htS
-      have h1 : ((S : Set (Fin T)).indicator (1 : Fin T → ℝ)) t = 1 := by simp [htS]
-      rw [h1]
-      calc (1 : ℝ) = ((S : Set (Fin T)).indicator (1 : Fin T → ℝ)) s := by simp [hsS]
-        _ ≤ _ := Finset.single_le_sum (f := fun s => ((S : Set (Fin T)).indicator (1 : Fin T → ℝ)) s)
-            (fun r _ => by simp only [Set.indicator_apply]; split_ifs <;> norm_num) hsA
-    · have h1 : ((S : Set (Fin T)).indicator (1 : Fin T → ℝ)) t = 0 := by simp [htS]
-      rw [h1]
-      exact Finset.sum_nonneg fun r _ => by simp only [Set.indicator_apply]; split_ifs <;> norm_num
-  | zero => simp
-  | add x z _ _ hx hz =>
-    simp only [Pi.add_apply, Finset.sum_add_distrib]; linarith
-  | smul a x _ hx =>
-    change (a : ℝ) * x t ≤ ∑ s ∈ A, (a : ℝ) * x s
-    rw [← Finset.mul_sum]
-    exact mul_le_mul_of_nonneg_left hx a.2
+  have := indicatorCone_pairing_nonneg
+    ((∑ s ∈ A, LinearMap.proj (R := ℝ) (φ := fun _ : Fin T => ℝ) s) - LinearMap.proj t)
+    (fun S hS => ?_) ((weakSolvable_iff hd hQ hy).1 hws)
+  · simpa using this
+  by_cases htS : t ∈ S
+  · obtain ⟨s, hsA, hsS⟩ := meets_of_conv_lt μ hμ0 hμA hμ1 hlt hS htS
+    simpa [htS, Set.indicator_apply] using Finset.card_pos.2 ⟨s, Finset.mem_filter.2 ⟨hsA, hsS⟩⟩
+  · simp [htS, Set.indicator_apply]
 
 /-- **Dominance.** If `Q s < Q t` in every coordinate and `y` is weakly solvable at `Q`, then
 `y t ≤ y s` (`le_sum_of_conv_lt` with `A = {s}`). -/
-theorem le_of_lt (hd : 2 ≤ d) {Q : Fin T → Fin d → ℝ} (hQ : ∀ t, 0 ≤ Q t) {y : Fin T → ℝ}
+theorem le_of_dominated (hd : 2 ≤ d) {Q : Fin T → Fin d → ℝ} (hQ : ∀ t, 0 ≤ Q t) {y : Fin T → ℝ}
     (hy : ∀ t, 0 ≤ y t) (hws : WeakSolvable Q y) {s t : Fin T} (hst : ∀ i, Q s i < Q t i) :
     y t ≤ y s := by
   classical
@@ -359,30 +332,15 @@ theorem not_boxCone_of_certificate {W : Fin (T + T) → Fin d → ℝ} (y : Fin 
       (∀ t, y t ≤ w (Fin.castAdd T t)) ∧ (∀ t, w (Fin.natAdd T t) ≤ y t) := by
   classical
   rintro ⟨w, hw, hlow, hupp⟩
-  have key : ∀ x ∈ indicatorCone (weakReachableSpectra W), 0 ≤ ∑ r, lam r * x r ∧ 0 ≤ x := by
-    intro x hx
-    induction hx using Submodule.span_induction with
-    | mem x hx =>
-      obtain ⟨S, hS, rfl⟩ := hx
-      refine ⟨?_, fun r => ?_⟩
-      · have : ∑ r, lam r * (S : Set (Fin (T + T))).indicator 1 r = ∑ r ∈ S, lam r := by
-          simp [Set.indicator_apply]
-        rw [this]
-        refine hF2 S fun e he h1 => ?_
-        obtain ⟨μ, h0, hA, h1', hlt⟩ := hcov e he
-        exact meets_of_conv_lt μ h0 hA h1' hlt hS h1
-      · simp only [Set.indicator_apply]; split_ifs <;> norm_num
-    | zero => simp
-    | add x z _ _ hx hz =>
-      refine ⟨?_, add_nonneg hx.2 hz.2⟩
-      simp only [Pi.add_apply, mul_add, Finset.sum_add_distrib]; linarith [hx.1, hz.1]
-    | smul a x _ hx =>
-      refine ⟨?_, fun r => mul_nonneg a.2 (hx.2 r)⟩
-      change 0 ≤ ∑ r, lam r * ((a : ℝ) * x r)
-      have : ∑ r, lam r * ((a : ℝ) * x r) = (a : ℝ) * ∑ r, lam r * x r := by
-        rw [Finset.mul_sum]; exact Finset.sum_congr rfl fun r _ => by ring
-      rw [this]; exact mul_nonneg a.2 hx.1
-  obtain ⟨h1, h0⟩ := key w hw
+  have h0 := indicatorCone_nonneg hw
+  have h1 : 0 ≤ ∑ r, lam r * w r := by
+    have := indicatorCone_pairing_nonneg
+      (∑ r, lam r • LinearMap.proj (R := ℝ) (φ := fun _ : Fin (T + T) => ℝ) r)
+      (fun S hS => ?_) hw
+    · simpa using this
+    simpa [Set.indicator_apply] using hF2 S fun e he h1 => by
+      obtain ⟨μ, h0, hA, h1', hlt⟩ := hcov e he
+      exact meets_of_conv_lt μ h0 hA h1' hlt hS h1
   rw [Fin.sum_univ_add] at h1
   have hc := Finset.sum_le_sum fun t (_ : t ∈ Finset.univ) =>
     mul_le_mul_of_nonpos_left (hlow t) (hlo t)
@@ -423,4 +381,4 @@ theorem separated_bound {n K : ℕ} {M τ : ℝ} (hτ : 0 < τ) (z : Fin K → F
   have := Fintype.card_le_of_injective f hinj
   simpa [Fintype.card_fun, Fintype.card_fin] using this
 
-end NeoTiling.L1Perturbation
+end NeoTiling.Lp

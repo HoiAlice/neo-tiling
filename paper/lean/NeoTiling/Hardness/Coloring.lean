@@ -15,7 +15,7 @@ the junction edge of the column `(k, i)` forbids choosing the corners `(lo k, i)
 together: the chosen corners form a proper colouring.
 -/
 
-namespace NeoTiling.NPHardness
+namespace NeoTiling.Hardness
 
 open Finset
 
@@ -246,4 +246,4 @@ theorem inStab_iff_colorable : InStab G.linkU G.linkV G.sval ↔ G.Colorable :=
 
 end Graph
 
-end NeoTiling.NPHardness
+end NeoTiling.Hardness

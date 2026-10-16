@@ -18,7 +18,7 @@ Since 3-colourability is NP-complete, (weak) solvability at fixed prices in dime
 NP-hard under polynomial-time many-one (Karp) reductions.
 -/
 
-namespace NeoTiling.NPHardness
+namespace NeoTiling.Hardness
 
 open Finset
 
@@ -150,4 +150,4 @@ theorem outputs_rat (t : Fin G.numPrices) : ∃ q : ℚ, G.outputs t = q := by
 
 end Graph
 
-end NeoTiling.NPHardness
+end NeoTiling.Hardness

@@ -6,3 +6,17 @@
 {"kind": "real", "ind": 24, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.10255166644377497, "UB": 0.10255446026907972, "status": "optimal", "time": 173.81052374839783, "n_moved": 7}
 {"kind": "real", "ind": 1, "d": 2, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 3.3758969579129983, "UB": 3.3759582873215246, "status": "optimal", "time": 32.16202998161316, "n_moved": 34}
 {"kind": "real", "ind": 1, "d": 3, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 4.152042412789821, "UB": 4.152121160346831, "status": "optimal", "time": 29.17291808128357, "n_moved": 39}
+{"kind": "real", "ind": 1, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.28794314405846155, "UB": 0.2879505423177569, "status": "optimal", "time": 351.3799891471863, "n_moved": 7}
+{"kind": "real", "ind": 6, "d": 2, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 5.5904921397745575, "UB": 5.590610263283884, "status": "optimal", "time": 35.31006383895874, "n_moved": 35}
+{"kind": "real", "ind": 6, "d": 3, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.6253159772880079, "UB": 3.952295656041154, "status": "time_limit", "time": 741.8696608543396, "n_moved": 39}
+{"kind": "real", "ind": 6, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.40960706644307304, "UB": 3.6029682220045007, "status": "time_limit", "time": 1085.2631559371948, "n_moved": 39}
+{"kind": "real", "ind": 12, "d": 2, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.5331270552535763, "UB": 0.7223338835332666, "status": "time_limit", "time": 722.0383269786835, "n_moved": 80}
+{"kind": "real", "ind": 12, "d": 3, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.5540481618573573, "UB": 1.1615042201242187, "status": "time_limit", "time": 752.5503649711609, "n_moved": 39}
+{"kind": "real", "ind": 12, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.0408266409431938, "UB": 0.04082797287668914, "status": "optimal", "time": 146.05314993858337, "n_moved": 2}
+{"kind": "real", "ind": 27, "d": 2, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.8603700732547375, "UB": 1.9927448101090723, "status": "time_limit", "time": 633.1919741630554, "n_moved": 80}
+{"kind": "real", "ind": 27, "d": 3, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 1.8138477085894231, "UB": 2.119851143942805, "status": "time_limit", "time": 627.110808134079, "n_moved": 120}
+{"kind": "real", "ind": 27, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.05981517203866247, "UB": 0.059816983452133876, "status": "optimal", "time": 450.35443806648254, "n_moved": 2}
+{"kind": "real", "ind": 31, "d": 2, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.7695002400790429, "UB": 0.8239799133390808, "status": "time_limit", "time": 625.8479590415955, "n_moved": 80}
+{"kind": "real", "ind": 31, "d": 3, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 1.6215391952295255, "UB": 1.6215738612923, "status": "optimal", "time": 70.98343873023987, "n_moved": 31}
+{"kind": "real", "ind": 31, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.6365195385321758, "UB": 1.8213206524090098, "status": "time_limit", "time": 930.9004068374634, "n_moved": 320}
+{"kind": "real", "ind": 46, "d": 2, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.21415680553015265, "UB": 0.21416182890532803, "status": "optimal", "time": 34.18015694618225, "n_moved": 11}

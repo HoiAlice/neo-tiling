@@ -1,42 +1,34 @@
 %% Source: latex/notes.tex, section 5 (Слабая разрешимость). Lean: NeoTiling.Core.Closure.
 \section{Weak solvability}\label{sec:weak}
 
-\begin{lemma}[openness]\label{lem:open}
-Let $P\in\Rpp[d\times T]$. There is a neighbourhood $V\subset\Rpp[d\times T]$ of $P$ such that $\Sp(Q)\supseteq\Sp(P)$ for every $Q\in V$. \hfill\lean{eventually_reachableSpectra_subset}
-\end{lemma}
-
-\begin{proof}
-Take $h\in\Phi_d$ with $\Sp(P)\subseteq\Sp(h,P)$ by \cref{lem:patch} and the neighbourhood $V$ of \cref{lem:stability}. For $Q\in V$, \cref{lem:necessity} gives $\Sp(P)\subseteq\Sp(h,P)\subseteq\Sp(h,Q)\subseteq\Sp(Q)$.
-\end{proof}
-
 \begin{definition}[weak solvability]\label{def:weak-solvability}
-Let $P\in\Rp[d\times T]$. An output vector $y\in\Rp[T]$ is \emph{weakly solvable} at $P$ if every neighbourhood $U\ni P$, $U\subset\Rp[d\times T]$, contains $Q\in U\cap\Rpp[d\times T]$ at which $y$ is solvable. \hfill\lean{WeakSolvable}
+Let $P\in\Rp[d\times T]$. An output vector $y\in\Rp[T]$ is \emph{weakly solvable} at $P$ if every neighborhood $U\ni P$, $U\subset\Rp[d\times T]$, contains $Q\in U\cap\Rpp[d\times T]$ at which $y$ is solvable.
 \end{definition}
 
 \begin{definition}[weakly reachable spectra]\label{def:weak}
-Let $P:=\set{p_t\in\Rp[d]}_{t\in[T]}$. A set $S\subset[T]$ is a \emph{weakly reachable spectrum} at $P$ if for every $t\in S$ there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{p_s-p_t}\ge0$ for all $s\notin S$; such $\xi$ is a \emph{weak witness} of $t$. The family of these sets is denoted $\wSp(P)$. Clearly $\Sp(P)\subseteq\wSp(P)$. \hfill\lean{IsWeakReachable}, \lean{weakReachableSpectra}
+Let $P:=\set{p_t\in\Rp[d]}_{t\in[T]}$. A set $S\subset[T]$ is a \emph{weakly reachable spectrum} at $P$ if for every $t\in S$ there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{p_s-p_t}\ge0$ for all $s\notin S$; such $\xi$ is a \emph{weak witness} of $t$. The family of these sets is denoted $\wSp(P)$. Clearly $\Sp(P)\subseteq\wSp(P)$.
 \end{definition}
 
 \begin{lemma}[limit]\label{lem:limit}
-Let $P\in\Rp[d\times T]$. There is a neighbourhood $V\subset\Rp[d\times T]$ of $P$ such that $\Sp(Q)\subseteq\wSp(P)$ for every $Q\in V\cap\Rpp[d\times T]$. \hfill\lean{eventually_reachableSpectra_subset_weak}
+Let $P\in\Rp[d\times T]$. There is a neighborhood $V\subset\Rp[d\times T]$ of $P$ such that $\Sp(Q)\subseteq\wSp(P)$ for every $Q\in V\cap\Rpp[d\times T]$.
 \end{lemma}
 
 \begin{proof}
-Otherwise, since there are finitely many spectra, there would be $S\notin\wSp(P)$, $t\in S$ and $Q_n\to P$ with $S\in\Sp(Q_n)$. Normalize witnesses $\xi_n$ of $t$ at $Q_n$ by $\ip{\xi_n}{\e}=1$. The simplex is compact, and a limit $\xi$ of a subsequence is nonzero, nonnegative and satisfies $\ip{\xi}{p_s-p_t}\ge0$ for $s\notin S$, i.e.\ it is a weak witness. This contradicts the choice of $S$ and $t$.
+Otherwise there would be $Q_n\to P$, $Q_n\in\Rpp[d\times T]$, with $\Sp(Q_n)\not\subseteq\wSp(P)$; since there are finitely many spectra, after passing to a subsequence there is one $S\notin\wSp(P)$ with $S\in\Sp(Q_n)$ for all $n$, and an index $t\in S$ that has no weak witness at $P$. Normalize witnesses $\xi_n$ of $t$ at $Q_n$ by $\ip{\xi_n}{\e}=1$. The standard simplex is compact, and a limit $\xi$ of a subsequence is nonzero, nonnegative and satisfies $\ip{\xi}{p_s-p_t}\ge0$ for $s\notin S$, i.e.\ it is a weak witness of $t$ at $P$, a contradiction. (The formal proof argues directly: if $t$ has no weak witness, every $\zeta$ in the simplex has some $s\notin S$ with $\ip\zeta{p_s-p_t}<0$, an open condition in $(Q,\zeta)$, and the tube lemma \citep[Lemma~26.8]{Munkres2000} over the compact simplex extends it to all $Q$ near $P$.)
 \end{proof}
 
 \begin{lemma}[rematching]\label{lem:rematch}
-Let $C\subset[T]$ be a set of indices with equal prices, $u\in\wSp(P)$, $u\cap C\ne\varnothing$, $C\setminus u\ne\varnothing$ and $L\subset C$. Then $(u\setminus C)\cup L\in\wSp(P)$. \hfill\lean{isWeakReachable_rematch}
+Let $C\subset[T]$ be a set of indices with equal prices, $u\in\wSp(P)$, $u\cap C\ne\varnothing$, $C\setminus u\ne\varnothing$ and $L\subset C$. Then $(u\setminus C)\cup L\in\wSp(P)$.
 \end{lemma}
 
 \begin{proof}
 Let $S':=(u\setminus C)\cup L$. For $t\in u\setminus C$ its weak witness for $u$ works: an index $s\notin S'$ outside $C$ lies outside $u$, and an index $s\in C\setminus L$ has the same price as some $s_1\in C\setminus u$. For $t\in L$ the weak witness of any $t_1\in u\cap C$ for $u$ works: $p_t=p_{t_1}$, indices $s\notin S'$ outside $C$ lie outside $u$, and for $s\in C$ the difference $p_s-p_t$ is zero.
 \end{proof}
 
-For $S\subset[T]$ let $c(S)$ be the number of pairs $(a,b)\in S\times S$ with $p_a=p_b$.
+For $S\subset[T]$ let $\kappa(S)$ be the number of ordered pairs $(a,b)\in S\times S$, $a=b$ allowed, with $p_a=p_b$.
 
 \begin{lemma}[uncrossing]\label{lem:uncross}
-Let $u,u'\in\wSp(P)$, $t\in u\setminus u'$, $s\in u'\setminus u$ and $p_s=p_t$. Then there are $A,B\in\wSp(P)$ with $\ind A+\ind B=\ind u+\ind{u'}$ and $c(A)+c(B)>c(u)+c(u')$. \hfill\lean{uncross}
+Let $u,u'\in\wSp(P)$, $t\in u\setminus u'$, $s\in u'\setminus u$ and $p_s=p_t$. Then there are $A,B\in\wSp(P)$ with $\ind A+\ind B=\ind u+\ind{u'}$ and $\kappa(A)+\kappa(B)>\kappa(u)+\kappa(u')$.
 \end{lemma}
 
 \begin{proof}
@@ -44,19 +36,19 @@ Let $C:=\set{r\in[T]\mid p_r=p_t}$ and
 \[
 A:=(u\setminus C)\cup\bigl((u\cup u')\cap C\bigr),\qquad B:=(u'\setminus C)\cup(u\cap u'\cap C).
 \]
-The set $u$ meets $C$ in $t$ and misses $s\in C$, while $u'$ meets $C$ in $s$ and misses $t$, so $A,B\in\wSp(P)$ by \cref{lem:rematch}. Outside $C$ the set $A$ agrees with $u$ and $B$ with $u'$; on $C$ they are the union and the intersection of $u\cap C$ and $u'\cap C$, whence $\ind A+\ind B=\ind u+\ind{u'}$. A pair $(a,b)$ with $p_a=p_b$ lies entirely in $C$ or entirely outside. Outside $C$ nothing changes. A pair in $C$ lying in $u$ or in $u'$ lies in $A$, and one lying in both lies also in $B$, so no pair is lost. The pair $(t,s)$ lies in $A$ but neither in $u$ nor in $u'$.
+Since $t\in u\cap C$ and $s\in C\setminus u$, the set $A$ is the rematching of $u$ with $L=(u\cup u')\cap C$; since $s\in u'\cap C$ and $t\in C\setminus u'$, the set $B$ is the rematching of $u'$ with $L=u\cap u'\cap C$. Hence $A,B\in\wSp(P)$ by \cref{lem:rematch}. Outside $C$ the set $A$ agrees with $u$ and $B$ with $u'$; on $C$ they are the union and the intersection of $U:=u\cap C$ and $U':=u'\cap C$, whence $\ind A+\ind B=\ind u+\ind{u'}$. A pair $(a,b)$ with $p_a=p_b$ lies entirely in $C$ or entirely outside $C$, because $C$ is a full price class. Outside $C$ nothing changes. For $(a,b)\in C\times C$ one has termwise $[a,b\in U\cup U']+[a,b\in U\cap U']\ge[a,b\in U]+[a,b\in U']$, with strict inequality at $(t,s)$, which lies in $U\cup U'$ but in neither $U$ nor $U'$. Summing gives $\kappa(A)+\kappa(B)>\kappa(u)+\kappa(u')$.
 \end{proof}
 
 \begin{lemma}[monotone representation]\label{lem:monotone}
-Let $y\in\cone\set{\ind S\mid S\in\wSp(P)}$. Then $y=\sum_Sm_S\ind S$ with $m_S\ge0$, $S\in\wSp(P)$, such that for every $S$ with $m_S>0$, $t\in S$, $s\notin S$ and $p_s=p_t$ imply $y_s<y_t$. \hfill\lean{exists_uncrossed_rep}, \lean{mem_indicatorCone_monotone}
+Let $y\in\cone\set{\ind S\mid S\in\wSp(P)}$. Then $y=\sum_Sm_S\ind S$ with $m_S\ge0$, $S\in\wSp(P)$, such that for every $S$ with $m_S>0$, $t\in S$, $s\notin S$ and $p_s=p_t$ imply $y_s<y_t$.
 \end{lemma}
 
 \begin{proof}
-Let $y=\sum_Sm^0_S\ind S$ be any representation and $N:=\sum_Sm^0_S$. The representations $y=\sum_Sm_S\ind S$ with $m_S\ge0$, $m_S=0$ for $S\notin\wSp(P)$ and $\sum_Sm_S\le N$ form a nonempty compact set. Take one maximizing $\sum_Sm_Sc(S)$. If $m_u,m_{u'}>0$ and there are $t\in u\setminus u'$, $s\in u'\setminus u$ with $p_s=p_t$, move the weight $\varepsilon:=\min(m_u,m_{u'})$ from $u$ and $u'$ to the sets $A$, $B$ of \cref{lem:uncross}: the representation and the total weight are preserved and $\sum_Sm_Sc(S)$ grows by $\varepsilon\bigl(c(A)+c(B)-c(u)-c(u')\bigr)>0$, a contradiction. Hence if $m_S>0$, $t\in S$, $s\notin S$ and $p_s=p_t$, every $W$ with $m_W>0$ containing $s$ contains $t$. All terms of $y_t-y_s=\sum_Wm_W\bigl(\ind W(t)-\ind W(s)\bigr)$ are then nonnegative and the term $W=S$ equals $m_S>0$.
+Let $y=\sum_Sm^0_S\ind S$ be any representation and $N:=\sum_Sm^0_S$. The representations $y=\sum_Sm_S\ind S$ with $m_S\ge0$, $m_S=0$ for $S\notin\wSp(P)$ and $\sum_Sm_S\le N$ form a nonempty compact set: it contains $m^0$, is cut out by finitely many linear equalities and inequalities, and is bounded by $0\le m_S\le N$. (The bound on $\sum_Sm_S$ is needed: $\varnothing\in\wSp(P)$ and $\ind\varnothing=0$.) Take a maximizer of the linear functional $\sum_Sm_S\kappa(S)$. If $m_u,m_{u'}>0$ and there are $t\in u\setminus u'$, $s\in u'\setminus u$ with $p_s=p_t$, move the weight $\vartheta:=\min(m_u,m_{u'})$ from $u$ and $u'$ to the sets $A$, $B$ of \cref{lem:uncross}: the representation and the total weight are preserved and $\sum_Sm_S\kappa(S)$ grows by $\vartheta\bigl(\kappa(A)+\kappa(B)-\kappa(u)-\kappa(u')\bigr)>0$, a contradiction. Hence if $m_S>0$, $t\in S$, $s\notin S$ and $p_s=p_t$, every $W$ with $m_W>0$ containing $s$ contains $t$. All terms of $y_t-y_s=\sum_Wm_W\bigl(\ind W(t)-\ind W(s)\bigr)$ are then nonnegative and the term $W=S$ equals $m_S>0$.
 \end{proof}
 
 \begin{remark}
-Repairing the representation is necessary. For $p_1=p_2=(1,1)$, $p_3=(1,\tfrac12)$, $p_4=(\tfrac12,1)$, $p_5=(\tfrac12,\tfrac32)$, $p_6=(\tfrac32,\tfrac12)$ the spectra $\set{1,4,5}$, $\set{1,3,6}$, $\set{2,3,4}$ are weakly reachable but are not simultaneously reachable at any prices close to $P$.
+Repairing the representation is necessary. For $p_1=p_2=(1,1)$, $p_3=(1,\tfrac12)$, $p_4=(\tfrac12,1)$, $p_5=(\tfrac12,\tfrac32)$, $p_6=(\tfrac32,\tfrac12)$ the spectra $\set{1,4,5}$, $\set{1,3,6}$, $\set{2,3,4}$ are weakly reachable but are not simultaneously reachable at any prices $Q$ close to $P$. Indeed, at such $Q$ a witness of $1$ for $\set{1,4,5}$ is close to the direction $(1,0)$, a witness of $1$ for $\set{1,3,6}$ is close to $(0,1)$, and a witness of $2$ for $\set{2,3,4}$ is close to $(1,1)$; the first two have positive inner products with $q_2-q_1$, the third a negative one, while it is a positive combination of the first two.
 \end{remark}
 
 \begin{lemma}[tilt]\label{lem:tilt}
@@ -64,17 +56,17 @@ Let $P:=\set{p_t\in\Rp[d]}_{t\in[T]}$, $y\in\Rp[T]$, and for $\delta>0$ put
 \[
 Q_\delta:=\set{q_t}_{t\in[T]},\qquad q_t:=p_t+\delta\Bigl(\sum_{i\in[d]}e^{-p^i_t}-\delta y_t\Bigr)\e .
 \]
-Then $Q_\delta\to P$ as $\delta\to0$, and for all sufficiently small $\delta>0$ we have $Q_\delta\in\Rpp[d\times T]$ and $S\in\Sp(Q_\delta)$ for every $S\in\wSp(P)$ such that $y_s<y_t$ whenever $t\in S$, $s\notin S$ and $p_s=p_t$. \hfill\lean{isReachable_tilt}, \lean{tendsto_tilt}, \lean{eventually_tilt_witness_pos}
+Then $Q_\delta\to P$ as $\delta\to0$, and for all sufficiently small $\delta>0$ we have $Q_\delta\in\Rpp[d\times T]$ and $S\in\Sp(Q_\delta)$ for every $S\in\wSp(P)$ such that $y_s<y_t$ whenever $t\in S$, $s\notin S$ and $p_s=p_t$.
 \end{lemma}
 
 \begin{proof}
-Let $F_r:=\sum_ie^{-p^i_r}>0$. Then $q_t-p_t=\delta(F_t-\delta y_t)\e\to0$ and $q^i_t\ge\delta(F_t-\delta y_t)>0$ for small $\delta$. Let $t\in S$, let $\xi$ be a weak witness of $t$ with $\ip{\xi}{\e}=1$, $g:=(e^{-p^1_t},\dots,e^{-p^d_t})$ and $\xi_\delta:=\xi+\delta g$. Then $q_s-q_t=(p_s-p_t)+\bigl(\delta(F_s-F_t)-\delta^2(y_s-y_t)\bigr)\e$. We show $\ip{\xi_\delta}{q_s-q_t}>0$ for $s\notin S$ and small $\delta$. If $p_s=p_t$, then $\ip{\xi_\delta}{q_s-q_t}=\delta^2(y_t-y_s)\bigl(1+\delta\ip g\e\bigr)>0$. If $p_s\ne p_t$, then $\ip{\xi_\delta}{q_s-q_t}=\ip\xi{p_s-p_t}+\delta K+O(\delta^2)$ with $K:=F_s-F_t+\ip g{p_s-p_t}=\sum_ie^{-p^i_t}\bigl(e^{-x_i}-1+x_i\bigr)$, $x_i:=p^i_s-p^i_t$; here $\ip\xi{p_s-p_t}\ge0$ and $K>0$ since $e^{-x}\ge1-x$ with equality only at $x=0$. There are finitely many pairs $(t,s)$, and $\xi_\delta\ge\delta g$ is nonzero, so $\xi_\delta$ is a witness of $t$ at $Q_\delta$. There are finitely many $S$, so $\delta$ can be chosen for all of them.
+Let $F_r:=\sum_ie^{-p^i_r}>0$. Then $q_t-p_t=\delta(F_t-\delta y_t)\e\to0$ and $q^i_t\ge\delta(F_t-\delta y_t)>0$ for small $\delta$. Let $t\in S$, let $\xi$ be a weak witness of $t$, normalized by a positive factor so that $\ip{\xi}{\e}=1$ (the remainder below then does not depend on $\xi$), $g:=(e^{-p^1_t},\dots,e^{-p^d_t})$ and $\xi_\delta:=\xi+\delta g$. Then $q_s-q_t=(p_s-p_t)+\bigl(\delta(F_s-F_t)-\delta^2(y_s-y_t)\bigr)\e$. We show $\ip{\xi_\delta}{q_s-q_t}>0$ for $s\notin S$ and small $\delta$. If $p_s=p_t$, then $\ip{\xi_\delta}{q_s-q_t}=\delta^2(y_t-y_s)\bigl(1+\delta\ip g\e\bigr)>0$. If $p_s\ne p_t$, then $\ip{\xi_\delta}{q_s-q_t}=\ip\xi{p_s-p_t}+\delta K+\delta^2\bigl[(y_t-y_s)(1+\delta F_t)+(F_s-F_t)F_t\bigr]$ with $K:=F_s-F_t+\ip g{p_s-p_t}=\sum_ie^{-p^i_t}\bigl(e^{-x_i}-1+x_i\bigr)$, $x_i:=p^i_s-p^i_t$; here $\ip\xi{p_s-p_t}\ge0$ and $K>0$ since $e^{-x}\ge1-x$ with equality only at $x=0$. There are finitely many pairs $(t,s)$, and $\xi_\delta\ge\delta g$ is nonzero, so $\xi_\delta$ is a witness of $t$ at $Q_\delta$. There are finitely many $S$, so $\delta$ can be chosen for all of them.
 \end{proof}
 
 \begin{theorem}[weak solvability criterion]\label{thm:closure}
-Let $P\in\Rp[d\times T]$. An output vector $y\in\Rp[T]$ is weakly solvable at $P$ if and only if $y\in\cone\set{\ind S\mid S\in\wSp(P)}$. \hfill\lean{weakSolvable_iff}, \lean{WeakSolvable.mem_indicatorCone}, \lean{weakSolvable_of_mem_indicatorCone}
+Let $P\in\Rp[d\times T]$. An output vector $y\in\Rp[T]$ is weakly solvable at $P$ if and only if $y\in\cone\set{\ind S\mid S\in\wSp(P)}$.
 \end{theorem}
 
 \begin{proof}
-Let $y$ be weakly solvable. By \cref{lem:limit}, $\Sp(Q)\subseteq\wSp(P)$ in a neighbourhood of $P$, and that neighbourhood contains $Q$ at which $y$ is solvable. By \cref{thm:solvability}, $y\in\cone\set{\ind S\mid S\in\Sp(Q)}\subseteq\cone\set{\ind S\mid S\in\wSp(P)}$. Conversely, take the representation of \cref{lem:monotone}. By \cref{lem:tilt}, for small $\delta>0$ all its spectra lie in $\Sp(Q_\delta)$ and $Q_\delta\in\Rpp[d\times T]$, so $y$ is solvable at $Q_\delta$ by \cref{thm:solvability}; since $Q_\delta\to P$, these $Q_\delta$ enter every neighbourhood of $P$.
+Let $y$ be weakly solvable. By \cref{lem:limit}, $\Sp(Q)\subseteq\wSp(P)$ in a neighborhood of $P$, and that neighborhood contains $Q$ at which $y$ is solvable. By \cref{thm:solvability}, $y\in\cone\set{\ind S\mid S\in\Sp(Q)}\subseteq\cone\set{\ind S\mid S\in\wSp(P)}$. Conversely, take the representation of \cref{lem:monotone}. By \cref{lem:tilt}, for small $\delta>0$ all its spectra lie in $\Sp(Q_\delta)$ and $Q_\delta\in\Rpp[d\times T]$, so $y$ is solvable at $Q_\delta$ by \cref{thm:solvability}; since $Q_\delta\to P$, these $Q_\delta$ enter every neighborhood of $P$.
 \end{proof}

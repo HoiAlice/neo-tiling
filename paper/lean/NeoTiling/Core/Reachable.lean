@@ -27,6 +27,47 @@ def IsReachable (P : Fin T → Fin d → ℝ) (S : Finset (Fin T)) : Prop :=
 def reachableSpectra (P : Fin T → Fin d → ℝ) : Set (Finset (Fin T)) :=
   {S | IsReachable P S}
 
+/-! ### Weak and strict at once -/
+
+/-- `Ok b u`: `0 < u` in the strict mode (`b = true`), `0 ≤ u` in the weak mode. -/
+def Ok (b : Bool) (u : ℝ) : Prop := if b then 0 < u else 0 ≤ u
+
+/-- Reachability with `Ok b` witnesses: every `t ∈ S` has a nonzero `ξ ≥ 0` with
+`Ok b ⟨ξ, p_s - p_t⟩` for all `s ∉ S`. `IsReachable` for `b = true`, `IsWeakReachable` for
+`b = false` (`setOf_isReachableB_true`, `setOf_isReachableB_false`). -/
+def IsReachableB (b : Bool) (P : Fin T → Fin d → ℝ) (S : Finset (Fin T)) : Prop :=
+  ∀ t ∈ S, ∃ ξ : Fin d → ℝ, 0 ≤ ξ ∧ ξ ≠ 0 ∧ ∀ s ∉ S, Ok b (ξ ⬝ᵥ (P s - P t))
+
+section OkLemmas
+
+variable {b : Bool} {u v : ℝ}
+
+theorem Ok.of_pos (h : 0 < u) : Ok b u := by cases b <;> simp [Ok, h, h.le]
+
+theorem Ok.nonneg (h : Ok b u) : 0 ≤ u := by
+  cases b <;> simp only [Ok] at h <;> simp_all [le_of_lt]
+
+theorem Ok.add_nonneg (h : Ok b u) (hv : 0 ≤ v) : Ok b (u + v) := by
+  cases b <;> simp [Ok] at h ⊢ <;> linarith
+
+theorem Ok.mul_pos {c : ℝ} (hc : 0 < c) (h : Ok b u) : Ok b (c * u) := by
+  cases b <;> simp [Ok, hc] at h ⊢ <;> exact h
+
+/-- `Ok b x` and `Ok (!b) y` cannot hold together with `x + y ≤ 0`. -/
+theorem Ok.false_of_add_nonpos {x y : ℝ} (hx : Ok b x) (hy : Ok (!b) y)
+    (h : x + y ≤ 0) : False := by
+  cases b <;> simp only [Ok, Bool.not_false, Bool.not_true, Bool.false_eq_true, if_true,
+    if_false] at hx hy <;> linarith
+
+end OkLemmas
+
+theorem isReachableB_true_iff {P : Fin T → Fin d → ℝ} {S : Finset (Fin T)} :
+    IsReachableB true P S ↔ IsReachable P S := Iff.rfl
+
+/-- The strict mode gives the reachable spectra. -/
+theorem setOf_isReachableB_true (P : Fin T → Fin d → ℝ) :
+    {S | IsReachableB true P S} = reachableSpectra P := rfl
+
 variable {P : Fin T → Fin d → ℝ}
 
 open Pointwise in

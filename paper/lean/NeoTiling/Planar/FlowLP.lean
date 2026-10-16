@@ -3,9 +3,7 @@ import NeoTiling.Planar.Chain
 /-!
 # Solvability in the plane is one linear program
 
-Part of `poly-hardness/` (not part of the `NeoTiling` library).
-
-Mode `b` as in `PolyHardness.Chain`: `IsReachableB false = IsWeakReachable`,
+Mode `b` as in `Planar.Chain`: `IsReachableB false = IsWeakReachable`,
 `IsReachableB true = IsReachable`. Prices `P : Fin T → Fin 2 → ℝ`, `X t = P t 0`, `Y t = P t 1`.
 
 **The graph.** Nodes: a source, a sink, `start b` ("the chain begins at `b`") and `edge a b`
@@ -24,9 +22,11 @@ of the edge, the arc into `snk` the right slab of the last vertex, `src → snk`
 * `mem_indicatorCone_iff_flow`: `y` lies in the cone of (weakly) reachable spectra iff the
   linear system `y = Σ_e f_e 1_{Out e} + g`, `0 ≤ g ≤ β Σ_e f_e 1_{Bnd e}`, `f` a flow, is
   solvable (`β = 1` weak, `β = 0` strict). The system has `O(T³)` nonzero variables.
+* `weakSolvable_iff_flow`, `neoSolvable_iff_flow`: hence (weak) solvability in the plane is this
+  linear program.
 -/
 
-namespace NeoTiling.PolyHardness
+namespace NeoTiling.Planar
 
 open Finset
 open scoped Classical
@@ -283,9 +283,6 @@ noncomputable def pathOut (w : ℕ → Node T) (L : ℕ) : Finset (Fin T) :=
 noncomputable def pathBnd (w : ℕ → Node T) (L : ℕ) : Finset (Fin T) :=
   (range L).biUnion fun i => Bnd P (w i) (w (i + 1))
 
-/-- `1_S` as a vector. -/
-noncomputable def ind (S : Finset (Fin T)) : Fin T → ℝ := (S : Set (Fin T)).indicator 1
-
 /-- Boundary points are free in the weak mode (`β = 1`) and excluded in the strict mode
 (`β = 0`). -/
 def beta (b : Bool) : ℝ := if b then 0 else 1
@@ -387,13 +384,6 @@ and `X (v (i - 1)) < X q` unless `i = 0`. -/
 def InSlab (v : ℕ → Fin T) (k i : ℕ) (q : Fin T) : Prop :=
   (i ≤ k → P q 0 ≤ P (v i) 0) ∧ (0 < i → P (v (i - 1)) 0 < P q 0)
 
-/-- `X` strictly increases along a chain. -/
-theorem chain_x_lt {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {j i : ℕ} (hji : j < i)
-    (hik : i ≤ k) : P (v j) 0 < P (v i) 0 := by
-  induction i, hji using Nat.le_induction with
-  | base => exact hc.xlt j (by omega)
-  | succ i _ ih => exact (ih (by omega)).trans (hc.xlt i (by omega))
-
 /-- The slabs `X ≤ X v₀`, `X v_j < X ≤ X v_{j+1}`, `X > X v_k` partition the plane. -/
 theorem existsUnique_slab {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) (q : Fin T) :
     (∃ i ≤ k + 1, InSlab P v k i q) ∧
@@ -411,7 +401,7 @@ theorem existsUnique_slab {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) (q 
     have h1 := hsi.1 (by omega)
     have h2 := hsj.2 (by omega)
     rcases (show i ≤ j - 1 by omega).lt_or_eq with h' | rfl
-    · linarith [chain_x_lt P hc h' (by omega)]
+    · linarith [chain_x_lt hc h' (by omega)]
     · linarith
 
 /-- The sets of an arc lie in its slab. -/
@@ -586,46 +576,6 @@ theorem path_ind_eq {w : ℕ → Node T} {L : ℕ} (hw : IsPath (Arc P) .src .sn
       (fun i hi j hj hij => disjoint_coe.2 ((key.1 i hi j hj hij).mono (hF _ _) (hF _ _))) q
   exact ⟨hsum _ fun _ _ => subset_union_left, hsum _ fun _ _ => subset_union_right, key.2⟩
 
-/-- **The cube is the hull of its vertices.** If `O ∩ B = ∅` and `0 ≤ z ≤ 1_B`, then `1_O + z` is a
-nonnegative combination of the indicators `1_{O ∪ B'}`, `B' ⊆ B`. Induction on `B`: for
-`B = insert q B₀`, `1_O + z = (1 - z_q)(1_O + z|B₀) + z_q (1_{O ∪ {q}} + z|B₀)`. -/
-theorem cube_mem_span (O B : Finset (Fin T)) (hOB : Disjoint O B) (z : Fin T → ℝ)
-    (hz0 : ∀ q, 0 ≤ z q) (hz1 : ∀ q, z q ≤ ind B q) :
-    (fun q => ind O q + z q) ∈
-      PointedCone.span ℝ ((fun B' => ind (O ∪ B')) '' {B' | B' ⊆ B}) := by
-  induction B using Finset.induction_on generalizing O z with
-  | empty =>
-    obtain rfl : z = 0 := funext fun q => le_antisymm (by simpa [ind] using hz1 q) (hz0 q)
-    exact PointedCone.subset_span ⟨∅, by simp, by ext; simp⟩
-  | insert q B₀ hq ih =>
-    obtain ⟨hqO, hOB₀⟩ := Finset.disjoint_insert_right.1 hOB
-    -- zero out the `q`-coordinate of `z`
-    set z₀ := Function.update z q 0 with hz₀
-    have h0 : ∀ r, 0 ≤ z₀ r := fun r => by by_cases h : r = q <;> simp [hz₀, h, hz0]
-    have h1 : ∀ r, z₀ r ≤ ind B₀ r := fun r => by
-      by_cases h : r = q
-      · simp [hz₀, h, ind, Set.indicator_nonneg]
-      · simpa [hz₀, h, ind, Set.indicator] using hz1 r
-    have hc1 : z q ≤ 1 := by simpa [ind] using hz1 q
-    -- `1_O + z = (1 - z_q) (1_O + z₀) + z_q (1_{O ∪ {q}} + z₀)`
-    have key : (fun r => ind O r + z r) =
-        (⟨1 - z q, by linarith⟩ : NNReal) • (fun r => ind O r + z₀ r) +
-        (⟨z q, hz0 q⟩ : NNReal) • (fun r => ind (insert q O) r + z₀ r) := by
-      funext r
-      by_cases h : r = q
-      · subst h; simp [hz₀, ind, hqO]
-      · simp [hz₀, ind, Set.indicator, h]; ring
-    rw [key]
-    -- both endpoints of the edge lie in the span of the big generator set
-    refine Submodule.add_mem _
-      (Submodule.smul_mem _ _ (Submodule.span_mono ?_ (ih O hOB₀ z₀ h0 h1)))
-      (Submodule.smul_mem _ _ (Submodule.span_mono ?_
-        (ih (insert q O) (Finset.disjoint_insert_left.2 ⟨hq, hOB₀⟩) z₀ h0 h1)))
-    · exact Set.image_mono fun B' h => h.trans (Finset.subset_insert _ _)
-    · rintro _ ⟨B', hB', rfl⟩
-      exact ⟨insert q B', Finset.insert_subset_insert _ hB',
-        by simp [Finset.insert_union, Finset.union_insert]⟩
-
 /-- **The chain graph is acyclic.** `src`, `start`, `edge a b` (by the number of points left of
 `b`), `snk` is a rank that grows along every arc. -/
 theorem exists_rank : ∃ rank : Node T → ℕ, ∀ u v, Arc P u v → rank u < rank v := by
@@ -717,4 +667,35 @@ theorem mem_indicatorCone_iff_flow (b : Bool) (y : Fin T → ℝ) :
     exact fun _ ⟨B', hB', e⟩ => ⟨_, (isReachableB_iff_path P b _).2
       ⟨w i, L i, hw i, subset_union_left, union_subset_union_right hB'⟩, e⟩
 
-end NeoTiling.PolyHardness
+/-! ## Solvability in the plane -/
+
+/-- **Weak solvability in the plane is a flow LP.** For `P ≥ 0` and `y ≥ 0` in dimension `2`, `y` is
+weakly solvable at `P` iff `y = Σ_e f_e 1_{Out e} + g` with `f` a flow and
+`0 ≤ g ≤ Σ_e f_e 1_{Bnd e}` (`weakSolvable_iff`, `mem_indicatorCone_iff_flow` in the weak mode). -/
+theorem weakSolvable_iff_flow (hP : ∀ t, 0 ≤ P t) {y : Fin T → ℝ} (hy : ∀ t, 0 ≤ y t) :
+    WeakSolvable P y ↔
+      ∃ (f : Node T → Node T → ℝ) (g : Fin T → ℝ), IsFlow (Arc P) .src .snk f ∧
+        (∀ q, 0 ≤ g q) ∧ (∀ q, g q ≤ ∑ u, ∑ v, f u v * ind (Bnd P u v) q) ∧
+        ∀ q, y q = ∑ u, ∑ v, f u v * ind (Out P u v) q + g q := by
+  rw [weakSolvable_iff le_rfl hP hy, ← setOf_isReachableB_false,
+    mem_indicatorCone_iff_flow P false y]
+  simp only [beta, Bool.false_eq_true, if_false, one_mul]
+
+/-- **Solvability in the plane is a flow LP.** For positive `P` and `y ≥ 0` in dimension `2`, `y` is
+neoclassically solvable at `P` iff `y = Σ_e f_e 1_{Out e}` for a flow `f`
+(`neoSolvable_iff_mem_indicatorCone`, `mem_indicatorCone_iff_flow` in the strict mode, where the
+boundary term vanishes). -/
+theorem neoSolvable_iff_flow (hP : ∀ t, P t ∈ orthant 2) {y : Fin T → ℝ} (hy : ∀ t, 0 ≤ y t) :
+    NeoSolvable P y ↔
+      ∃ f : Node T → Node T → ℝ, IsFlow (Arc P) .src .snk f ∧
+        ∀ q, y q = ∑ u, ∑ v, f u v * ind (Out P u v) q := by
+  rw [neoSolvable_iff_mem_indicatorCone le_rfl hP hy, ← setOf_isReachableB_true,
+    mem_indicatorCone_iff_flow P true y]
+  simp only [beta, if_true, zero_mul]
+  constructor
+  · rintro ⟨f, g, hf, hg0, hg1, hy⟩
+    exact ⟨f, hf, fun q => by rw [hy q, le_antisymm (hg1 q) (hg0 q), add_zero]⟩
+  · rintro ⟨f, hf, hy⟩
+    exact ⟨f, 0, hf, fun _ => le_rfl, fun _ => le_rfl, fun q => by simp [hy q]⟩
+
+end NeoTiling.Planar

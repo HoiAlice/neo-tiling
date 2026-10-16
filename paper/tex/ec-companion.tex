@@ -1,0 +1,173 @@
+%% E-companion: correspondence between the statements of the paper and the Lean library.
+\ECSwitch
+\ECHead{E-companion: formal verification}
+\section{Building the library}
+The library \texttt{NeoTiling} is a Lake project for Lean~4 with Mathlib (toolchain and Mathlib revision pinned in the project files). It builds with \texttt{lake build}; the build contains no \texttt{sorry}, and \texttt{\#print axioms} of every theorem in the table reports only \texttt{propext}, \texttt{Classical.choice} and \texttt{Quot.sound}. \todo{repository URL and commit hash.}
+
+\section{Correspondence}
+The table lists, for each numbered statement of the paper, the Lean declarations that prove it; a second part lists the auxiliary facts that appear inside proofs. Names are relative to the namespace \texttt{NeoTiling}. In the declarations with a Boolean mode parameter, $b=\mathrm{true}$ is the strict mode ($\beta_\star=0$ in \cref{def:modes}). The definition \lean{NeoSolvable} takes the outputs through \lean{ENNReal.ofReal} and is meant for $y\ge0$.
+
+\begingroup\small
+\begin{longtable}{p{0.3\textwidth}p{0.62\textwidth}}
+\toprule
+Statement & Lean declarations \\
+\midrule
+\endfirsthead
+\toprule
+Statement & Lean declarations \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Definition~\ref{def:neoclassical} & \lean{IsNeoclassical} \\
+Definition~\ref{def:neo-solvability} & \lean{NeoSolvable}, \lean{Realizes} \\
+Definition~\ref{def:spectrum} & \lean{specRegion}, \lean{spectrum} \\
+Proposition~\ref{prop:null} & \lean{IsNeoclassical.volume_levelSet_eq_zero}, \lean{measure_activeSet_eq_sum} \\
+Lemma~\ref{lem:signature} & \lean{IsNeoclassical.realizes_iff_mem_indicatorCone} \\
+Lemma~\ref{lem:stability} & \lean{IsNeoclassical.eventually_spectrum_subset} \\
+Definition~\ref{def:reachable} & \lean{IsReachable}, \lean{reachableSpectra} \\
+Lemma~\ref{lem:necessity} & \lean{IsNeoclassical.spectrum_subset_reachableSpectra} \\
+Lemma~\ref{lem:separation} & \lean{IsReachable.exists_vector} \\
+Lemma~\ref{lem:patch} & \lean{exists_polyMin_patch}, \lean{exists_spectrum_eq_reachableSpectra} \\
+Theorem~\ref{thm:solvability} & \lean{neoSolvable_iff_mem_indicatorCone} \\
+Corollary~\ref{lem:open} & \lean{eventually_reachableSpectra_subset} \\
+Definition~\ref{def:weak-solvability} & \lean{WeakSolvable} \\
+Definition~\ref{def:weak} & \lean{IsWeakReachable}, \lean{weakReachableSpectra} \\
+Lemma~\ref{lem:limit} & \lean{eventually_reachableSpectra_subset_weak} \\
+Lemma~\ref{lem:rematch} & \lean{isWeakReachable_rematch} \\
+Lemma~\ref{lem:uncross} & \lean{uncross} \\
+Lemma~\ref{lem:monotone} & \lean{exists_uncrossed_rep}, \lean{mem_indicatorCone_monotone} \\
+Lemma~\ref{lem:tilt} & \lean{isReachable_tilt}, \lean{tendsto_tilt}, \lean{eventually_tilt_witness_pos} \\
+Theorem~\ref{thm:closure} & \lean{weakSolvable_iff}, \lean{WeakSolvable.mem_indicatorCone}, \lean{weakSolvable_of_mem_indicatorCone} \\
+Definition~\ref{def:modes} & \lean{Ok}, \lean{IsReachableB}, \lean{isReachableB_false_iff}, \lean{isReachableB_true_iff}, \lean{beta} \\
+Definition~\ref{def:chain} & \lean{cross}, \lean{IsChain}, \lean{InHull}, \lean{InInt}, \lean{Forbidden} \\
+Lemma~\ref{lem:hull} & \lean{exists_hull_chain}, \lean{cross_nonneg_left}, \lean{cross_nonneg_of_above} \\
+Locality of the region (proof of Theorem~\ref{thm:family}) & \lean{slope_mono}, \lean{inHull_vertex}, \lean{inHull_iff_of_piece}, \lean{inHull_iff_of_left}, \lean{inHull_iff_of_right} \\
+Theorem~\ref{thm:chain} & \lean{isReachableB_iff_chain}, \lean{isWeakReachable_iff_chain}, \lean{isReachable_iff_chain}, \lean{isReachableB_of_chain}, \lean{ok_of_not_forbidden}, \lean{exists_not_ok_of_forbidden}, \lean{ok_of_forbidden} \\
+Paths and flows & \lean{IsPath}, \lean{pathVec}, \lean{IsFlow} \\
+Flow decomposition in acyclic graphs & \lean{flow_decomposition}, \lean{isFlow_pathVec}, \lean{pathVec_le_one}, \lean{exists_pos_path} \\
+Definition~\ref{def:graph} & \lean{Node}, \lean{Down}, \lean{Arc}, \lean{leftOut}, \lean{leftBnd}, \lean{edgeOut}, \lean{edgeBnd}, \lean{rightOut}, \lean{rightBnd}, \lean{Out}, \lean{Bnd}, \lean{pathOut}, \lean{pathBnd} \\
+Paths are chains & \lean{chainPath}, \lean{chainPath_sets}, \lean{path_cases}, \lean{isPath_chainPath} \\
+Slabs & \lean{InSlab}, \lean{existsUnique_slab}, \lean{inSlab_of_mem}, \lean{mem_iff_of_inSlab}, \lean{chainPath_out_bnd}, \lean{path_congr}, \lean{chain_x_lt} \\
+Acyclicity of $G_P$ & \lean{exists_rank} \\
+Theorem~\ref{thm:family} & \lean{isReachableB_iff_path} \\
+Disjoint slabs, \eqref{eq:disjoint} & \lean{path_ind_eq} \\
+Lemma~\ref{lem:cube} & \lean{cube_mem_span} \\
+Theorem~\ref{thm:lp} & \lean{mem_indicatorCone_iff_flow}, \lean{exists_coef_of_mem_indicatorCone} \\
+Corollary~\ref{cor:poly} & not formalized (complexity) \\
+Farkas lemma for indicator cones & \lean{not_mem_indicatorCone_iff}, \lean{indicatorCone_pairing_nonneg}, \lean{exists_farkas_of_sum_pos}, \lean{mem_convexHull_bounds} \\
+Arc and path weights & \lean{arcW}, \lean{pathW}, \lean{pathW_eq_sum_pathVec}, \lean{pathW_eq} \\
+Corollary~\ref{cor:col} & \lean{min_family_eq_min_path}, \lean{nonneg_family_iff_path} \\
+Corollary~\ref{cor:farkas} & \lean{not_mem_iff_farkas}, \lean{not_mem_iff_path_certificate} \\
+Theorem~\ref{thm:hard-main} & \lean{Graph.neoSolvable_iff_colorable}, \lean{Graph.weakSolvable_iff_colorable} \\
+Number of prices, rationality (Theorem~\ref{thm:hard-main}) & \lean{Graph.numPrices_le}, \lean{Graph.prices_rat}, \lean{Graph.outputs_rat} \\
+Corollary~\ref{cor:hard-np} (NP-hardness part) & \lean{karp_threeCol_weakSolvable}, \lean{karp_threeCol_neoSolvable} \\
+Corollary~\ref{cor:hard-np} (membership in NP) & not formalized (complexity) \\
+Strict and weak reachability in one mode & \lean{Ok}, \lean{IsReachableB} \\
+Lift $\ell$ and disk witness $\xi_c$ & \lean{sqn}, \lean{one3}, \lean{lift}, \lean{wit} \\
+Identity \eqref{eq:hard-wit}, $\xi_c\ge0$, $\xi_c\ne0$ & \lean{wit_dot}, \lean{wit_nonneg_ne_zero} \\
+Positive inner product with a positive vector & \lean{dot_pos} \\
+Chord: identity \eqref{eq:hard-chord} and its consequence & \lean{not_both_nonneg} \\
+Independent sets, stable set polytope & \lean{IsIndep}, \lean{InStab} \\
+Definition~\ref{def:gadget} & \lean{Gadget}, \lean{Gadget.price}, \lean{output}, \lean{Gadget.Valid} \\
+Theorem~\ref{thm:gadget} & \lean{Gadget.mem_cone_iff}, \lean{Gadget.neoSolvable_iff}, \lean{Gadget.weakSolvable_iff} \\
+Gadget: positive prices, marker below all prices & \lean{Gadget.price_none_lt}, \lean{Gadget.price_pos} \\
+Gadget: marker in every spectrum & \lean{Gadget.marker_mem} \\
+Gadget: rewards outside a spectrum are independent & \lean{Gadget.indep_outside} \\
+Gadget: complements of independent sets are reachable & \lean{Gadget.compl_mem} \\
+Lattice notation $L_k$, $\zeta_k$, circle & \lean{nrm}, \lean{toR}, \lean{onCircle} \\
+Definition~\ref{def:drawing} & \lean{Drawing} \\
+Lemma~\ref{lem:disks} & \lean{Drawing.gadget}, \lean{Drawing.gadget_valid} \\
+Empty disks: points on the circle & \lean{Drawing.circ_pair} \\
+Empty disks: the shift $v$ & \lean{Drawing.shift_spec} \\
+Empty disks: the key inequality & \lean{Drawing.gap} \\
+The graph $G$, colorings, $\underline k$, $\overline k$, $N_k$ & \lean{Graph}, \lean{Graph.Colorable}, \lean{Graph.lo}, \lean{Graph.hi}, \lean{Graph.colLen} \\
+The graph $H$ and its drawing & \lean{Graph.Node}, \lean{Graph.Link}, \lean{Graph.row}, \lean{Graph.col}, \lean{Graph.jA}, \lean{Graph.linkU}, \lean{Graph.linkV}, \lean{Graph.x0}, \lean{Graph.colX}, \lean{Graph.pos} \\
+Parity and injectivity of the drawing & \lean{Graph.pos_shape}, \lean{Graph.row_height}, \lean{Graph.colX_inj}, \lean{Graph.pos_injective} \\
+Lemma~\ref{lem:drawing} & \lean{Graph.short}, \lean{Graph.empty}, \lean{Graph.circle}, \lean{Graph.drawing} \\
+Disk check with two marked points & \lean{Graph.DiskOK}, \lean{Graph.disk} \\
+Disk check: row and column edges & \lean{Graph.disk_axis}, \lean{Graph.row_link_of_pos}, \lean{Graph.col_link_of_pos} \\
+Disk check: attachments & \lean{Graph.disk_attach} \\
+Disk check: triangles (finite enumeration) & \lean{Graph.disk_tri} \\
+Owners, colors, copies, the point $s$ & \lean{Graph.owner}, \lean{Graph.color}, \lean{Graph.IsCopy}, \lean{Graph.sval} \\
+Lemma~\ref{lem:coloring} & \lean{Graph.inStab_iff_colorable} \\
+Coloring lemma ($\Leftarrow$): the sets $I_\tau$ & \lean{Graph.shifted}, \lean{Graph.shifted_indep}, \lean{Graph.sum_shifted}, \lean{Graph.inStab_of_colorable} \\
+Coloring lemma ($\Rightarrow$): tight cliques & \lean{Graph.tight} \\
+Coloring lemma ($\Rightarrow$): copies follow their corner & \lean{Graph.alternate}, \lean{Graph.follow}, \lean{Graph.colorable_of_inStab} \\
+Instance of Theorem~\ref{thm:hard-main} & \lean{Graph.scale}, \lean{Graph.gadget}, \lean{Graph.numPrices}, \lean{Graph.index}, \lean{Graph.prices}, \lean{Graph.outputs} \\
+Coordinate bound $x+y\le B$, validity of the gadget & \lean{Graph.pos_bound}, \lean{Graph.gadget_valid} \\
+Rational instance and its casts & \lean{sqnQ}, \lean{liftQ}, \lean{Graph.scaleQ}, \lean{Graph.svalQ}, \lean{Graph.aQ}, \lean{Graph.etaQ}, \lean{Graph.priceQ}, \lean{Graph.outputQ}, \lean{Graph.priceQ_cast}, \lean{Graph.outputQ_cast} \\
+Explicit numbering of the prices & (superseded) \\
+Rational instance: solvable iff 3-colorable & (superseded) \\
+The bound $B=24m+8n+8$ & \lean{Graph.bnd} \\
+Bit sizes of prices and outputs (Theorem~\ref{thm:hard-karp}) & (superseded) \\
+Common denominator $2^{17}B^2$ & \lean{Graph.denom}, \lean{Graph.priceQ_mul_int}, \lean{den_le_of_mul_eq_int}, \lean{natAbs_num_le_of_mul_eq_int} \\
+Price entries at most $2$, outputs in $\set{1,\frac23,\frac13}$ & \lean{Graph.liftQ_bound}, \lean{Graph.abs_priceQ_le}, \lean{Graph.outputQ_cases} \\
+Cost monad & \lean{Costed}, \lean{tick}, \lean{tickN}, \lean{Costed.val_mapM}, \lean{Costed.cost_mapM} \\
+Unit-cost primitives (one operation each) & \lean{qadd}, \lean{qsub}, \lean{qmul}, \lean{qdiv}, \lean{zadd}, \lean{zsub}, \lean{zmul}, \lean{nadd}, \lean{nsub}, \lean{nmul}, \lean{nmod}, \lean{nlt}, \lean{neq} \\
+Position of a node (at most $13$ operations) & \lean{Graph.x0M}, \lean{Graph.colXM}, \lean{Graph.loM}, \lean{Graph.posM} \\
+Scale $\sigma$ ($6$ operations) & \lean{Graph.scaleM} \\
+Reward point $a_w$ (at most $21$ operations) & \lean{Graph.aM} \\
+Lift $\ell$ ($3$ and $8$ operations) & \lean{Graph.sqnM}, \lean{Graph.liftQM} \\
+Ends of an edge of $H$ ($10$ operations, $5$ per end) & \lean{Graph.endsM} \\
+Height $\eta_k$ (at most $52$ operations) & \lean{Graph.etaM}, \lean{Graph.val_etaM} \\
+One price (at most $120$ operations) & \lean{Graph.priceM} \\
+Point $s$ (at most $5$ operations) & \lean{Graph.svalM} \\
+One output (at most $6$ operations) & \lean{Graph.outputM} \\
+List of indices, enumeration ($1$ operation per index) & \lean{Graph.allX}, \lean{Graph.enumM} \\
+Programs for an entry, the instance, graphs of any size & \lean{Graph.entryM}, \lean{Graph.instanceM}, \lean{reduceM} \\
+The programs compute the rational instance & \lean{Graph.val_posM}, \lean{Graph.val_aM}, \lean{Graph.val_liftQM}, \lean{Graph.val_priceM}, \lean{Graph.val_outputM}, \lean{Graph.val_instanceM} \\
+The list of indices: no repetitions, complete, length $T$ & \lean{Graph.nodup_allX}, \lean{Graph.mem_allX}, \lean{Graph.length_allX} \\
+Bijective numbering; correctness for every numbering & \lean{Graph.sigmaX}, \lean{Graph.bijective_sigmaX}, \lean{Graph.weakSolvable_instOf}, \lean{Graph.neoSolvable_instOf} \\
+Cost of one price & \lean{Graph.cost_priceM_le} \\
+Cost of positions, reward points, outputs & \lean{Graph.cost_posM_le}, \lean{Graph.cost_aM_le}, \lean{Graph.cost_outputM_le} \\
+Theorem~\ref{thm:hard-karp}: cost ($127$ per price, $12700(n+1)(m+1)$ in total) & \lean{Graph.cost_instanceM_le}, \lean{mul_succ_le_pow}, \lean{cost_reduceM_le} \\
+Theorem~\ref{thm:hard-karp}: output bit size & \lean{Graph.size_instOf_le}, \lean{size_reduceM_le} \\
+Theorem~\ref{thm:hard-karp}: Karp reductions ($C=2^{40}$, $k=4$) & \lean{karp_threeCol_weakSolvable}, \lean{karp_threeCol_neoSolvable} \\
+Karp reduction, instances and their sizes & \lean{KarpReduction}, \lean{QInstance}, \lean{QInstance.size}, \lean{QInstance.ofList}, \lean{GraphIn}, \lean{sizeG} \\
+Theorem~\ref{thm:corners} & \lean{box_iff}, \lean{path_of_corners}, \lean{diag_of_corners} \\
+Theorem~\ref{thm:corners}, (A)$\Rightarrow$(B): the corner set $S'$ & \lean{exists_corner_set} \\
+Supporting functionals (definition) & \lean{Supported}, \lean{StrictlySupported} \\
+Weak reachability via support; strict support forces membership & \lean{IsWeakReachable.supported}, \lean{StrictlySupported.mem} \\
+Strict support implies support; both pass to smaller points & \lean{StrictlySupported.supported}, \lean{Supported.mono} \\
+Supported points closed, strictly supported points open & \lean{isClosed_setOf_supported}, \lean{isOpen_setOf_strictlySupported} \\
+Transfer of support to a new family & \lean{isWeakReachable_of_supported} \\
+Exit point of a semicontinuous pair on $[0,1]$ & \lean{exists_mem_Icc_between} \\
+Exit point along a path and along a segment & \lean{exists_path_between} \\
+Cube step: cone membership between $\sum m_k\ind{A_k}$ and $\sum m_k\ind{B_k}$ & \lean{mem_indicatorCone_of_between}, \lean{mem_indicatorCone_of_ind_le} \\
+Lemma~\ref{lem:cover} & \lean{isWeakReachable_iff_no_cover}, \lean{isWeakReachable_iff_no_small_cover} \\
+Lemma~\ref{lem:cover}, (i)$\Rightarrow$(ii) & \lean{meets_of_conv_lt} \\
+Gordan's alternative & \lean{gordan} \\
+Carath\'eodory's theorem & \lean{exists_small_conv} \\
+Proposition~\ref{prop:oracle} & not formalized (implementation) \\
+Proposition~\ref{prop:rational-Q} & not formalized \\
+Definition~\ref{def:boxfeasible} & \lean{BoxFeasible}, \lean{maxHW}, \lean{lpPow}, \lean{relDev} \\
+Theorem~\ref{thm:reduction} & \lean{exists_weakSolvable_iff_boxFeasible}, \lean{BoxFeasible.mono} \\
+\quad helper: half-widths of a solvable $Q$ are feasible & \lean{boxFeasible_of_weakSolvable}, \lean{max_negPart_posPart_le} \\
+\quad helper: $r$-th power cost is monotone in absolute values & \lean{lpPow_mono} \\
+\quad helper: deleting years preserves feasibility & \lean{BoxFeasible.restrict} \\
+Theorem~\ref{thm:onesigned} & \lean{exists_oneSigned_of_boxFeasible}, \lean{exists_oneSigned_le} \\
+Proposition~\ref{prop:cover} & \lean{meets_of_conv_lt}, \lean{le_sum_of_conv_lt}, \lean{le_of_dominated} \\
+Theorem~\ref{thm:certificate} & \lean{not_boxCone_of_certificate} \\
+Lemma~\ref{lem:nonempty} & \lean{exists_boxFeasible_align}, \lean{BoxData.top_mem} \\
+Theorem~\ref{thm:algo} & \lean{Problem.run_correct}, \lean{Problem.run_stops}, \lean{boxRun_correct} \\
+\quad the box instance: data, oracle specifications and the constructed problem; the top corner is feasible by the alignment lemma & \lean{BoxData}, \lean{BoxOracle}, \lean{BoxData.problem}, \lean{exists_boxFeasible_align}, \lean{BoxData.top_mem} \\
+\quad the box instance of the abstract problem (all conditions on $H$, $f$ proved; oracle specifications and feasibility of the top corner as hypotheses) & \lean{BoxData.problem}, \lean{boxCost}, \lean{boxH}, \lean{cNorm}, \lean{boxCost_mono}, \lean{boxCost_shift}, \lean{cNorm_pos}, \lean{le_boxCost} \\
+\quad helper: abstract problem (up-closed set, oracles, one-signed representatives, strict cuts) & \lean{Problem}, \lean{Problem.reduce}, \lean{Problem.master_lb}, \lean{Sat}, \lean{box} \\
+\quad helper: state, stopping rule, step~0, step, run & \lean{State}, \lean{Stopped}, \lean{Problem.init}, \lean{Problem.step}, \lean{Problem.run}, \lean{Problem.tau}, \lean{Problem.query} \\
+\quad helper: invariant of good states & \lean{Problem.Inv}, \lean{Problem.inv_init}, \lean{Problem.inv_step}, \lean{Problem.inv_run} \\
+\quad helper: feasible points satisfy all cuts; master in its domain & \lean{Problem.sat_of_cuts}, \lean{Problem.exists_reg} \\
+\quad helper: $\mathrm{lb}\le\OPT\le\UB$ & \lean{Problem.master_lb_le_opt}, \lean{Problem.le_opt}, \lean{Problem.opt_le} \\
+\quad helper: YES step contracts the gap by $3/4$; gap never grows & \lean{Problem.gap_step_yes}, \lean{Problem.gap_step_le} \\
+\quad helper: number of YES steps & \lean{Problem.gap_run_le}, \lean{Problem.card_yes_lt} \\
+\quad helper: NO master points are $\tau_0$-separated & \lean{Problem.tau_ge}, \lean{Problem.cuts_run_subset}, \lean{Problem.master_separated} \\
+\quad helper: packing bound on a grid of side $\tau_0$; number of NO steps & \lean{separated_bound}, \lean{Problem.card_no_le} \\
+\quad helper: box instance (coordinates, up-closedness, one-signed points, representatives) & \lean{alphaOf}, \lean{betaOf}, \lean{boxFeasible_upClosed}, \lean{BoxOneSigned}, \lean{box_reduce} \\
+Proposition~\ref{prop:closed} & \lean{isClosed_setOf_boxFeasible}, \lean{isClosed_setOf_isWeakReachable}, \lean{opt_pos_of_not_boxFeasible_zero}, \lean{run_stops_of_not_boxFeasible_zero} \\
+\quad helper: finite-family form of the box query; continuity of corners & \lean{boxFeasible_iff_exists_finset}, \lean{corners}, \lean{continuous_corners} \\
+\quad helper: infeasible $0$ forces a large coordinate; feasible $0$ stops at step~0 & \lean{exists_coord_ge_of_not_boxFeasible_zero}, \lean{init_stopped_of_boxFeasible_zero} \\
+\end{longtable}
+\endgroup
+
+\section{Definitions}
+\todo{List the Lean definitions that constitute the trusted base (IsNeoclassical, NeoSolvable, Realizes, IsReachable, WeakSolvable, IsWeakReachable, BoxFeasible, Problem, KarpReduction, QInstance, Costed and the primitives) with their statements verbatim.}

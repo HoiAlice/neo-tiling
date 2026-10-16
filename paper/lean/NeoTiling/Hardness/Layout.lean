@@ -27,7 +27,7 @@ and the junction edges `1 — 2` of the columns, which join a copy of `lo k` to 
 Main results: `pos_injective`, and `drawing`: the drawing has empty disks (`Drawing`).
 -/
 
-namespace NeoTiling.NPHardness
+namespace NeoTiling.Hardness
 
 open Finset
 
@@ -404,4 +404,4 @@ def drawing : Drawing G.linkU G.linkV where
 
 end Graph
 
-end NeoTiling.NPHardness
+end NeoTiling.Hardness

@@ -50,6 +50,13 @@ def IsWeakReachable (P : Fin T → Fin d → ℝ) (S : Finset (Fin T)) : Prop :=
 def weakReachableSpectra (P : Fin T → Fin d → ℝ) : Set (Finset (Fin T)) :=
   {S | IsWeakReachable P S}
 
+theorem isReachableB_false_iff {S : Finset (Fin T)} :
+    IsReachableB false P S ↔ IsWeakReachable P S := Iff.rfl
+
+/-- The weak mode gives the weakly reachable spectra. -/
+theorem setOf_isReachableB_false (P : Fin T → Fin d → ℝ) :
+    {S | IsReachableB false P S} = weakReachableSpectra P := rfl
+
 /-- Reachable spectra are weakly reachable: the same witnesses work. -/
 theorem IsReachable.isWeakReachable {S : Finset (Fin T)} (hS : IsReachable P S) :
     IsWeakReachable P S := fun t ht =>

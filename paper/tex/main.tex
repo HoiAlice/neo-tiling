@@ -4,6 +4,7 @@
 \documentclass[moor,blindrev]{informs4}
 \usepackage{mathtools}
 \usepackage{booktabs}
+\usepackage{longtable}
 \usepackage{enumitem}
 \usepackage{natbib}          % informs2014.bst is a natbib (author-year) style
 \providecommand{\newblock}{} % informs4 does not define it; natbib's thebibliography renews it
@@ -56,7 +57,6 @@
 \bibliographystyle{informs2014}
 \bibliography{refs}
 
-%% E-companion (Lean correspondence table), when written:
-%% \ECSwitch \ECHead{Formal verification: statement--Lean correspondence} ...
+\input{ec-companion}
 
 \end{document}

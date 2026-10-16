@@ -3,8 +3,7 @@ import NeoTiling.Planar.FlowLP
 /-!
 # The column problem and the Farkas certificate in the plane
 
-Part of `poly-hardness/` (not part of the `NeoTiling` library). Mode `b` and the chain graph as
-in `PolyHardness.FlowLP`.
+Mode `b` and the chain graph as in `Planar.FlowLP`.
 
 **Results.**
 * `min_family_eq_min_path`: for costs `c`, the least cost `Σ_{q ∈ S} c_q` of a (weakly)
@@ -17,7 +16,7 @@ in `PolyHardness.FlowLP`.
   shortest-path computation.
 -/
 
-namespace NeoTiling.PolyHardness
+namespace NeoTiling.Planar
 
 open Finset
 open scoped Classical
@@ -27,23 +26,6 @@ open scoped Classical
 section Farkas
 
 variable {T : ℕ}
-
-/-- A vector of the indicator cone pairs nonnegatively with every `c` nonnegative on `A`. -/
-theorem pairing_nonneg_of_mem {A : Set (Finset (Fin T))} {c y : Fin T → ℝ}
-    (hc : ∀ S ∈ A, 0 ≤ ∑ q ∈ S, c q) (hy : y ∈ indicatorCone A) : 0 ≤ ∑ q, c q * y q := by
-  obtain ⟨m, hm0, hmA, -, rfl⟩ := exists_coef_of_mem_indicatorCone hy
-  have : ∀ S, ∑ q, c q * (m S • (S : Set (Fin T)).indicator (1 : Fin T → ℝ)) q
-      = m S * ∑ q ∈ S, c q := by
-    intro S
-    rw [Finset.mul_sum]
-    simp [Set.indicator_apply, mul_comm]
-  simp only [Finset.sum_apply, Finset.mul_sum]
-  rw [Finset.sum_comm]
-  simp only [this]
-  refine Finset.sum_nonneg fun S _ => ?_
-  by_cases h : m S = 0
-  · simp [h]
-  · exact mul_nonneg (hm0 S) (hc S (hmA S h))
 
 /-- The hull of the nonempty indicators lies in the cone and in the half-space `Σ x ≥ 1`. -/
 theorem mem_convexHull_bounds {A : Set (Finset (Fin T))} {x : Fin T → ℝ}
@@ -73,24 +55,11 @@ theorem exists_farkas_of_sum_pos {A : Set (Finset (Fin T))} {y : Fin T → ℝ}
   set G := (fun S : Finset (Fin T) => (S : Set (Fin T)).indicator (1 : Fin T → ℝ)) ''
     {S | S ∈ A ∧ S.Nonempty} with hG
   set R : Set (Fin T → ℝ) := (fun s : ℝ => s • y) '' Set.Ici 0 with hR
-  -- the ray is closed: `R = {x | x = (Σ x / Σ y) • y, Σ x ≥ 0}`
-  have hRe : R = {x | x = ((∑ q, x q) / ∑ q, y q) • y ∧ 0 ≤ ∑ q, x q} := by
-    ext x
-    constructor
-    · rintro ⟨s, hs, rfl⟩
-      have : ∑ q, (s • y) q = s * ∑ q, y q := by simp [Finset.mul_sum]
-      show _ ∧ _
-      simp only [this, mul_div_cancel_right₀ _ hpos.ne', true_and]
-      have := Set.mem_Ici.1 hs; positivity
-    · rintro ⟨h1, h2⟩
-      exact ⟨_, div_nonneg h2 hpos.le, h1.symm⟩
-  have hRc : IsClosed R := by
-    rw [hRe]
-    have h1 : IsClosed {x : Fin T → ℝ | x = ((∑ q, x q) / ∑ q, y q) • y} :=
-      isClosed_eq continuous_id (by fun_prop)
-    have h2 : IsClosed {x : Fin T → ℝ | 0 ≤ ∑ q, x q} :=
-      isClosed_le continuous_const (by fun_prop)
-    exact h1.inter h2
+  -- the ray is closed: the image of `[0, ∞)` under the closed embedding `s ↦ s • y`
+  have hy0 : y ≠ 0 := by rintro rfl; simp at hpos
+  have hRc : IsClosed R :=
+    ((LinearMap.toSpanSingleton ℝ _ y).isClosedEmbedding_of_injective
+      (LinearMap.ker_eq_bot.2 (smul_left_injective ℝ hy0))).isClosedMap _ isClosed_Ici
   have hRv : Convex ℝ R := by
     have := (convex_Ici (0:ℝ)).linear_image (LinearMap.toSpanSingleton ℝ (Fin T → ℝ) y)
     simpa [hR, LinearMap.toSpanSingleton_apply] using this
@@ -119,12 +88,10 @@ theorem exists_farkas_of_sum_pos {A : Set (Finset (Fin T))} {y : Fin T → ℝ}
     have := hfv _ ⟨v / f y, hs.le, rfl⟩
     rw [map_smul, smul_eq_mul, div_mul_cancel₀ _ h.ne] at this
     exact lt_irrefl _ this
-  have hfx : ∀ x : Fin T → ℝ, f x = ∑ q, x q * f (Pi.single q 1) := by
-    intro x
-    have hx : x = ∑ q, x q • (Pi.single q 1 : Fin T → ℝ) := by
-      ext j; simp [Finset.sum_apply, Pi.single_apply]
-    conv_lhs => rw [hx]
-    simp [map_sum]
+  have hfx (x : Fin T → ℝ) : f x = ∑ q, x q * f (Pi.single q 1) := by
+    rw [← f.coe_coe, f.toLinearMap.pi_apply_eq_sum_univ]
+    simp only [smul_eq_mul, ContinuousLinearMap.coe_coe]
+    exact Finset.sum_congr rfl fun q _ => by congr; ext j; simp [Pi.single_apply, eq_comm]
   have hu : u < 0 := huv.trans hv
   have hμ : 0 < -u / (T + 1) := div_pos (by linarith) (by positivity)
   refine ⟨fun q => -f (Pi.single q 1) - -u / (T + 1), ?_, ?_⟩
@@ -154,8 +121,8 @@ theorem exists_farkas_of_sum_pos {A : Set (Finset (Fin T))} {y : Fin T → ℝ}
         div_mul_cancel₀ (-u) (show ((T:ℝ) + 1) ≠ 0 by positivity)]
 
 /-- **Farkas' lemma for an indicator cone.** `y ∉ cone{1_S | S ∈ A}` iff some `c` has
-`⟨c, y⟩ < 0` and `c(S) ≥ 0` on `A`. (⇐) by `pairing_nonneg_of_mem`. (⇒) if some `y_q < 0`, take
-`c = e_q`; otherwise `y ≥ 0`, `y ≠ 0` (as `0` is in the cone), so `Σ y > 0` and
+`⟨c, y⟩ < 0` and `c(S) ≥ 0` on `A`. (⇐) by `indicatorCone_pairing_nonneg`. (⇒) if some
+`y_q < 0`, take `c = e_q`; otherwise `y ≥ 0`, `y ≠ 0` (as `0` is in the cone), so `Σ y > 0` and
 `exists_farkas_of_sum_pos` applies. -/
 theorem not_mem_indicatorCone_iff (A : Set (Finset (Fin T))) (y : Fin T → ℝ) :
     y ∉ indicatorCone A ↔
@@ -178,7 +145,12 @@ theorem not_mem_indicatorCone_iff (A : Set (Finset (Fin T))) (y : Fin T → ℝ)
       exact exists_farkas_of_sum_pos hy
         (Finset.sum_pos' (fun i _ => hq i) ⟨q, Finset.mem_univ _, hq'⟩)
   · rintro ⟨c, hc, hA⟩ hy
-    exact absurd (pairing_nonneg_of_mem hA hy) (not_le.2 hc)
+    have := indicatorCone_pairing_nonneg
+      (∑ q, c q • LinearMap.proj (R := ℝ) (φ := fun _ : Fin T => ℝ) q)
+      (fun S hS => by simpa [Set.indicator_apply] using hA S hS) hy
+    simp only [LinearMap.coe_sum, Finset.sum_apply, LinearMap.smul_apply, LinearMap.proj_apply,
+      smul_eq_mul] at this
+    linarith
 
 end Farkas
 
@@ -298,4 +270,4 @@ theorem not_mem_iff_path_certificate (b : Bool) (y : Fin T → ℝ) :
         ∀ (w : ℕ → Node T) (L : ℕ), IsPath (Arc P) .src .snk w L → 0 ≤ pathW P b c w L := by
   simp only [not_mem_iff_farkas, nonneg_family_iff_path]
 
-end NeoTiling.PolyHardness
+end NeoTiling.Planar

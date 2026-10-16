@@ -20,26 +20,9 @@ spectra iff `s` lies in the stable set polytope. The disks may depend on `I`: th
 edges cross.
 -/
 
-set_option linter.unusedSectionVars false
-
-namespace NeoTiling.NPHardness
+namespace NeoTiling.Hardness
 
 open Finset
-
-/-! ### Two modes -/
-
-/-- `Ok b u`: `0 < u` in the strict mode (`b = true`), `0 ≤ u` in the weak mode. -/
-def Ok (b : Bool) (u : ℝ) : Prop := if b then 0 < u else 0 ≤ u
-
-/-- Reachability with `Ok b` witnesses: `IsReachable` for `b = true`, `IsWeakReachable` for
-`b = false`. -/
-def IsReachableB {d T : ℕ} (b : Bool) (P : Fin T → Fin d → ℝ) (S : Finset (Fin T)) : Prop :=
-  ∀ t ∈ S, ∃ ξ : Fin d → ℝ, 0 ≤ ξ ∧ ξ ≠ 0 ∧ ∀ s ∉ S, Ok b (ξ ⬝ᵥ (P s - P t))
-
-theorem Ok.of_pos {b : Bool} {u : ℝ} (h : 0 < u) : Ok b u := by cases b <;> simp [Ok, h, h.le]
-
-theorem Ok.nonneg {b : Bool} {u : ℝ} (h : Ok b u) : 0 ≤ u := by
-  cases b <;> simp [Ok] at h <;> linarith
 
 /-! ### The plane and the paraboloid -/
 
@@ -98,14 +81,14 @@ theorem not_both_nonneg {a b : Fin 2 → ℝ} {η : ℝ} (hη : sqn (a - b) / 4 
 
 /-! ### The stable set polytope -/
 
-variable {V E : Type*} [Fintype V] [DecidableEq V] [Fintype E]
+variable {V E : Type*}
 
 /-- `I` is independent for the edges `{eu k, ev k}`. -/
 def IsIndep (eu ev : E → V) (I : Finset V) : Prop := ∀ k, ¬ (eu k ∈ I ∧ ev k ∈ I)
 
 /-- `s` lies in the stable set polytope: a convex combination of indicators of independent
 sets. -/
-def InStab (eu ev : E → V) (s : V → ℝ) : Prop :=
+def InStab [Fintype V] [DecidableEq V] (eu ev : E → V) (s : V → ℝ) : Prop :=
   ∃ μ : Finset V → ℝ, (∀ I, 0 ≤ μ I) ∧ (∀ I, μ I ≠ 0 → IsIndep eu ev I) ∧ ∑ I, μ I = 1 ∧
     ∀ v, s v = ∑ I, if v ∈ I then μ I else 0
 
@@ -194,7 +177,7 @@ theorem marker_mem (hΓ : Γ.Valid) {b : Bool} {T : ℕ} {e : Option (V ⊕ E) �
 /-- **The rewards outside a spectrum with all heavy points are independent**: if both ends of
 the edge `k` were outside, the witness of the heavy point would contradict
 `not_both_nonneg`. -/
-theorem indep_outside (hΓ : Γ.Valid) {b : Bool} {T : ℕ} {e : Option (V ⊕ E) ≃ Fin T}
+theorem indep_outside [Fintype V] (hΓ : Γ.Valid) {b : Bool} {T : ℕ} {e : Option (V ⊕ E) ≃ Fin T}
     {S : Finset (Fin T)} (hS : IsReachableB b (fun t => Γ.price (e.symm t)) S)
     (hheavy : ∀ k, e (some (.inr k)) ∈ S) :
     IsIndep Γ.eu Γ.ev (univ.filter fun v => e (some (.inl v)) ∉ S) := by
@@ -241,7 +224,7 @@ theorem compl_mem (hΓ : Γ.Valid) (b : Bool) {T : ℕ} (e : Option (V ⊕ E) �
     simp only [Equiv.symm_apply_apply, hx, price]
     exact Ok.of_pos (by linarith [hcd w hwI])
 
-variable (Γ)
+variable [Fintype V] [DecidableEq V] (Γ)
 
 /-- **The gadget theorem.** In both modes, the output vector for `s` lies in the cone of the
 (weakly) reachable spectra iff `s` lies in the stable set polytope.
@@ -348,4 +331,4 @@ theorem weakSolvable_iff (hΓ : Γ.Valid) {T : ℕ} (e : Option (V ⊕ E) ≃ Fi
 
 end Gadget
 
-end NeoTiling.NPHardness
+end NeoTiling.Hardness

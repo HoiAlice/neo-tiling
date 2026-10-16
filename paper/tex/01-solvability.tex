@@ -7,14 +7,14 @@
 Throughout, $d\in\N$, $d\ge2$. For $p,x\in\R^d$ we write $p\circ x:=(p^1x^1,\dots,p^dx^d)$ for the coordinatewise product, $\e:=(1,\dots,1)\in\R^d$, and $\ind S\in\R^T$ for the indicator of $S\subset[T]$. Inequalities between vectors are coordinatewise.
 
 \begin{definition}[neoclassical functions]\label{def:neoclassical}
-A function $f\colon\Rp[d]\to\R_+$ is \emph{neoclassical} if it is continuous, concave and positively homogeneous of degree one. The class of neoclassical functions of $d$ variables is denoted $\Phi_d$. \hfill\lean{IsNeoclassical}
+A function $f\colon\Rp[d]\to\R_+$ is \emph{neoclassical} if it is continuous, concave and positively homogeneous of degree one. The class of neoclassical functions of $d$ variables is denoted $\Phi_d$.
 \end{definition}
 
 \begin{definition}[neoclassical solvability]\label{def:neo-solvability}
-Let $\set{\hat p_t\in\Rpp[d]}_{t\in[T]}$ be a finite set of prices. An output vector $y\in\Rp[T]$ is \emph{neoclassically solvable} at these prices if there exist $h\in\Phi_d$ and neighbourhoods $U_t\ni\hat p_t$, $U_t\subset\Rpp[d]$, such that for every choice $\set{p_t\in U_t}_{t\in[T]}$ there is a nonnegative absolutely continuous measure $\mu$ on $\Rp[d]$ with
+Let $\set{\hat p_t\in\Rpp[d]}_{t\in[T]}$ be a finite set of prices. An output vector $y\in\Rp[T]$ is \emph{neoclassically solvable} at these prices if there exist $h\in\Phi_d$ and neighborhoods $U_t\ni\hat p_t$, $U_t\subset\Rpp[d]$, such that for every choice $\set{p_t\in U_t}_{t\in[T]}$ there is a nonnegative absolutely continuous measure $\mu$ on $\Rp[d]$ with
 \[
 \mu(A_t)=y_t\quad\text{for all }t\in[T],\qquad A_t:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1}.
-\] \hfill\lean{NeoSolvable}, \lean{Realizes}
+\]
 \end{definition}
 
 \subsection{Spectrum}
@@ -24,15 +24,19 @@ Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. For $S\subset[T]$ the \
 \[
 R_S:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1\text{ for }t\in S,\ h(p_s\circ x)>1\text{ for }s\notin S}.
 \]
-The \emph{spectrum} of the pair $(h,P)$ is the family of spectra of nonempty chambers, $\Sp(h,P):=\set{S\subset[T]\mid R_S\ne\varnothing}$. \hfill\lean{specRegion}, \lean{spectrum}
+The \emph{spectrum} of the pair $(h,P)$ is the family of spectra of nonempty chambers, $\Sp(h,P):=\set{S\subset[T]\mid R_S\ne\varnothing}$.
 \end{definition}
 
 \begin{proposition}\label{prop:null}
-Let $h\in\Phi_d$. For every $p\in\Rpp[d]$ the set $\set{x\in\Rpp[d]\mid h(p\circ x)=1}$ has Lebesgue measure zero. Hence $\mathcal L^d\bigl(A_t\mathbin{\triangle}\bigsqcup_{S\ni t}R_S\bigr)=0$ for every $t\in[T]$. \hfill\lean{IsNeoclassical.volume_levelSet_eq_zero}, \lean{measure_demandSet_eq_sum}
+Let $h\in\Phi_d$. For every $p\in\Rpp[d]$ the set $\set{x\in\Rpp[d]\mid h(p\circ x)=1}$ has Lebesgue measure zero. Hence $\mathcal L^d\bigl(A_t\mathbin{\triangle}\bigsqcup_{S\ni t}R_S\bigr)=0$ for every $t\in[T]$.
 \end{proposition}
 
+\begin{proof}
+The set $K:=\set{x\in\Rp[d]\mid h(p\circ x)\ge1}$ is convex since $h$ is concave. If $h(p\circ x)=1$, then $h(p\circ\lambda x)=\lambda<1$ for $0<\lambda<1$ by homogeneity, so $\lambda x\notin K$ and $\lambda x\to x$ as $\lambda\to1$. Hence the level set is contained in the boundary of the convex set $K$, and the boundary of a convex set has Lebesgue measure zero \citep{Lang1986}. The symmetric difference $A_t\mathbin{\triangle}\bigsqcup_{S\ni t}R_S$ is contained in the union of the level sets $\set{x\mid h(p_s\circ x)=1}$, $s\in[T]$.
+\end{proof}
+
 \begin{lemma}[signature]\label{lem:signature}
-Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $y\in\Rp[T]$ lies in $\cone\set{\ind S\mid S\in\Sp(h,P)}$ if and only if there is an absolutely continuous measure $\mu$ on $\Rp[d]$ with $\mu(A_t)=y_t$ for all $t\in[T]$, where $A_t:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1}$. \hfill\lean{IsNeoclassical.realizes_iff_mem_indicatorCone}
+Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $y\in\Rp[T]$ lies in $\cone\set{\ind S\mid S\in\Sp(h,P)}$ if and only if there is an absolutely continuous measure $\mu$ on $\Rp[d]$ with $\mu(A_t)=y_t$ for all $t\in[T]$, where $A_t:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1}$.
 \end{lemma}
 
 \begin{proof}
@@ -40,33 +44,33 @@ By \cref{prop:null} the level sets are null, so $\mu(A_t)=\sum_{S\ni t}\mu(R_S)$
 \end{proof}
 
 \begin{lemma}[stability]\label{lem:stability}
-Let $h\in\Phi_d$ and $P\in\Rpp[d\times T]$. There is a neighbourhood $V\subset\Rpp[d\times T]$ of $P$ such that $\Sp(h,Q)\supseteq\Sp(h,P)$ for every $Q\in V$. \hfill\lean{IsNeoclassical.eventually_spectrum_subset}
+Let $h\in\Phi_d$ and $P\in\Rpp[d\times T]$. There is a neighborhood $V\subset\Rpp[d\times T]$ of $P$ such that $\Sp(h,Q)\supseteq\Sp(h,P)$ for every $Q\in V$.
 \end{lemma}
 
 \begin{proof}
-Let $S\in\Sp(h,P)$ and $x\in R_S$. The strict inequalities $h(p_t\circ x)\gtrless1$ survive a small change of prices by continuity of $h$, so $x$ lies in the chamber with spectrum $S$ for $Q$ as well, and $S\in\Sp(h,Q)$. There are finitely many $S$, so one neighbourhood serves all of them.
+Let $S\in\Sp(h,P)$ and $x\in R_S$. The strict inequalities $h(p_t\circ x)\gtrless1$ survive a small change of prices by continuity of $h$, so $x$ lies in the chamber with spectrum $S$ for $Q$ as well, and $S\in\Sp(h,Q)$. There are finitely many $S$, so one neighborhood serves all of them.
 \end{proof}
 
 \subsection{Reachable spectra}
 
 \begin{definition}[reachable spectra]\label{def:reachable}
-Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. A set $S\subset[T]$ is a \emph{reachable spectrum} at $P$ if for every $t\in S$ there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{p_s-p_t}>0$ for all $s\notin S$. Such $\xi$ is a \emph{witness} of the index $t$. The family of reachable spectra is denoted $\Sp(P)$. \hfill\lean{IsReachable}, \lean{reachableSpectra}
+Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. A set $S\subset[T]$ is a \emph{reachable spectrum} at $P$ if for every $t\in S$ there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{p_s-p_t}>0$ for all $s\notin S$. Such $\xi$ is a \emph{witness} of the index $t$. The family of reachable spectra is denoted $\Sp(P)$.
 \end{definition}
 
 \begin{lemma}[necessity]\label{lem:necessity}
-Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $\Sp(h,P)\subseteq\Sp(P)$. \hfill\lean{IsNeoclassical.spectrum_subset_reachableSpectra}
+Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $\Sp(h,P)\subseteq\Sp(P)$.
 \end{lemma}
 
 \begin{proof}
-Let $S\in\Sp(h,P)$, $x\in R_S$ and $t\in S$. If $S=[T]$, any nonzero $\xi\in\Rp[d]$ is a witness. Otherwise the nonempty set $Z_x:=\conv\set{p_r\circ x}_{r\notin S}+\Rp[d]$ is convex and closed, and $h(z)\ge\min_{r\notin S}h(p_r\circ x)\ge1$ for all $z\in Z_x$ by concavity, homogeneity and monotonicity of $h$. Since $t\in S$ and $x\in R_S$ we have $h(p_t\circ x)<1$, so $p_t\circ x\notin Z_x$.
+Let $S\in\Sp(h,P)$, $x\in R_S$ and $t\in S$. If $S=[T]$, any nonzero $\xi\in\Rp[d]$ is a witness. Otherwise the nonempty set $Z_x:=\conv\set{p_r\circ x}_{r\notin S}+\Rp[d]$ is convex and closed, and $h(z)\ge\min_{r\notin S}h(p_r\circ x)\ge1$ for all $z\in Z_x$ by concavity, homogeneity and monotonicity of $h$. Since $t\in S$ and $x\in R_S$ we have $h(p_t\circ x)<1$, so $p_t\circ x\notin Z_x$. Here $h$ is nondecreasing on $\Rp[d]$: by concavity and homogeneity it is superadditive, $h(z+v)=2h\bigl(\tfrac12(z+v)\bigr)\ge h(z)+h(v)\ge h(z)$ for $z,v\in\Rp[d]$, as $h\ge0$.
 
-By the separation theorem there are a linear functional $f$ and a number $u$ with $f(p_t\circ x)<u<f(z)$ for all $z\in Z_x$. The functional $f$ is nonnegative on $\Rp[d]$: if $f(v)<0$ for some $v\ge0$, then $z+\lambda v\in Z_x$ with a suitable $\lambda\ge0$ would give $f(z+\lambda v)=u$. Put $\xi^i:=f(e_i)x^i\ge0$. Then $\ip{\xi}{p}=f(p\circ x)$, and for $s\notin S$ we get $\ip{\xi}{p_s-p_t}=f(p_s\circ x)-f(p_t\circ x)>0$, whence $\xi\ne0$. Thus $\xi$ is a witness of $t$ at $P$, and $S\in\Sp(P)$.
+By the strong separation theorem for a point and a closed convex set \citep[Thm.~11.4]{Rockafellar1970} there are a linear functional $f$ and a number $u$ with $f(p_t\circ x)<u<f(z)$ for all $z\in Z_x$. The functional $f$ is nonnegative on $\Rp[d]$: if $f(v)<0$ for some $v\ge0$, then $z+\lambda v\in Z_x$ with a suitable $\lambda\ge0$ would give $f(z+\lambda v)=u$. Put $\xi^i:=f(e_i)x^i\ge0$. Then $\ip{\xi}{p}=f(p\circ x)$, and for $s\notin S$ we get $\ip{\xi}{p_s-p_t}=f(p_s\circ x)-f(p_t\circ x)>0$, whence $\xi\ne0$. Thus $\xi$ is a witness of $t$ at $P$, and $S\in\Sp(P)$.
 \end{proof}
 
 \subsection{The solvability criterion}
 
 \begin{lemma}[separation]\label{lem:separation}
-Let $S\in\Sp(P)$ and $t\in S$. There is $\xi\in\Rpp[d]$ with $\ip{\xi}{p_t}<1<\ip{\xi}{p_s}$ for all $s\notin S$. \hfill\lean{IsReachable.exists_vector}
+Let $S\in\Sp(P)$ and $t\in S$. There is $\xi\in\Rpp[d]$ with $\ip{\xi}{p_t}<1<\ip{\xi}{p_s}$ for all $s\notin S$.
 \end{lemma}
 
 \begin{proof}
@@ -74,7 +78,7 @@ Let $\xi_0$ be a witness of $t$. For small $\delta>0$ the vector $\xi_1:=\xi_0+\
 \end{proof}
 
 \begin{lemma}[patching]\label{lem:patch}
-Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. There is $h\in\Phi_d$ with $\Sp(P)\subseteq\Sp(h,P)$. \hfill\lean{exists_polyMin_patch}, \lean{exists_spectrum_eq_reachableSpectra}
+Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. There is $h\in\Phi_d$ with $\Sp(P)\subseteq\Sp(h,P)$.
 \end{lemma}
 
 \begin{proof}
@@ -94,9 +98,22 @@ Since $\ip{\xi_{S,t}\circ x_{-E_S}}{p_r\circ x_{E_{S'}}}=\ip{\xi_{S,t}}{p_r\circ
 \end{proof}
 
 \begin{theorem}[solvability criterion]\label{thm:solvability}
-Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. An output vector $y\in\Rp[T]$ is neoclassically solvable at $P$ if and only if $y\in\cone\set{\ind S\mid S\in\Sp(P)}$. \hfill\lean{neoSolvable_iff_mem_indicatorCone}
+Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. An output vector $y\in\Rp[T]$ is neoclassically solvable at $P$ if and only if $y\in\cone\set{\ind S\mid S\in\Sp(P)}$.
 \end{theorem}
 
 \begin{proof}
-Let $y$ be solvable with $h\in\Phi_d$. Taking the prices $P$ themselves in \cref{def:neo-solvability}, \cref{lem:signature} gives $y\in\cone\set{\ind S\mid S\in\Sp(h,P)}$, and $\Sp(h,P)\subseteq\Sp(P)$ by \cref{lem:necessity}. Conversely, take $h$ from \cref{lem:patch}. By \cref{lem:stability}, $\Sp(h,Q)\supseteq\Sp(h,P)\supseteq\Sp(P)$ for all $Q$ in a neighbourhood of $P$, and by \cref{lem:signature} for every such $Q$ there is an absolutely continuous $\mu$ with $\mu(A_t)=y_t$.
+Let $y$ be solvable with $h\in\Phi_d$. Taking the prices $P$ themselves in \cref{def:neo-solvability}, \cref{lem:signature} gives $y\in\cone\set{\ind S\mid S\in\Sp(h,P)}$, and $\Sp(h,P)\subseteq\Sp(P)$ by \cref{lem:necessity}. Conversely, take $h$ from \cref{lem:patch}. By \cref{lem:stability}, $\Sp(h,Q)\supseteq\Sp(h,P)\supseteq\Sp(P)$ for all $Q$ in a neighborhood of $P$, and by \cref{lem:signature} for every such $Q$ there is an absolutely continuous $\mu$ with $\mu(A_t)=y_t$.
 \end{proof}
+
+\begin{remark}[one input]\label{rem:d1}
+For $d=1$ every neoclassical function is $h(x)=ax$ with $a\ge0$, so the sets $A_t$ are the intervals $(0,1/(ap_t))$, nested by price, and nothing depends on $a$. Accordingly $S\in\Sp(P)$ if and only if $p_s>p_t$ for all $t\in S$, $s\notin S$, and \cref{thm:solvability} reduces to: $y$ is solvable if and only if $y_s\ge y_t$ whenever $p_s<p_t$ and $y_s=y_t$ whenever $p_s=p_t$; weak solvability (\cref{sec:weak}) drops the second condition. The case $d=1$ is excluded from everything that follows.
+\end{remark}
+
+\begin{corollary}[openness]\label{lem:open}
+Let $P\in\Rpp[d\times T]$. There is a neighborhood $V\subset\Rpp[d\times T]$ of $P$ such that $\Sp(Q)\supseteq\Sp(P)$ for every $Q\in V$.
+\end{corollary}
+
+\begin{proof}
+Take $h\in\Phi_d$ with $\Sp(P)\subseteq\Sp(h,P)$ by \cref{lem:patch} and the neighborhood $V$ of \cref{lem:stability}. For $Q\in V$, \cref{lem:necessity} gives $\Sp(P)\subseteq\Sp(h,P)\subseteq\Sp(h,Q)\subseteq\Sp(Q)$.
+\end{proof}
+

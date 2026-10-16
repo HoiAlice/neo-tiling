@@ -7,13 +7,12 @@ Let `B = 24m + 8n + 8` (`bnd n m`), so that `scaleQ n m = 1 / (16 B)` and all co
 `pos` lie in `[0, B]` (`pos_bound`). Every price entry is a polynomial of degree `≤ 2` in
 `scaleQ n m` with coefficients in `ℤ / 512`, so it times `D = 2^17 B^2 = 512 (16 B)^2` is an
 integer (`priceQ_mul_int`), and it is at most `2` in absolute value (`abs_priceQ_le`). Hence
-
-* `pricesQ_den_le`: `den ≤ 2^17 B^2`;
-* `pricesQ_num_le`: `|num| ≤ 2^18 B^2`;
-* `outputsQ_den_le`, `outputsQ_num_le`: the outputs are `1, 1/3, 2/3`, so `den, |num| ≤ 3`.
+`den ≤ 2^17 B^2` and `|num| ≤ 2^18 B^2` (`den_le_of_mul_eq_int`, `natAbs_num_le_of_mul_eq_int`).
+The outputs are `1, 2/3, 1/3` (`outputQ_cases`), so `den, |num| ≤ 3`. The bounds on the instance
+are collected in `size_instOf_le` (`Cost.lean`).
 -/
 
-namespace NeoTiling.NPHardness
+namespace NeoTiling.Hardness
 
 /-- If `q * D` is an integer, then `den q ≤ D`. -/
 lemma den_le_of_mul_eq_int {q : ℚ} {D : ℕ} (hD : 0 < D) {N : ℤ} (h : q * D = N) :
@@ -147,31 +146,12 @@ lemma abs_priceQ_le (x : Option (G.Node ⊕ G.Link)) (i : Fin 3) :
     simp only [priceQ, Pi.add_apply]; rw [abs_le]; push_cast
     constructor <;> linarith [this.1, this.2, he.1, he.2]
 
-theorem pricesQ_den_le (t : Fin G.numPricesQ) (i : Fin 3) :
-    (G.pricesQ t i).den ≤ 2 ^ 17 * bnd n m ^ 2 := by
-  obtain ⟨N, h⟩ := G.priceQ_mul_int (G.indexQ.symm t) i
-  exact den_le_of_mul_eq_int denom_pos h
-
-theorem pricesQ_num_le (t : Fin G.numPricesQ) (i : Fin 3) :
-    (G.pricesQ t i).num.natAbs ≤ 2 ^ 18 * bnd n m ^ 2 := by
-  obtain ⟨N, h⟩ := G.priceQ_mul_int (G.indexQ.symm t) i
-  have := natAbs_num_le_of_mul_eq_int denom_pos h (G.abs_priceQ_le _ i)
-  unfold denom at this; simp only [pricesQ]; omega
-
 /-- The outputs are `1`, `2/3` or `1/3`. -/
 lemma outputQ_cases (x : Option (G.Node ⊕ G.Link)) :
     G.outputQ x = 1 ∨ G.outputQ x = 2 / 3 ∨ G.outputQ x = 1 / 3 := by
   rcases x with _ | (⟨_, _, j⟩ | ⟨_, _, j⟩) | k <;> simp only [outputQ, svalQ] <;>
     (try split_ifs) <;> norm_num
 
-theorem outputsQ_den_le (t : Fin G.numPricesQ) : (G.outputsQ t).den ≤ 3 := by
-  rcases G.outputQ_cases (G.indexQ.symm t) with h | h | h <;> simp only [outputsQ, h] <;>
-    decide +kernel
-
-theorem outputsQ_num_le (t : Fin G.numPricesQ) : (G.outputsQ t).num.natAbs ≤ 3 := by
-  rcases G.outputQ_cases (G.indexQ.symm t) with h | h | h <;> simp only [outputsQ, h] <;>
-    decide +kernel
-
 end Graph
 
-end NeoTiling.NPHardness
+end NeoTiling.Hardness

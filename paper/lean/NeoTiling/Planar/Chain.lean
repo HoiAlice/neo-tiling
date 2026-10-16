@@ -3,8 +3,6 @@ import NeoTiling.Core.Closure
 /-!
 # Reachable sets in the plane are cut out by convex chains
 
-Part of `poly-hardness/` (not part of the `NeoTiling` library).
-
 Weak reachability (witnesses with `⟨ξ, p_s - p_t⟩ ≥ 0`) and reachability (`> 0`) are treated at
 once: `Ok b u` is `0 < u` for `b = true` and `0 ≤ u` for `b = false`, and `IsReachableB b` is
 reachability with `Ok b` witnesses, so `IsReachableB false = IsWeakReachable` and
@@ -21,45 +19,9 @@ describes the closed region `C(V) = conv(V) + ℝ²₊` (`InHull`) and its inter
   a point depends only on the vertical slab of the chain containing it.
 -/
 
-namespace NeoTiling.PolyHardness
+namespace NeoTiling.Planar
 
 open Finset
-
-/-! ## Weak and strict at once -/
-
-/-- `Ok b u`: `0 < u` if `b` (strict), `0 ≤ u` otherwise. -/
-def Ok (b : Bool) (u : ℝ) : Prop := if b then 0 < u else 0 ≤ u
-
-/-- Reachability with `Ok b` witnesses: every `t ∈ S` has a nonzero `ξ ≥ 0` with
-`Ok b ⟨ξ, p_s - p_t⟩` for all `s ∉ S`. -/
-def IsReachableB {d T : ℕ} (b : Bool) (P : Fin T → Fin d → ℝ) (S : Finset (Fin T)) : Prop :=
-  ∀ t ∈ S, ∃ ξ : Fin d → ℝ, 0 ≤ ξ ∧ ξ ≠ 0 ∧ ∀ s ∉ S, Ok b (ξ ⬝ᵥ (P s - P t))
-
-section OkLemmas
-
-variable {b : Bool} {u v : ℝ}
-
-theorem Ok.nonneg (h : Ok b u) : 0 ≤ u := by
-  cases b <;> simp only [Ok] at h <;> simp_all [le_of_lt]
-
-theorem Ok.add_nonneg (h : Ok b u) (hv : 0 ≤ v) : Ok b (u + v) := by
-  cases b <;> simp [Ok] at h ⊢ <;> linarith
-
-theorem Ok.mul_pos {c : ℝ} (hc : 0 < c) (h : Ok b u) : Ok b (c * u) := by
-  cases b <;> simp [Ok, hc] at h ⊢ <;> exact h
-
-/-- `Ok b x` and `Ok (!b) y` cannot hold together with `x + y ≤ 0`. -/
-theorem Ok.false_of_add_nonpos {x y : ℝ} (hx : Ok b x) (hy : Ok (!b) y)
-    (h : x + y ≤ 0) : False := by
-  cases b <;> simp only [Ok, Bool.not_false, Bool.not_true, Bool.false_eq_true, if_true,
-    if_false] at hx hy <;> linarith
-
-theorem isReachableB_false_iff {d T : ℕ} {P : Fin T → Fin d → ℝ} {S : Finset (Fin T)} :
-    IsReachableB false P S ↔ IsWeakReachable P S := Iff.rfl
-
-theorem isReachableB_true_iff {d T : ℕ} {P : Fin T → Fin d → ℝ} {S : Finset (Fin T)} :
-    IsReachableB true P S ↔ IsReachable P S := Iff.rfl
-end OkLemmas
 
 /-! ## Part I: the plane -/
 
@@ -91,9 +53,9 @@ variable {P}
 /-! ### Existence of the hull chain (gift wrapping) -/
 
 /-- Algebra for the gift-wrapping step: if `a` is above the line `v₀ w`, `w` above the line
-`a b`, `X v₀ < X w < X a < X b` and `Y b < Y a`, then `v₀` is above the line `a b`. -/
+`a b` and `X v₀ < X w < X a < X b`, then `v₀` is above the line `a b`. -/
 theorem cross_nonneg_left {v₀ w a b : Fin T} (h0w : P v₀ 0 < P w 0) (hwa : P w 0 < P a 0)
-    (hab : P a 0 < P b 0) (_hyab : P b 1 < P a 1) (ha : 0 ≤ cross P v₀ w a)
+    (hab : P a 0 < P b 0) (ha : 0 ≤ cross P v₀ w a)
     (hw : 0 ≤ cross P a b w) : 0 ≤ cross P a b v₀ := by
   have key : (P a 0 - P w 0) * cross P a b v₀
       = (P a 0 - P v₀ 0) * cross P a b w + (P b 0 - P a 0) * cross P v₀ w a := by
@@ -108,8 +70,7 @@ theorem cross_nonneg_left {v₀ w a b : Fin T} (h0w : P v₀ 0 < P w 0) (hwa : P
 /-- Algebra for the gift-wrapping step: if `f = cross P a b` is nonnegative at `v₀` and `w`,
 the normal of `a b` is nonnegative, and `s` lies in `conv{v₀, w} + ℝ²₊` (`X s ≥ X v₀`,
 `Y s ≥ Y w`, `s` above the line `v₀ w`), then `f s ≥ 0`. -/
-theorem cross_nonneg_of_above {v₀ w a b s : Fin T} (h0w : P v₀ 0 < P w 0)
-    (_hyw : P w 1 < P v₀ 1) (hab : P a 0 < P b 0) (hyab : P b 1 < P a 1)
+theorem cross_nonneg_of_above {v₀ w a b s : Fin T} (h0w : P v₀ 0 < P w 0) (hab : P a 0 < P b 0) (hyab : P b 1 < P a 1)
     (h0 : 0 ≤ cross P a b v₀) (hw : 0 ≤ cross P a b w) (hxs : P v₀ 0 ≤ P s 0)
     (hys : P w 1 ≤ P s 1) (hs : 0 ≤ cross P v₀ w s) : 0 ≤ cross P a b s := by
   have h3 : 0 < P b 0 - P a 0 := by linarith
@@ -135,15 +96,12 @@ theorem cross_nonneg_of_above {v₀ w a b s : Fin T} (h0w : P v₀ 0 < P w 0)
       positivity
     exact nonneg_of_mul_nonneg_right this h1
 
-/-- `X` is strictly increasing along a chain. -/
-private lemma x_mono {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {i j : ℕ} (hij : i < j)
-    (hj : j ≤ k) : P (v i) 0 < P (v j) 0 := by
-  induction j with
-  | zero => omega
-  | succ j ih =>
-    rcases Nat.lt_succ_iff_lt_or_eq.mp hij with h | h
-    · exact (ih h (by omega)).trans (hc.xlt j (by omega))
-    · subst h; exact hc.xlt i (by omega)
+/-- `X` strictly increases along a chain. -/
+theorem chain_x_lt {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {j i : ℕ} (hji : j < i)
+    (hik : i ≤ k) : P (v j) 0 < P (v i) 0 := by
+  induction i, hji using Nat.le_induction with
+  | base => exact hc.xlt j (by omega)
+  | succ i _ ih => exact (ih (by omega)).trans (hc.xlt i (by omega))
 
 /-- **Hull chain.** Every nonempty `U` has a chain with vertices in `U`, starting at a given
 lexicographic minimum `v₀` of `U`, whose region contains all of `U`. Proof by strong induction on
@@ -288,10 +246,10 @@ theorem exists_hull_chain (U : Finset (Fin T)) (v₀ : Fin T) (hv₀ : v₀ ∈ 
               show 0 ≤ cross P w (v' 1) v₀
               linarith
             · have hxa : P w 0 < P (v' (j + 1)) 0 := by
-                rw [← hv'0]; exact x_mono hc' (by omega) (by omega)
-              exact cross_nonneg_left hwx hxa hab hyab
+                rw [← hv'0]; exact chain_x_lt hc' (by omega) (by omega)
+              exact cross_nonneg_left hwx hxa hab
                 (F2 _ (hU''U _ (hv'U _ (by omega)))) hw'
-          exact cross_nonneg_of_above hwx hwy hab hyab h0 hw' (hmin s hs).1 hys.le (F2 s hs)
+          exact cross_nonneg_of_above hwx hab hyab h0 hw' (hmin s hs).1 hys.le (F2 s hs)
 
 /-! ### Locality: the status of a point is decided by its slab -/
 
@@ -328,12 +286,6 @@ theorem slope_mono {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {i j : ℕ
       have := mul_nonneg (sub_nonneg.2 hxj.le) h2.le
       positivity
     exact nonneg_of_mul_nonneg_right h3 (sub_pos.2 hxi)
-
-private theorem xmono {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {j i : ℕ} (hji : j ≤ i)
-    (hik : i ≤ k) : P (v j) 0 ≤ P (v i) 0 := by
-  induction i, hji using Nat.le_induction with
-  | base => exact le_rfl
-  | succ i hji ih => exact (ih (by omega)).trans (hc.xlt i (by omega)).le
 
 private theorem ymono {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {j i : ℕ} (hji : j ≤ i)
     (hik : i ≤ k) : P (v i) 1 ≤ P (v j) 1 := by
@@ -379,7 +331,8 @@ private theorem cross_vertex_nonneg {v : ℕ → Fin T} {k : ℕ} (hc : IsChain 
 /-- Every vertex of a strictly convex chain lies in its region. -/
 theorem inHull_vertex {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {i : ℕ} (hi : i ≤ k) :
     InHull P v k (v i) :=
-  ⟨xmono hc (Nat.zero_le i) hi, ymono hc hi le_rfl, fun _ hj => cross_vertex_nonneg hc hj hi⟩
+  ⟨by rcases i.eq_zero_or_pos with rfl | h; exacts [le_rfl, (chain_x_lt hc h hi).le],
+    ymono hc hi le_rfl, fun _ hj => cross_vertex_nonneg hc hj hi⟩
 
 /-- **Edge slab.** For `X (v j) < X q ≤ X (v (j+1))` the point is in `C(V)` (in its interior)
 iff it is on or above (strictly above) the line of the edge `j`. -/
@@ -397,7 +350,8 @@ theorem inHull_iff_of_piece {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {
     intro i; unfold cross; ring
   have hy1 := ymono hc (show j ≤ k by omega) le_rfl
   have hy2 := ymono hc (show j + 1 ≤ k by omega) le_rfl
-  have hx0 := xmono hc (Nat.zero_le j) hj.le
+  have hx0 : P (v 0) 0 ≤ P (v j) 0 := by
+    rcases j.eq_zero_or_pos with rfl | h; exacts [le_rfl, (chain_x_lt hc h hj.le).le]
   refine ⟨⟨fun h => h.2.2 j hj, fun hcr => ⟨by linarith, ?_, ?_⟩⟩,
     ⟨fun h => h.2.2 j hj, fun hcr => ⟨by linarith, ?_, ?_⟩⟩⟩
   · by_contra hlt
@@ -471,7 +425,8 @@ theorem inHull_iff_of_left {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {q
 theorem inHull_iff_of_right {v : ℕ → Fin T} {k : ℕ} (hc : IsChain P v k) {q : Fin T}
     (hq : P (v k) 0 < P q 0) :
     (InHull P v k q ↔ P (v k) 1 ≤ P q 1) ∧ (InInt P v k q ↔ P (v k) 1 < P q 1) := by
-  have hx0 := xmono hc (Nat.zero_le k) le_rfl
+  have hx0 : P (v 0) 0 ≤ P (v k) 0 := by
+    rcases k.eq_zero_or_pos with rfl | h; exacts [le_rfl, (chain_x_lt hc h le_rfl).le]
   have hf : ∀ i, cross P (v i) (v (i + 1)) q = cross P (v i) (v (i + 1)) (v k) +
       ((P (v (i + 1)) 0 - P (v i) 0) * (P q 1 - P (v k) 1) -
         (P (v (i + 1)) 1 - P (v i) 1) * (P q 0 - P (v k) 0)) := by
@@ -710,4 +665,4 @@ theorem isReachable_iff_chain (S : Finset (Fin T)) :
 
 end Plane
 
-end NeoTiling.PolyHardness
+end NeoTiling.Planar
