@@ -21,3 +21,9 @@ code/data/raw/
 
 # Large solver output (exceeds GitHub 100 MB limit)
 OLD/perturbation/workbench/gad/np_star.out
+
+# Downloaded papers (PDF)
+references/
+
+# LaTeX build dirs in subprojects
+**/tex/build/
