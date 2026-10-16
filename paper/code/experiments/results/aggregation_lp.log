@@ -1,0 +1,8 @@
+BEA 15 d=2 real: LB 2.741054 UB 2.992508 time_limit moved 39 624s
+BEA 15 d=3 real: LB 1.393234 UB 1.715489 time_limit moved 39 605s
+BEA 15 d=8 real: LB 0.015590 UB 0.015591 optimal moved 2 96s
+BEA 24 d=2 real: LB 8.689438 UB 8.689638 optimal moved 36 14s
+BEA 24 d=3 real: LB 2.187530 UB 2.187589 optimal moved 34 47s
+BEA 24 d=8 real: LB 0.102552 UB 0.102554 optimal moved 7 174s
+BEA  1 d=2 real: LB 3.375897 UB 3.375958 optimal moved 34 32s
+BEA  1 d=3 real: LB 4.152042 UB 4.152121 optimal moved 39 29s

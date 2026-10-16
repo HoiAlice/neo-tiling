@@ -2,15 +2,17 @@
 
 Variables: half-widths alpha, beta in [0, zmax] (T x d) of the box [P g(-alpha), P g(beta)]
 (problem.py); year signs (alpha_t = 0 or beta_t = 0).  Constraints, each satisfied by the half-widths
-of a one-signed optimal Q (Lean `exists_oneSigned_le`, `exists_lt_of_mixed_lp`):
+of a one-signed optimal Q (Lean `exists_oneSigned_le`); the master bound is therefore a lower bound over
+ONE-SIGNED feasible points, which is enough since some optimum is one-signed (Lean `Problem.reduce`):
   dominance: y_t > y_s  =>  q_s^i >= q_t^i for some i, q = P g(beta - alpha) (`le_of_lt`);
   box cuts:  z_j >= zhat_j for some j in J, zhat a certified NO of the box query on some years
              (`BoxFeasible.mono`, `BoxFeasible.restrict`);
   cover cuts: some cover (t, A) of a NO certificate is absent: for its convex combination mu and some
              i, sum_s mu_s W_s^i >= W_t^i (W the corners).  Exact rows for "rel"; for "log" e^z is
              bounded above by its piecewise-linear interpolation and below by tangents.
-Objective ||c o (alpha + beta)||_p: p = 1 linear; p = inf via s >= c x; 1 < p < inf via tangents of
-(c x / UB)^p (under-estimators, LB = UB (sum v)^(1/p) stays valid).
+Objective ||c o (alpha + beta)||_p, which equals the box cost ||c o max(alpha, beta)||_p on one-signed
+points: p = 1 linear; p = inf via s >= c x; 1 < p < inf via tangents of (c x / UB)^p (under-estimators,
+LB = UB (sum v)^(1/p) stays valid).
 """
 
 from __future__ import annotations

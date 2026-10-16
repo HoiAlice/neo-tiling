@@ -1,48 +1,323 @@
-%% Source: np-hardness/np-hardness.tex. Lean: NeoTiling.Hardness.{Gadget,Disks,Layout,Coloring,Main}.
+%% Lean: NeoTiling.Hardness.{Gadget,Disks,Layout,Coloring,Main,Instance,Size,Costed,Cost}, NeoTiling.Core.Costed.
+%% Lean names are given relative to the namespace NeoTiling.NPHardness (NeoTiling for the cost monad).
 \section{Dimension three: NP-completeness}\label{sec:hardness}
 
 \begin{theorem}[main]\label{thm:hard-main}
-From a loopless graph $G$ with $n$ vertices and $m$ edges one constructs explicitly at most $100(n+1)(m+1)$ rational prices $P\subset\Rpp[3]$ and a rational vector $y\ge0$ such that the following are equivalent:
+From a loopless graph $G$ with $n$ vertices and $m$ edges one constructs explicitly at most $100(n+1)(m+1)$ rational prices $P\subset\Rpp[3]$ and a rational vector $y\ge0$ with entries in $\set{\frac13,\frac23,1}$ such that the following are equivalent:
 \begin{enumerate}[label=(\roman*)]
 \item $y$ is neoclassically solvable at $P$;
 \item $y$ is weakly solvable at $P$;
 \item $G$ is 3-colourable.
 \end{enumerate}
-\hfill\lean{neoSolvable_iff_colorable}, \lean{weakSolvable_iff_colorable}, \lean{numPrices_le}
+\hfill\lean{Graph.neoSolvable_iff_colorable}, \lean{Graph.weakSolvable_iff_colorable}, \lean{Graph.numPrices_le}, \lean{Graph.prices_rat}, \lean{Graph.outputs_rat}
 \end{theorem}
 
-\begin{corollary}
-Deciding neoclassical solvability and deciding weak solvability at fixed rational prices in $\R^3$ are NP-complete under Karp reductions. \hfill\lean{karp\_threeCol\_weakSolvable}, \lean{karp\_threeCol\_neoSolvable}
+\begin{corollary}\label{cor:hard-np}
+Deciding neoclassical solvability and deciding weak solvability at fixed rational prices in $\R^3$ are NP-complete under Karp reductions. \hfill\lean{karp_threeCol_weakSolvable}, \lean{karp_threeCol_neoSolvable}
 \end{corollary}
 
-\begin{remark}[what is formalized]
-The map $G\mapsto(P,y)$ is a computable function to rational data (\lean{pricesQ}, \lean{outputsQ}); its correctness, the bound on the number of prices, the bit size of the output ($\mathrm{den}\le2^{17}B^2$, $\abs{\mathrm{num}}\le2^{18}B^2$ with $B=24m+8n+8$) and its cost in the unit-cost model on rationals of $O(\log(n+m))$ bits are proved in Lean, packaged as a \lean{KarpReduction} with $C=2^{40}$, $k=4$. Two facts are used from outside: NP-completeness of 3-colouring, and membership of our problems in NP, which rests on the polynomial solvability of linear programming. \todo{Decide whether the remark stays here or moves to \cref{sec:lean}.}
-\end{remark}
-
 \begin{proof}
-3-colouring is NP-complete, and the construction of \cref{thm:hard-main} is polynomial: the coordinates are explicit formulas of $O(\log(nm))$ bits. Membership in NP: a certificate is a decomposition $y=\sum_km_k\ind{S_k}$ into at most $T$ spectra (Carath\'eodory) with its coefficients; reachability of each $S_k$ is checked by $\abs{S_k}$ linear programs and the decomposition by a linear system.
+NP-hardness: 3-colourability is NP-complete, and the map $G\mapsto(P,y)$ of \cref{thm:hard-main} is a Karp reduction in the unit-cost model, with a counted cost and a bound on the bit size of the output (\cref{thm:hard-karp}). Membership in NP: by \cref{thm:solvability,thm:closure}, $y$ is solvable (weakly solvable) at $P$ if and only if $y=\sum_km_k\ind{S_k}$ with $m_k\ge0$ and $S_k$ a reachable (weakly reachable) spectrum. By Carath\'eodory's theorem one may take at most $T$ spectra, and a certificate consists of these spectra and the coefficients. Reachability of each $S_k$ is checked by $\abs{S_k}$ linear programs, one for each witness, and the decomposition by a linear system. This is polynomial by the polynomial solvability of linear programming.
 \end{proof}
 
-The proof has three parts. A gadget on the paraboloid turns solvability into membership in the stable set polytope of a graph $H$ drawn in the plane (\cref{sec:gadget}). The drawing condition is checked locally on a lattice (\cref{sec:disks}). The graph $H$ is a lattice drawing of $G\mathbin{\square}K_3$, and membership of the point $s$ in $\STAB(H)$ is equivalent to 3-colourability of $G$ (\cref{sec:layout,sec:coloring}).
+\begin{remark}[scope of the formalization]\label{rem:hard-scope}
+Everything in this chapter except the following is proved in Lean. The equivalences of \cref{thm:hard-main}, the bound on the number of prices and the rationality of the data are proved in Sections~\ref{sec:gadget}--\ref{sec:coloring} and in the proof of \cref{thm:hard-main}. The bit size of the output, the cost of the construction and the Karp reductions are proved in \cref{sec:hard-poly}. The cost is counted, not declared: the construction is a program in a cost monad whose only arithmetic is a fixed set of unit-cost primitives. Three facts are used from outside Lean. First, NP-completeness of 3-colouring. Second, membership of the two problems in NP, which rests on the polynomial solvability of linear programming. Third, the passage from the unit-cost model to bit cost; for it only the bit sizes of the \emph{output} are proved, and that the intermediate numbers of the program are of the same size is not formalized. Mathlib has no complexity classes, so the formal statement is that of \cref{thm:hard-karp}, a \lean{KarpReduction} with explicit polynomial bounds on cost and output size.
+\end{remark}
 
-\subsection{The paraboloid gadget}\label{sec:gadget}\src{np-hardness.tex \S2}
-\begin{lemma}[disk witness]\label{lem:wit}\todo{translate}\end{lemma}
-\begin{lemma}[chord]\label{lem:chord}\todo{translate}\end{lemma}
-\begin{definition}[empty disks]\label{def:valid}\todo{translate}\end{definition}
-\begin{theorem}[gadget]\label{thm:gadget}\todo{translate; \lean{Gadget.neoSolvable_iff}, \lean{Gadget.weakSolvable_iff}}\end{theorem}
+The proof of \cref{thm:hard-main} has three parts. A gadget on the paraboloid turns solvability into membership in the stable set polytope of a graph $H$ drawn in the plane (\cref{sec:gadget}). The drawing condition is checked locally on a lattice (\cref{sec:disks}). The graph $H$ is a lattice drawing of $G\mathbin{\square}K_3$, and membership of the point $s$ in $\STAB(H)$ is equivalent to 3-colourability of $G$ (\cref{sec:layout,sec:coloring}). The last subsections prove \cref{thm:hard-main} and the polynomiality of the construction (\cref{sec:hard-proof,sec:hard-poly}).
 
-\subsection{Empty disks on a lattice}\label{sec:disks}\src{np-hardness.tex \S3}
-\begin{definition}[lattice drawing]\label{def:drawing}\todo{translate}\end{definition}
-\begin{lemma}[empty disks]\label{lem:disks}\todo{translate; \lean{gadget_valid}}\end{lemma}
+\subsection{The paraboloid gadget}\label{sec:gadget}
 
-\subsection{\texorpdfstring{Drawing $G\mathbin{\square}K_3$}{Drawing G box K3}}\label{sec:layout}\src{np-hardness.tex \S4}
-\begin{lemma}[parity]\label{lem:parity}\todo{translate: rows and columns live on complementary parity classes, so crossings need no gadget.}\end{lemma}
-\begin{lemma}\label{lem:drawing}\todo{translate; \lean{pos_injective}, \lean{drawing}}\end{lemma}
+We treat the strict and the weak mode simultaneously. For a mode $\star$ write $u\gs0$ for $u>0$ in the strict mode and for $u\ge0$ in the weak mode, and let $\Spm(P)$ be $\Sp(P)$ (\cref{def:reachable}) in the strict mode and $\wSp(P)$ (\cref{def:weak}) in the weak mode. Thus $S\in\Spm(P)$ if and only if for every $t\in S$ there is a nonzero $\xi\ge0$ with $\ip{\xi}{p_s-p_t}\gs0$ for all $s\notin S$. \hfill\lean{Ok}, \lean{IsReachableB}
 
-\subsection{The colouring lemma}\label{sec:coloring}\src{np-hardness.tex \S5}
-\begin{lemma}[colouring]\label{lem:coloring}
-$s\in\STAB(H)$ if and only if $G$ is 3-colourable. \hfill\lean{inStab_iff_colorable}
+Let $\e=(1,1,1)$. For $a,c\in\R^2$ put
+\[
+\ell(a):=(a_1,\ a_2,\ -a_1-a_2)+(1+\abs a^2)\,\e,\qquad
+\xi_c:=(1-4c_1+2c_2,\ 1-4c_2+2c_1,\ 1+2c_1+2c_2).
+\]
+\hfill\lean{sqn}, \lean{one3}, \lean{lift}, \lean{wit}
+
+\begin{lemma}[disk witness]\label{lem:wit}
+For $a,m,c\in\R^2$ and $\eta\in\R$,
+\[
+\ip{\xi_c}{\ell(a)-(\ell(m)+\eta\e)}=3\bigl(\abs{a-c}^2-\eta-\abs{m-c}^2\bigr).
+\]
+If $\abs{c_1}+\abs{c_2}\le\frac14$, then $\xi_c\ge0$ and $\xi_c\ne0$. \hfill\lean{wit_dot}, \lean{wit_nonneg_ne_zero}
 \end{lemma}
-\begin{proof}\todo{translate}\end{proof}
 
-\subsection{Proof of \cref{thm:hard-main}}\todo{translate np-hardness.tex \S6}
+\begin{proof}
+The coordinates of $\xi_c$ sum to $3$, so $\ip{\xi_c}{\e}=3$, and $\ip{\xi_c}{(a_1,a_2,-a_1-a_2)}=-6\ip ac$. Hence $\ip{\xi_c}{\ell(a)}=3(1+\abs a^2-2\ip ac)=3(1+\abs{a-c}^2-\abs c^2)$. Subtract the same expression for $m$ and $3\eta=\eta\ip{\xi_c}{\e}$. If $\abs{c_1}+\abs{c_2}\le\frac14$, the first two coordinates of $\xi_c$ are at least $1-4\abs{c_1}-2\abs{c_2}\ge0$ and the third is at least $\frac12$.
+\end{proof}
+
+Thus $\ip{\xi_c}{\ell(a)-q}>0$ for $q=\ell(m)+\eta\e$ means that $a$ lies outside the disk with centre $c$ and squared radius $\abs{m-c}^2+\eta$. A disk is a witness for the point $q$ above $m$.
+
+\begin{lemma}\label{lem:pos-dot}
+If $\xi\ge0$, $\xi\ne0$ and $x\in\R^3$ has positive coordinates, then $\ip\xi x>0$. \hfill\lean{dot_pos}
+\end{lemma}
+
+\begin{proof}
+All terms $\xi_ix_i$ are nonnegative and one of them is positive.
+\end{proof}
+
+\begin{lemma}[chord]\label{lem:chord}
+Let $a,b\in\R^2$, $\eta>\frac14\abs{a-b}^2$ and $q=\ell(\frac{a+b}2)+\eta\e$. There is no nonzero $\xi\ge0$ with $\ip{\xi}{\ell(a)-q}\ge0$ and $\ip{\xi}{\ell(b)-q}\ge0$. \hfill\lean{not_both_nonneg}
+\end{lemma}
+
+\begin{proof}
+Since $\ell(a)+\ell(b)=2\ell(\frac{a+b}2)+\frac12\abs{a-b}^2\e$, the sum of the two inner products is $(\frac12\abs{a-b}^2-2\eta)\ip\xi\e$, which is negative by \cref{lem:pos-dot}.
+\end{proof}
+
+A \emph{graph} $H=(V,E)$ is given by the edges $\set{u_k,v_k}$, $k\in E$. A subset $I\subset V$ is \emph{independent} if no edge has both ends in $I$. The \emph{stable set polytope} $\STAB(H)\subset\R^V$ is the set of convex combinations of the indicators of independent sets. \hfill\lean{IsIndep}, \lean{InStab}
+
+\begin{definition}[gadget]\label{def:gadget}
+A \emph{gadget} on $H$ consists of points $a_v\in\R^2$ for $v\in V$ and heights $\eta_k\in\R$ for $k\in E$. Put $m_k:=\frac12(a_{u_k}+a_{v_k})$. Its $1+\abs V+\abs E$ \emph{prices} are
+\[
+p_z:=\tfrac14\e,\qquad p_v:=\ell(a_v),\qquad p_k:=\ell(m_k)+\eta_k\e,
+\]
+the \emph{marker}, the \emph{rewards} and the \emph{heavy points}. For $s\in\R^V$ the \emph{output vector} is $y_z=1$, $y_k=1$ for $k\in E$ and $y_v=1-s_v$ for $v\in V$. The prices are indexed by the set $\{z\}\sqcup V\sqcup E$; the number $T$ of prices is its cardinality, and any bijection of this set with $[T]$ may be used. \hfill\lean{Gadget}, \lean{Gadget.price}, \lean{output}
+\end{definition}
+
+\begin{definition}[empty disks]\label{def:valid}
+A gadget is \emph{valid} if
+\begin{enumerate}[label=(\alph*)]
+\item the points $a_v$ are pairwise distinct and $\abs{a_{v,1}}+\abs{a_{v,2}}\le\frac18$;
+\item $\eta_k>\frac14\abs{a_{u_k}-a_{v_k}}^2$ for all $k\in E$;
+\item for every edge $k$ and every independent set $I$ there is a centre $c$ with $\abs{c_1}+\abs{c_2}\le\frac14$ and $\abs{a_w-c}^2>\abs{m_k-c}^2+\eta_k$ for all $w\in I$.
+\end{enumerate}
+\hfill\lean{Gadget.Valid}
+\end{definition}
+
+Condition (c) is the main one. The disk may depend on $I$ and has to avoid only the rewards of $I$. This is what allows the edges of $H$ to cross (\cref{sec:layout}).
+
+\begin{theorem}[gadget]\label{thm:gadget}
+Let a gadget be valid. Then in each mode $y\in\cone\set{\ind S\mid S\in\Spm(P)}$ if and only if $s\in\STAB(H)$. If $s\le\mathbf 1$, then $y$ is neoclassically solvable at $P$ if and only if $y$ is weakly solvable at $P$ if and only if $s\in\STAB(H)$. \hfill\lean{Gadget.mem_cone_iff}, \lean{Gadget.neoSolvable_iff}, \lean{Gadget.weakSolvable_iff}
+\end{theorem}
+
+\begin{proof}
+\emph{Prices.} By (a) the coordinates of $\ell(a_v)$, and of $\ell(m_k)$ since the box is convex, are at least $1-\abs{a_1}-\abs{a_2}\ge\frac78$, and $\eta_k>0$ by (b). Hence $p_z<p_t$ coordinatewise for $t\ne z$, and all prices are positive. \hfill\lean{Gadget.price_none_lt}, \lean{Gadget.price_pos}
+
+\emph{Marker.} Every spectrum $S\in\Spm(P)$ that contains an index $t$ contains the marker. Otherwise a witness $\xi$ of $t$ gives $\ip\xi{p_z-p_t}\gs0$, whereas $p_t-p_z>0$ and \cref{lem:pos-dot} give $\ip\xi{p_z-p_t}<0$. \hfill\lean{Gadget.marker_mem}
+
+\emph{Outside rewards.} Let $S\in\Spm(P)$ contain all heavy points. Then the rewards outside $S$ form an independent set. Indeed, if both ends $u_k,v_k$ were outside $S$, a witness $\xi$ of the heavy point $k$ would satisfy $\ip\xi{p_{u_k}-p_k}\ge0$ and $\ip\xi{p_{v_k}-p_k}\ge0$, which contradicts \cref{lem:chord} with $q=p_k$ and $\eta=\eta_k$ by (b). \hfill\lean{Gadget.indep_outside}
+
+$(\Rightarrow)$ Let $y=\sum_Sm_S\ind S$ with $m_S\ge0$ and $m_S=0$ unless $S\in\Spm(P)$. By the marker step every nonempty $S$ of positive weight contains $z$, and the empty set contributes nothing; so let $w_S:=m_S$ if $z\in S$ and $w_S:=0$ otherwise, which does not change $y$. Then $y_z=1$ gives $\sum_Sw_S=1$. For a heavy point $k$, $y_k=1=\sum_Sw_S$ forces every $S$ with $w_S>0$ to contain $k$. By the step on outside rewards, $I_S:=\set{v\in V\mid v\notin S}$ is independent for each $S$ with $w_S>0$. Put $\mu_I:=\sum_{S:\,I_S=I}w_S$. Then $\mu_I\ge0$, $\mu_I>0$ only for independent $I$, $\sum_I\mu_I=1$, and
+\[
+s_v=1-y_v=\sum_Sw_S\,(1-[v\in S])=\sum_I\mu_I[v\in I],
+\]
+so $s\in\STAB(H)$.
+
+$(\Leftarrow)$ Let $s=\sum_I\mu_I\ind I$ be a convex combination over independent sets. Let $S_I$ be the complement of the set of rewards $\set{p_w\mid w\in I}$. Then $y=\sum_I\mu_I\ind{S_I}$: at the marker and at the heavy points both sides equal $\sum_I\mu_I=1$, and at the reward $v$ the right side is $\sum_I\mu_I[v\notin I]=1-s_v$. We show $S_I\in\Sp(P)$, i.e.\ that all witnesses can be taken strict, hence also $S_I\in\wSp(P)$. The indices outside $S_I$ are the rewards $w\in I$. For the marker, $\xi=\e$ is a witness, since $p_w-p_z>0$. For a reward $v\notin I$, $\xi=\xi_{a_v}$ is a witness: by \cref{lem:wit} with $m=c=a_v$ and $\eta=0$, $\ip{\xi_{a_v}}{p_w-p_v}=3\abs{a_w-a_v}^2>0$, as $a_w\ne a_v$ by (a). For a heavy point $k$, $\xi=\xi_c$ with the centre $c$ given by (c) for $k$ and $I$ is a witness: by \cref{lem:wit}, $\ip{\xi_c}{p_w-p_k}=3(\abs{a_w-c}^2-\eta_k-\abs{m_k-c}^2)>0$, and $\xi_c\ge0$, $\xi_c\ne0$ since $\abs{c_1}+\abs{c_2}\le\frac14$. \hfill\lean{Gadget.compl_mem}
+
+\emph{Solvability.} The prices are positive. If $s\le\mathbf 1$, then $y\ge0$. Apply \cref{thm:solvability} in the strict mode and \cref{thm:closure} in the weak mode.
+\end{proof}
+
+\subsection{Empty disks on a lattice}\label{sec:disks}
+
+Let the vertices of $H$ be placed at pairwise distinct points $\pi_v\in\Z^2$. For an edge $k$ with ends $A=\pi_{u_k}$, $B=\pi_{v_k}$ and for a vertex $w$ put
+\[
+L_k:=\abs{B-A}^2,\qquad \zeta_k(w):=2\pi_w-A-B\in\Z^2.
+\]
+Thus $\zeta_k(w)$ is twice the vector from the midpoint of the edge to $w$. The vertex $w$ lies in the closed disk with diameter $AB$ if $\abs{\zeta_k(w)}^2\le L_k$, and on its circle if $\abs{\zeta_k(w)}^2=L_k$. Let $C_k$ be the set of vertices $w\notin\set{u_k,v_k}$ on the circle of $k$. \hfill\lean{nrm}, \lean{toR}, \lean{onCircle}
+
+\begin{definition}[lattice drawing]\label{def:drawing}
+A \emph{lattice drawing} of $H$ consists of pairwise distinct points $\pi_v\in\Z^2$ such that for every edge $k$
+\begin{enumerate}[label=(\alph*)]
+\item $L_k\le16$;
+\item $\abs{\zeta_k(w)}^2\ge L_k$ for all $w\in V$: no vertex lies strictly inside the disk with diameter $AB$;
+\item $\abs{C_k}\le1$, or $C_k=\set{u_{k'},v_{k'}}$ for some edge $k'$.
+\end{enumerate}
+\hfill\lean{Drawing}
+\end{definition}
+
+\begin{lemma}[empty disks]\label{lem:disks}
+Let $\pi$ be a lattice drawing of $H$, let $0<\sigma\le\frac1{16}$ and $\sigma(\abs{\pi_{v,1}}+\abs{\pi_{v,2}})\le\frac1{16}$ for all $v$. Put $a_v:=\sigma\pi_v$ and $\eta_k:=\sigma^2(\frac14L_k+\frac1{512})$. Then the gadget $(a,\eta)$ is valid. \hfill\lean{Drawing.gadget}, \lean{Drawing.gadget_valid}
+\end{lemma}
+
+\begin{proof}
+Condition (a) of \cref{def:valid} holds since $\pi$ is injective and $\sigma(\abs{\pi_{v,1}}+\abs{\pi_{v,2}})\le\frac1{16}$. Condition (b) holds since $\abs{a_{u_k}-a_{v_k}}^2=\sigma^2L_k$. For (c) fix an edge $k$ and an independent set $I$, and let $C:=\set{w\in I\mid\abs{\zeta_k(w)}^2=L_k}$, now including the ends of $k$ that lie in $I$. Write $M:=\frac12(A+B)$.
+
+\emph{Step 1: $C$ has at most two elements and they are not antipodal.} Of two distinct vertices of $C$ exactly one is an end of $k$. They are not both ends, since $I$ is independent. If neither were an end, both would lie in $C_k$, so $C_k$ would be the two ends of some edge $k'$ by (c), and these are not both in $I$. Hence $C$ contains at most one end of $k$ and at most one vertex of $C_k$, so $\abs C\le2$. Now let $w\ne w'$ in $C$ with $\zeta_k(w)+\zeta_k(w')=0$, that is $\pi_w+\pi_{w'}=A+B$. One of them is an end of $k$, say $w=u_k$. Then $\pi_{w'}=B$, so $w'=v_k$, and both ends of $k$ would lie in $I$, a contradiction. \hfill\lean{Drawing.circ_pair}
+
+\emph{Step 2: the shift.} Let $v:=\sum_{w\in C}\zeta_k(w)\in\Z^2$. Then $\abs v^2\le64$ and $\ip{\zeta_k(w)}v\ge1$ for all $w\in C$. If $C=\set w$, then $v=\zeta_k(w)$ and $\ip{\zeta_k(w)}v=L_k\ge1$; here $L_k\ge1$ because $L_k=0$ would put $w\in I$ at the common position of both ends of $k$, that is $w=u_k=v_k$, and $I$ would contain both ends. If $C=\set{w,w'}$, then $\ip{\zeta_k(w)}v=L_k+\ip{\zeta_k(w)}{\zeta_k(w')}$ is an integer, and it is positive because $\abs{\zeta_k(w)+\zeta_k(w')}^2=2(L_k+\ip{\zeta_k(w)}{\zeta_k(w')})>0$ by Step 1. The bound $\abs v^2\le(2\sqrt{L_k})^2\le64$ follows from $L_k\le16$. If $C=\varnothing$, then $v=0$. \hfill\lean{Drawing.shift_spec}
+
+\emph{Step 3: the gap.} Let $\delta:=\frac1{256}$. For every $w\in I$
+\[
+\tfrac14\abs{\zeta_k(w)}^2+\delta\ip{\zeta_k(w)}v>\tfrac14L_k+\tfrac1{512}.
+\]
+For $w\in C$ the first term equals $\frac14L_k$ and $\delta\ip{\zeta_k(w)}v\ge\delta>\frac1{512}$. For $w\notin C$, (b) and integrality give $N:=\abs{\zeta_k(w)}^2\ge L_k+1$, and by the Cauchy--Schwarz inequality $\abs{\ip{\zeta_k(w)}v}\le8\sqrt N$. Multiplying the claim by $512$, it suffices to show $128L_k+1<128N+2\ip{\zeta_k(w)}v$, and $128N+2\ip{\zeta_k(w)}v\ge128N-16\sqrt N$. The function $N\mapsto128N-16\sqrt N$ is increasing for $N\ge1$, so for $N\ge L_k+1$ it is at least $128(L_k+1)-16\sqrt{L_k+1}\ge128L_k+128-16\sqrt{17}>128L_k+1$, using $L_k\le16$. \hfill\lean{Drawing.gap}
+
+\emph{Step 4: the centre.} Let $c:=\sigma(M-\delta v)$. Expanding $\abs{a_w-c}^2=\sigma^2\abs{\pi_w-M+\delta v}^2$ and $\abs{\sigma M-c}^2=\sigma^2\delta^2\abs v^2$, and using $\zeta_k(w)=2(\pi_w-M)$,
+\[
+\abs{a_w-c}^2-\abs{\sigma M-c}^2=\sigma^2\Bigl(\tfrac14\abs{\zeta_k(w)}^2+\delta\ip{\zeta_k(w)}v\Bigr).
+\]
+Note $\sigma M=m_k$. By Step 3 this exceeds $\sigma^2(\frac14L_k+\frac1{512})=\eta_k$ for all $w\in I$. Finally, $\sigma(\abs{M_1}+\abs{M_2})\le\frac1{16}$ as an average of two points of the box, and $\abs{v_1},\abs{v_2}\le8$ by $\abs v^2\le64$, so $\abs{c_1}+\abs{c_2}\le\frac1{16}+\frac1{16}\cdot\frac{16}{256}<\frac14$. \hfill\lean{Drawing.gadget_valid}
+\end{proof}
+
+\subsection{\texorpdfstring{Drawing $G\mathbin{\square}K_3$}{Drawing G box K3}}\label{sec:layout}
+
+Let $G$ be a loopless graph on the vertices $0,\dots,n-1$ with edges $\set{e_k,f_k}$, $k=0,\dots,m-1$, and put $\underline k:=\min(e_k,f_k)$, $\overline k:=\max(e_k,f_k)$, $N_k:=4(\overline k-\underline k)\ge4$. The colours are $i\in\set{0,1,2}$. \hfill\lean{Graph}, \lean{Graph.Colorable}, \lean{Graph.lo}, \lean{Graph.hi}, \lean{Graph.colLen}
+
+\begin{definition}[the graph $H$]\label{def:H}
+The graph $H$ consists of \emph{rows}, \emph{triangles}, \emph{columns} and \emph{attachments}, drawn at lattice points $\pi$ as follows. Put $x_1:=3$, $x_0:=x_2:=1$ and $X_{k,i}:=24k+8i+8+2[i=1]$, and let $j_*(k,i):=12k+4i+4$.
+\begin{itemize}
+\item \emph{Row $(v,i)$}: nodes $r_{v,i,j}$, $0\le j\le12m$, at $(x_i+2j,\ 8v+2i)$, and the edges $r_{v,i,j}r_{v,i,j+1}$.
+\item \emph{Triangle of $v$}: the edges between the first nodes $r_{v,0,0}=(1,8v)$, $r_{v,1,0}=(3,8v+2)$, $r_{v,2,0}=(1,8v+4)$.
+\item \emph{Column $(k,i)$}: nodes $c_{k,i,j}$, $0\le j<N_k$, at $(X_{k,i},\ 8\underline k+2i+1+2j)$, and the edges $c_{k,i,j}c_{k,i,j+1}$. The column occupies the odd heights strictly between the rows $(\underline k,i)$ and $(\overline k,i)$.
+\item \emph{Attachments}: $c_{k,i,0}$ is joined to $r_{\underline k,i,j_*(k,i)}$ and $c_{k,i,N_k-1}$ to $r_{\overline k,i,j_*(k,i)}$. The row node $r_{\cdot,i,j_*(k,i)}$ is at $x=X_{k,i}+1$.
+\end{itemize}
+\hfill\lean{Graph.Node}, \lean{Graph.Link}, \lean{Graph.row}, \lean{Graph.col}, \lean{Graph.jA}, \lean{Graph.linkU}, \lean{Graph.linkV}, \lean{Graph.x0}, \lean{Graph.colX}, \lean{Graph.pos}
+\end{definition}
+
+The nodes are the row nodes $(v,i,j)$ and the column nodes $\langle k,i,j\rangle$; the edges (links) are the row edges, the column edges, the attachments, indexed by a column end (lower or upper), and the triangle edges, indexed by a corner $t\in\Z/3$ and joining the corner $t$ to the corner $t+1$.
+
+\begin{lemma}[parity]\label{lem:parity}
+Every node has $x+y$ odd: a row node has $x$ odd, $y$ even, $x\ge1$, and $x\ge3$ if $y\equiv2\pmod 8$; a column node has $x$ even, $y$ odd, $x\ge8$. The height $8v+2i$ determines the row $(v,i)$, and the abscissa $X_{k,i}$ determines the column $(k,i)$. Hence the drawing is injective. \hfill\lean{Graph.pos_shape}, \lean{Graph.row_height}, \lean{Graph.colX_inj}, \lean{Graph.pos_injective}
+\end{lemma}
+
+\begin{proof}
+The parities are read off from the formulas. A row node at $y\equiv2\pmod8$ lies in a row with $i=1$, which starts at $x=3$. Since $2i\le4<8$, the height $8v+2i$ determines $v$ and $i$. The numbers $X_{k,i}$ are $24k+8$, $24k+18$, $24k+24$ for $i=0,1,2$; they determine $i$ by their residue modulo $24$, and then $k$. A row node and a column node differ by parity, and two nodes of the same row or column differ in $j$.
+\end{proof}
+
+Rows run at even heights through odd $x$, columns at even $x$ through odd heights. Hence a row crosses a column at a point that is not a node, and the row edge and the column edge through it are perpendicular, of length $2$ and with a common midpoint. No gadget for crossings is needed.
+
+\begin{lemma}\label{lem:drawing}
+The nodes and edges of \cref{def:H} form a lattice drawing of $H$ (\cref{def:drawing}). \hfill\lean{Graph.short}, \lean{Graph.empty}, \lean{Graph.circle}, \lean{Graph.drawing}
+\end{lemma}
+
+\begin{proof}
+Injectivity is \cref{lem:parity}. Condition (a): row and column edges have $L=4$, attachments $L=2$ and triangle edges $L=8,8,16$. \hfill\lean{Graph.short}
+
+For (b) and (c) we show that for every edge $e$ there are two marked lattice points $P,Q$ such that no node lies strictly inside the disk with diameter $e$, the only nodes on the circle other than the ends are at $P$ and at $Q$, and the nodes at $P$ and at $Q$ coincide or are the ends of an edge. This gives (b) directly, and (c): the circle carries nodes only at $P$ and $Q$, so it carries at most one node, or two nodes, one at $P$ and one at $Q$, which are then the ends of an edge. \hfill\lean{Graph.DiskOK}, \lean{Graph.disk}, \lean{Graph.empty}, \lean{Graph.circle}
+
+\emph{Row edge and column edge.} Let $M$ be the midpoint, an integer point with $x+y$ even (the ends have $x+y$ odd and differ by a unit vector). By \cref{lem:parity} every node $w$ has $\pi_w\ne M$, so $\abs{\zeta(w)}^2=4\abs{\pi_w-M}^2\ge4=L$. Equality holds only at the four neighbours of $M$, namely the two ends and $M\pm d^\perp$, where $d$ is the direction of the edge. Take $P,Q:=M\mp d^\perp$. For a row edge these are the points above and below $M$, where only column nodes can stand; if both are nodes, they are in the same column at heights differing by $2$, hence joined by a column edge. For a column edge they are the points left and right of $M$, where only row nodes can stand, and these are consecutive in one row. \hfill\lean{Graph.disk_axis}, \lean{Graph.row_link_of_pos}, \lean{Graph.col_link_of_pos}
+
+\emph{Attachment.} The ends are $A=(X,Y+1)$, $B=(X+1,Y)$ with $X,Y$ even (the lower attachment; the upper one is symmetric, with $Y-1$). Both coordinates of $\zeta(w)$ are odd, hence $\abs{\zeta(w)}^2\ge2=L$, with equality exactly for $\zeta(w)\in\set{\pm1}^2$, i.e.\ for $w$ at $A$, $B$, $(X,Y)$ or $(X+1,Y+1)$. The last two points have $x+y$ even and carry no node. So the circle carries nothing besides the ends, and $P=Q$ is taken to be an end. \hfill\lean{Graph.disk_attach}
+
+\emph{Triangle} of $v$, $h=8v$. The edge $(1,h)$--$(3,h+2)$: the points inside the disk are $(2,h+1)$, which carries no node since $X_{k,i}\ge8$, and points with $x+y$ even. On the circle, besides the ends, lie $(3,h)=r_{v,0,1}$ and $(1,h+2)$; the latter is not a node because the row $(v,1)$ starts at $x=3$. The edge $(3,h+2)$--$(1,h+4)$ is symmetric, and its circle carries $r_{v,2,1}$. The edge $(1,h)$--$(1,h+4)$: inside lie $(1,h+2)$, points with $x\in\set{0,2}$ and points with $x+y$ even, with no nodes among them; on the circle, besides the ends, lie $(3,h+2)=r_{v,1,0}$ and $(-1,h+2)$, and the latter is not a node. In the formal proof this is a finite check: for the points in the box $[-1,4]\times[-1,5]$ relative to $(0,h)$ by enumeration, and outside it the distance is too large. \hfill\lean{Graph.disk_tri}
+\end{proof}
+
+\subsection{The colouring lemma}\label{sec:coloring}
+
+Each node of $H$ has an \emph{owner}, a vertex of $G$, and a \emph{colour}. The row node $r_{v,i,j}$ has owner $v$ and colour $i$, and is a \emph{copy} if $j$ is even and an \emph{anticopy} otherwise. The column nodes $c_{k,i,0}$ and $c_{k,i,1}$ have owner $\underline k$, colour $i$, and are an anticopy and a copy; the nodes $c_{k,i,j}$ with $j\ge2$ have owner $\overline k$, colour $i$, and are copies for even $j$. Put $s_p:=\frac13$ on copies and $s_p:=\frac23$ on anticopies. \hfill\lean{Graph.owner}, \lean{Graph.color}, \lean{Graph.IsCopy}, \lean{Graph.sval}
+
+All edges of rows and columns except $c_{k,i,1}c_{k,i,2}$, and all attachments, join a copy to an anticopy of the same owner (here $j_*$ is even and $N_k-1$ is odd). On these edges $s_p+s_q=1$. The edge $c_{k,i,1}c_{k,i,2}$, the \emph{junction}, joins a copy of $(\underline k,i)$ to a copy of $(\overline k,i)$. The nodes of the triangles are the copies $r_{v,i,0}$, called \emph{corners}, and $s$ sums to $1$ over each triangle.
+
+\begin{lemma}[colouring]\label{lem:coloring}
+$s\in\STAB(H)$ if and only if $G$ is 3-colourable. \hfill\lean{Graph.inStab_iff_colorable}
+\end{lemma}
+
+\begin{proof}
+$(\Leftarrow)$ Let $\chi$ be a proper colouring and $\tau\in\Z/3$. Let $I_\tau$ consist of the copies with owner $v$ and colour $\chi(v)+\tau$ and of the anticopies with the other colours; formally, $p\in I_\tau$ iff ($\chi(\mathrm{owner}(p))+\tau=\mathrm{colour}(p)$ iff $p$ is a copy). The set $I_\tau$ is independent. A copy--anticopy edge of one owner has exactly one end in $I_\tau$. A triangle edge joins two corners of different colours, and at most one of them has colour $\chi(v)+\tau$. The junction of the column $(k,i)$ has both ends in $I_\tau$ only if both owners $\underline k,\overline k$ have $\chi+\tau=i$, which contradicts properness. \hfill\lean{Graph.shifted}, \lean{Graph.shifted_indep}
+
+A copy lies in $I_\tau$ for exactly one of the three values of $\tau$, an anticopy for exactly two. Hence $\frac13\sum_\tau\ind{I_\tau}=s$, and the weights $\frac13$ sum to $1$. \hfill\lean{Graph.sum_shifted}, \lean{Graph.inStab_of_colorable}
+
+$(\Rightarrow)$ Let $s=\sum_I\mu_I\ind I$ with $\mu\ge0$, $\sum_I\mu_I=1$, and $\mu_I>0$ only for independent $I$. Call a set $A$ of nodes a \emph{tight clique} if no independent set meets $A$ twice and $\sum_{p\in A}s_p=1$; the copy--anticopy edges and the triangles are tight cliques. If $A$ is a tight clique and $\mu_I>0$, then $I\cap A\ne\varnothing$: indeed $1=\sum_{p\in A}s_p=\sum_J\mu_J\abs{A\cap J}$ with $\abs{A\cap J}\le1$ and $\sum_J\mu_J=1$, so $\abs{A\cap J}=1$ for every $J$ of positive weight. \hfill\lean{Graph.tight}
+
+Fix $I$ with $\mu_I>0$; it is independent. Then $I$ contains exactly one end of every copy--anticopy edge (at least one by tightness, at most one by independence), and exactly one corner of every triangle, say $r_{v,\chi(v),0}$; this defines $\chi\colon V(G)\to\set{0,1,2}$.
+
+\emph{Copies follow their corner:} a node $p$ lies in $I$ if and only if (the corner of its owner and colour lies in $I$ if and only if $p$ is a copy). Indeed, along a row exactly one of two consecutive nodes lies in $I$, so membership alternates starting from the corner, and the parity of $j$ decides. The attachment node $r_{\cdot,i,j_*}$ has even index, so it lies in $I$ if and only if its corner does. The upper part $j\ge2$ of a column is a path starting at the top node attached to that row node, along which membership alternates. The lower part consists of the node $0$, attached to the corner of $\underline k$, and the node $1$, which alternates with it. \hfill\lean{Graph.alternate}, \lean{Graph.follow}
+
+In particular the copy $c_{k,i,1}$ of the owner $\underline k$ lies in $I$ iff $i=\chi(\underline k)$, and the copy $c_{k,i,2}$ of the owner $\overline k$ lies in $I$ iff $i=\chi(\overline k)$. If $\chi(\underline k)=\chi(\overline k)=i$, both ends of the junction $c_{k,i,1}c_{k,i,2}$ lie in $I$, contradicting independence. Hence $\chi$ is proper. \hfill\lean{Graph.colorable_of_inStab}
+\end{proof}
+
+\subsection{Proof of \cref{thm:hard-main}}\label{sec:hard-proof}
+
+Let $H$ be the drawing of \cref{sec:layout} and $s$ the point of \cref{sec:coloring}. Put $B:=24m+8n+8$ and $\sigma:=\frac1{16B}$. The prices $P$ are the marker, rewards and heavy points of the gadget $a_v=\sigma\pi_v$, $\eta_k=\sigma^2(\frac14L_k+\frac1{512})$ on $H$ (\cref{def:gadget}), and $y$ is its output vector for $s$. The numbering of the prices is by any bijection with $[T]$, $T=1+\abs V+\abs E$. \hfill\lean{Graph.scale}, \lean{Graph.gadget}, \lean{Graph.numPrices}, \lean{Graph.index}, \lean{Graph.prices}, \lean{Graph.outputs}
+
+\begin{lemma}\label{lem:hard-valid}
+All nodes have coordinates $x,y\ge0$ with $x+y\le B$, and the gadget is valid. \hfill\lean{Graph.pos_bound}, \lean{Graph.gadget_valid}
+\end{lemma}
+
+\begin{proof}
+The bound is read off from the formulas: a row node has $x\le3+24m$ and $y\le8n-4$, a column node has $x\le24m$ and $y\le8n-5$. Hence $\sigma\le\frac1{16}$ and $\sigma(\abs{\pi_{v,1}}+\abs{\pi_{v,2}})\le\sigma B=\frac1{16}$. By \cref{lem:drawing,lem:disks} the gadget is valid.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:hard-main}]
+Since $s\le\mathbf 1$ (its entries are $\frac13$ and $\frac23$), \cref{thm:gadget} gives that (i) and (ii) are equivalent to $s\in\STAB(H)$, and by \cref{lem:coloring} this is equivalent to (iii). \hfill\lean{Graph.neoSolvable_iff_colorable}, \lean{Graph.weakSolvable_iff_colorable}
+
+\emph{Number of prices.} There are $1+\abs V+\abs E$ prices. The rows contain $3n(12m+1)$ nodes and the columns $3\sum_kN_k\le12nm$ nodes, since $N_k\le4n$. The edges number $3n\cdot12m$ row edges, at most $12nm$ column edges, $6m$ attachments and $3n$ triangle edges. Altogether the number of prices is at most $1+36nm+3n+12nm+36nm+12nm+6m+3n\le100(n+1)(m+1)$. \hfill\lean{Graph.numPrices_le}
+
+\emph{Rationality.} The numbers $\pi_{v}$, $L_k$ are integers and $\sigma$ is rational. The map $\ell$, the midpoints and $\abs{\cdot}^2$ are polynomial with rational coefficients, so every price is rational. The outputs are $1$, $1-\frac13=\frac23$ or $1-\frac23=\frac13$. \hfill\lean{Graph.prices_rat}, \lean{Graph.outputs_rat}
+\end{proof}
+
+\subsection{Polynomiality of the reduction}\label{sec:hard-poly}
+
+The instance of \cref{thm:hard-main} is defined over $\R$ and numbered by a noncomputable bijection. We now write it over $\Q$, with an explicit enumeration, bound its bit size and count the cost of computing it.
+
+\paragraph{A computable rational instance.}
+Over $\Q$ one defines, with the same formulas, the scale $\frac1{16B}$, the point $s$, the rewards $a_w$, the heights $\eta_k$, the lift, the prices and the outputs. Their casts to $\R$ are the real data: the prices of the gadget (\cref{def:gadget}) and the output vector. \hfill\lean{sqnQ}, \lean{liftQ}, \lean{Graph.scaleQ}, \lean{Graph.svalQ}, \lean{Graph.aQ}, \lean{Graph.etaQ}, \lean{Graph.priceQ}, \lean{Graph.outputQ}, \lean{Graph.priceQ_cast}, \lean{Graph.outputQ_cast}
+
+The numbering is explicit: nodes, links and prices are numbered through the equivalences of products, sums and sigma types of finite ordinals, and the marker takes the index $0$. The number of prices has the explicit form $\mathrm{rows}+\mathrm{columns}+\mathrm{links}+1$, equal to \lean{Graph.numPrices}, and it is at most $100(n+1)(m+1)$. \hfill\lean{Graph.nodeEquiv}, \lean{Graph.linkEquiv}, \lean{Graph.indexQ}, \lean{Graph.numPricesQ}, \lean{Graph.numPricesQ_eq}, \lean{Graph.numPricesQ_le}, \lean{Graph.pricesQ}, \lean{Graph.outputsQ}
+
+\begin{proposition}[rational form]\label{prop:hard-rational}
+The rational instance $(\texttt{pricesQ},\texttt{outputsQ})$ is neoclassically solvable if and only if it is weakly solvable if and only if $G$ is 3-colourable. \hfill\lean{Graph.neoSolvableQ_iff_colorable}, \lean{Graph.weakSolvableQ_iff_colorable}
+\end{proposition}
+
+\begin{proof}
+The casts of the rational data are the prices and outputs of the gadget for the numbering $\texttt{indexQ}$. Apply \cref{thm:gadget}, \cref{lem:hard-valid} and \cref{lem:coloring}; the gadget theorem holds for every numbering of the prices. \hfill\lean{Graph.pricesQ_cast}, \lean{Graph.outputsQ_cast}
+\end{proof}
+
+\paragraph{Bit size.}
+Let $B=24m+8n+8$ (\lean{Graph.bnd}).
+
+\begin{proposition}[bit size]\label{prop:hard-size}
+Every price entry has denominator at most $2^{17}B^2$ and numerator of absolute value at most $2^{18}B^2$. Every output is one of $1,\frac23,\frac13$, so its denominator and the absolute value of its numerator are at most $3$. \hfill\lean{Graph.pricesQ_den_le}, \lean{Graph.pricesQ_num_le}, \lean{Graph.outputsQ_den_le}, \lean{Graph.outputsQ_num_le}
+\end{proposition}
+
+\begin{proof}
+The scale is $\frac1{16B}$ and every coordinate of $\pi$ is an integer in $[0,B]$. Every price entry is a polynomial of degree at most $2$ in the scale with coefficients in $\frac1{512}\Z$, built from integer coordinates; hence its product with $D:=512(16B)^2=2^{17}B^2$ is an integer. \hfill\lean{Graph.denom}, \lean{Graph.priceQ_mul_int}
+
+If $qD\in\Z$, then $\mathrm{den}(q)\le D$, and if moreover $\abs q\le c$, then $\abs{\mathrm{num}(q)}\le cD$ (since $\abs{\mathrm{num}}=\abs q\,\mathrm{den}$). \hfill\lean{den_le_of_mul_eq_int}, \lean{natAbs_num_le_of_mul_eq_int}
+
+Every price entry has absolute value at most $2$: the lift of a point $a$ with $a\ge0$ and $a_1+a_2\le\frac1{16}$ has entries in $[0,\frac32]$ (as $\abs a^2\le\frac1{256}$), the midpoint of two such points is again such a point, and $\eta_k\le\frac1{1000}$ since $\sigma\le\frac1{128}$, $L_k\le16$. Together this gives the bounds, with $c=2$. \hfill\lean{Graph.liftQ_bound}, \lean{Graph.abs_priceQ_le}
+
+The outputs are $1$, $1-\frac13$, $1-\frac23$ by the definition of $s$. \hfill\lean{Graph.outputQ_cases}
+\end{proof}
+
+Since $B\le24(n+m+1)$, all numbers of the instance have $O(\log(n+m))$ bits.
+
+\paragraph{The cost model.}
+The cost of the construction is counted in a monad $\mathrm{Costed}(\alpha)$ whose elements are pairs (value, number of operations); \texttt{pure} is free and \texttt{bind} adds the costs. The primitive $\mathrm{tick}$ spends one operation, $\mathrm{tickN}\;c$ spends $c$, and mapping a program over a list sums the costs of the entries. The monad itself is generic; what a unit means is fixed by its user. \hfill\lean{Costed}, \lean{tick}, \lean{tickN}, \lean{Costed.val_mapM}, \lean{Costed.cost_mapM}
+
+\begin{definition}[unit-cost model]\label{def:hard-cost}
+The only operations on numbers are the primitives \lean{qadd}, \lean{qsub}, \lean{qmul}, \lean{qdiv} (on $\Q$), \lean{zadd}, \lean{zsub}, \lean{zmul} (on $\Z$), \lean{nadd}, \lean{nsub}, \lean{nmul}, \lean{nmod} (on $\N$) and the comparisons \lean{nlt}, \lean{neq}. Each costs one operation. Numerals, the coercions $\mathrm{Fin}\to\N\to\Z\to\Q$, Boolean connectives on the results of comparisons and the building of tuples and vectors are free. The index plumbing $\mathrm{linkU}$, $\mathrm{linkV}$ of \cref{def:H} (the ends of an edge of $H$) is charged $5$ operations for each end; this is an upper bound for the operations they perform: at most $\mathrm{lo}$ and $\mathrm{hi}$ (one comparison each) and $N_k-1$ (three more), or $j_*=12k+4i+4$ (four), or a successor $j+1$ or $t+1$ in $\Z/3$ (two). \hfill\lean{Graph.endsM}
+\end{definition}
+
+The numbers occurring are of $O(\log(n+m))$ bits (\cref{prop:hard-size}), so the unit-cost model is polynomially equivalent to bit cost; this equivalence is informal (see \cref{rem:hard-scope}). The programs are written with the primitives only, so their cost is a theorem about the program and not a declaration.
+
+\paragraph{The programs.}
+For one index of a price, the following programs compute the data; the numbers of operations are those proved. \lean{Graph.x0M}, \lean{Graph.colXM}, \lean{Graph.loM}, \lean{Graph.posM} compute the position of a node (at most $13$ operations), \lean{Graph.scaleM} the scale ($6$), \lean{Graph.aM} a reward point (at most $21$), \lean{Graph.sqnM} and \lean{Graph.liftQM} the lift ($3$ and $8$), \lean{Graph.endsM} the ends of an edge ($10$), \lean{Graph.priceM} one price (at most $120$), \lean{Graph.svalM} the point $s$ (at most $5$) and \lean{Graph.outputM} one output (at most $6$). The heights $\eta_k$ (\lean{Graph.etaM}, value \lean{Graph.val_etaM}) are computed from the positions of the ends of the edge in at most $52$ operations. A list \lean{Graph.allX} of all indices of prices, without repetitions, is given explicitly: the marker, then the rows, then the columns, then the links, each as the product of lists $\mathrm{finRange}$. Its enumeration \lean{Graph.enumM} costs one operation per element. The reduction maps over this list. \lean{Graph.entryM} computes a price and its output, \lean{Graph.instanceM} the whole instance, and \lean{reduceM} the same for graphs of any size.
+
+\begin{lemma}[the programs compute the instance]\label{lem:hard-val}
+For every index $x$ the program computes the rational data of $x$, $\mathrm{val}(\texttt{priceM}\,x)=\texttt{priceQ}\,x$ and $\mathrm{val}(\texttt{outputM}\,x)=\texttt{outputQ}\,x$. The list \texttt{allX} contains every index exactly once, and has length $\mathrm{numPrices}$. The value of \texttt{instanceM} is the rational instance numbered by \texttt{allX}. Its numbering (\lean{Graph.sigmaX}) is bijective (\lean{Graph.bijective_sigmaX}), and for \emph{every} bijective numbering this instance is neoclassically (weakly) solvable if and only if $G$ is 3-colourable. \hfill\lean{Graph.val_posM}, \lean{Graph.val_aM}, \lean{Graph.val_liftQM}, \lean{Graph.val_priceM}, \lean{Graph.val_outputM}, \lean{Graph.nodup_allX}, \lean{Graph.mem_allX}, \lean{Graph.length_allX}, \lean{Graph.val_instanceM}, \lean{Graph.weakSolvable_instOf}, \lean{Graph.neoSolvable_instOf}
+\end{lemma}
+
+\begin{proof}
+The programs are the formulas of the instance written with primitives, so their values are checked by unfolding the definitions; for the positions one uses that $\mathrm{lo}$ is the comparison result. The list \texttt{allX} has no repetitions as a product, sum and sigma of lists without repetitions, and contains every index by case analysis; hence its length is $\mathrm{numPrices}$. The correctness for every bijective numbering is the proof of \cref{prop:hard-rational}, with the equivalence of the index set with $[T]$ given by the numbering.
+\end{proof}
+
+\begin{lemma}[cost per price]\label{lem:hard-cost-price}
+Computing one price costs at most $120$ operations and one output at most $6$. \hfill\lean{Graph.cost_posM_le}, \lean{Graph.cost_aM_le}, \lean{Graph.cost_priceM_le}, \lean{Graph.cost_outputM_le}
+\end{lemma}
+
+\begin{proof}
+Add the counts of the primitives along the programs. A heavy point is the most expensive: $10$ for the ends, $2\cdot21$ for the two reward points, $4$ for the midpoint, $8$ for the lift, $52$ for the height and $3$ for the three coordinates, so at most $119$.
+\end{proof}
+
+\begin{theorem}[the reduction is polynomial]\label{thm:hard-karp}
+Let $G$ be a loopless graph with $n$ vertices and $m$ edges. The program computing the instance of \cref{prop:hard-rational} makes at most $127$ operations per price, in total at most $12700(n+1)(m+1)$ operations, and its output has bit size at most $2^{40}(n+m+1)^4$. Hence 3-colourability Karp-reduces, in the unit-cost model with $C=2^{40}$ and $k=4$, to neoclassical solvability and to weak solvability in dimension $3$. \hfill\lean{Graph.cost_instanceM_le}, \lean{Graph.size_instOf_le}, \lean{cost_reduceM_le}, \lean{size_reduceM_le}, \lean{karp_threeCol_weakSolvable}, \lean{karp_threeCol_neoSolvable}
+\end{theorem}
+
+Here a \lean{KarpReduction} from a decision problem $A$ on a set with a size function to a problem $B$ is a map $f$ together with a cost function, constants $C,k\in\N$ and three properties: $A(x)\iff B(f(x))$, $\mathrm{cost}(x)\le C(\mathrm{size}(x)+1)^k$ and $\mathrm{size}(f(x))\le C(\mathrm{size}(x)+1)^k$. An instance of solvability is a \lean{QInstance}, $T$ rational prices in $\Q^3$ and $T$ rational outputs; its bit size is
+\[
+T+\sum_{t,i}\bigl(\lfloor\log_2\abs{\mathrm{num}\,P_{ti}}\rfloor+\lfloor\log_2\mathrm{den}\,P_{ti}\rfloor\bigr)+\sum_t\bigl(\lfloor\log_2\abs{\mathrm{num}\,y_t}\rfloor+\lfloor\log_2\mathrm{den}\,y_t\rfloor\bigr).
+\]
+A graph is an element of $\Sigma n\,m,\ \mathrm{Graph}\,n\,m$ of size $n+m$. \hfill\lean{KarpReduction}, \lean{QInstance}, \lean{QInstance.size}, \lean{QInstance.ofList}, \lean{GraphIn}, \lean{sizeG}
+
+\begin{proof}
+\emph{Cost.} The enumeration costs one operation per price, and each entry (price and output) at most $120+6=126$ by \cref{lem:hard-cost-price}. So the total is at most $127\,T$ with $T=\mathrm{numPrices}\le100(n+1)(m+1)$, that is at most $12700(n+1)(m+1)$. Since $(n+1)(m+1)\le(n+m+1)^2\le(n+m+1)^4$, the cost is at most $2^{40}(n+m+1)^4$ because $12700<2^{40}$. \hfill\lean{Graph.cost_instanceM_le}, \lean{mul_succ_le_pow}, \lean{cost_reduceM_le}
+
+\emph{Size.} Use $\lfloor\log_2x\rfloor\le x$. By \cref{prop:hard-size} the three entries of a price contribute at most $3\cdot2^{19}B^2$ and an output at most $6$. With $T\le100(n+1)(m+1)\le100(n+m+1)^2$ and $B^2\le576(n+m+1)^2$, the total size is at most $2^{40}(n+m+1)^4$. This bound is crude; the true bit size is $O(T\log(n+m))$. \hfill\lean{Graph.size_instOf_le}, \lean{size_reduceM_le}
+
+\emph{Correctness.} By \cref{lem:hard-val}, the value of the program is the instance numbered by \texttt{allX}, and it is solvable in either sense if and only if $G$ is 3-colourable. The resulting \lean{KarpReduction} has $f(G)=\mathrm{val}(\texttt{reduceM}\,G)$ and $\mathrm{cost}(G)=\mathrm{cost}(\texttt{reduceM}\,G)$. \hfill\lean{karp_threeCol_weakSolvable}, \lean{karp_threeCol_neoSolvable}
+\end{proof}

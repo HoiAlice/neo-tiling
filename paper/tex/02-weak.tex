@@ -2,7 +2,7 @@
 \section{Weak solvability}\label{sec:weak}
 
 \begin{lemma}[openness]\label{lem:open}
-Let $P\in\Rpp[d\times T]$. There is a neighbourhood $V\subset\Rpp[d\times T]$ of $P$ such that $\Sp(Q)\supseteq\Sp(P)$ for every $Q\in V$.
+Let $P\in\Rpp[d\times T]$. There is a neighbourhood $V\subset\Rpp[d\times T]$ of $P$ such that $\Sp(Q)\supseteq\Sp(P)$ for every $Q\in V$. \hfill\lean{eventually_reachableSpectra_subset}
 \end{lemma}
 
 \begin{proof}
@@ -10,15 +10,15 @@ Take $h\in\Phi_d$ with $\Sp(P)\subseteq\Sp(h,P)$ by \cref{lem:patch} and the nei
 \end{proof}
 
 \begin{definition}[weak solvability]\label{def:weak-solvability}
-Let $P\in\Rp[d\times T]$. An output vector $y\in\Rp[T]$ is \emph{weakly solvable} at $P$ if every neighbourhood $U\ni P$, $U\subset\Rp[d\times T]$, contains $Q\in U\cap\Rpp[d\times T]$ at which $y$ is solvable.
+Let $P\in\Rp[d\times T]$. An output vector $y\in\Rp[T]$ is \emph{weakly solvable} at $P$ if every neighbourhood $U\ni P$, $U\subset\Rp[d\times T]$, contains $Q\in U\cap\Rpp[d\times T]$ at which $y$ is solvable. \hfill\lean{WeakSolvable}
 \end{definition}
 
 \begin{definition}[weakly reachable spectra]\label{def:weak}
-Let $P:=\set{p_t\in\Rp[d]}_{t\in[T]}$. A set $S\subset[T]$ is a \emph{weakly reachable spectrum} at $P$ if for every $t\in S$ there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{p_s-p_t}\ge0$ for all $s\notin S$; such $\xi$ is a \emph{weak witness} of $t$. The family of these sets is denoted $\wSp(P)$. Clearly $\Sp(P)\subseteq\wSp(P)$.
+Let $P:=\set{p_t\in\Rp[d]}_{t\in[T]}$. A set $S\subset[T]$ is a \emph{weakly reachable spectrum} at $P$ if for every $t\in S$ there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{p_s-p_t}\ge0$ for all $s\notin S$; such $\xi$ is a \emph{weak witness} of $t$. The family of these sets is denoted $\wSp(P)$. Clearly $\Sp(P)\subseteq\wSp(P)$. \hfill\lean{IsWeakReachable}, \lean{weakReachableSpectra}
 \end{definition}
 
 \begin{lemma}[limit]\label{lem:limit}
-Let $P\in\Rp[d\times T]$. There is a neighbourhood $V\subset\Rp[d\times T]$ of $P$ such that $\Sp(Q)\subseteq\wSp(P)$ for every $Q\in V\cap\Rpp[d\times T]$.
+Let $P\in\Rp[d\times T]$. There is a neighbourhood $V\subset\Rp[d\times T]$ of $P$ such that $\Sp(Q)\subseteq\wSp(P)$ for every $Q\in V\cap\Rpp[d\times T]$. \hfill\lean{eventually_reachableSpectra_subset_weak}
 \end{lemma}
 
 \begin{proof}
@@ -26,7 +26,7 @@ Otherwise, since there are finitely many spectra, there would be $S\notin\wSp(P)
 \end{proof}
 
 \begin{lemma}[rematching]\label{lem:rematch}
-Let $C\subset[T]$ be a set of indices with equal prices, $u\in\wSp(P)$, $u\cap C\ne\varnothing$, $C\setminus u\ne\varnothing$ and $L\subset C$. Then $(u\setminus C)\cup L\in\wSp(P)$.
+Let $C\subset[T]$ be a set of indices with equal prices, $u\in\wSp(P)$, $u\cap C\ne\varnothing$, $C\setminus u\ne\varnothing$ and $L\subset C$. Then $(u\setminus C)\cup L\in\wSp(P)$. \hfill\lean{isWeakReachable_rematch}
 \end{lemma}
 
 \begin{proof}
@@ -36,7 +36,7 @@ Let $S':=(u\setminus C)\cup L$. For $t\in u\setminus C$ its weak witness for $u$
 For $S\subset[T]$ let $c(S)$ be the number of pairs $(a,b)\in S\times S$ with $p_a=p_b$.
 
 \begin{lemma}[uncrossing]\label{lem:uncross}
-Let $u,u'\in\wSp(P)$, $t\in u\setminus u'$, $s\in u'\setminus u$ and $p_s=p_t$. Then there are $A,B\in\wSp(P)$ with $\ind A+\ind B=\ind u+\ind{u'}$ and $c(A)+c(B)>c(u)+c(u')$.
+Let $u,u'\in\wSp(P)$, $t\in u\setminus u'$, $s\in u'\setminus u$ and $p_s=p_t$. Then there are $A,B\in\wSp(P)$ with $\ind A+\ind B=\ind u+\ind{u'}$ and $c(A)+c(B)>c(u)+c(u')$. \hfill\lean{uncross}
 \end{lemma}
 
 \begin{proof}
@@ -48,7 +48,7 @@ The set $u$ meets $C$ in $t$ and misses $s\in C$, while $u'$ meets $C$ in $s$ an
 \end{proof}
 
 \begin{lemma}[monotone representation]\label{lem:monotone}
-Let $y\in\cone\set{\ind S\mid S\in\wSp(P)}$. Then $y=\sum_Sm_S\ind S$ with $m_S\ge0$, $S\in\wSp(P)$, such that for every $S$ with $m_S>0$, $t\in S$, $s\notin S$ and $p_s=p_t$ imply $y_s<y_t$.
+Let $y\in\cone\set{\ind S\mid S\in\wSp(P)}$. Then $y=\sum_Sm_S\ind S$ with $m_S\ge0$, $S\in\wSp(P)$, such that for every $S$ with $m_S>0$, $t\in S$, $s\notin S$ and $p_s=p_t$ imply $y_s<y_t$. \hfill\lean{exists_uncrossed_rep}, \lean{mem_indicatorCone_monotone}
 \end{lemma}
 
 \begin{proof}
@@ -64,7 +64,7 @@ Let $P:=\set{p_t\in\Rp[d]}_{t\in[T]}$, $y\in\Rp[T]$, and for $\delta>0$ put
 \[
 Q_\delta:=\set{q_t}_{t\in[T]},\qquad q_t:=p_t+\delta\Bigl(\sum_{i\in[d]}e^{-p^i_t}-\delta y_t\Bigr)\e .
 \]
-Then $Q_\delta\to P$ as $\delta\to0$, and for all sufficiently small $\delta>0$ we have $Q_\delta\in\Rpp[d\times T]$ and $S\in\Sp(Q_\delta)$ for every $S\in\wSp(P)$ such that $y_s<y_t$ whenever $t\in S$, $s\notin S$ and $p_s=p_t$.
+Then $Q_\delta\to P$ as $\delta\to0$, and for all sufficiently small $\delta>0$ we have $Q_\delta\in\Rpp[d\times T]$ and $S\in\Sp(Q_\delta)$ for every $S\in\wSp(P)$ such that $y_s<y_t$ whenever $t\in S$, $s\notin S$ and $p_s=p_t$. \hfill\lean{isReachable_tilt}, \lean{tendsto_tilt}, \lean{eventually_tilt_witness_pos}
 \end{lemma}
 
 \begin{proof}
@@ -72,7 +72,7 @@ Let $F_r:=\sum_ie^{-p^i_r}>0$. Then $q_t-p_t=\delta(F_t-\delta y_t)\e\to0$ and $
 \end{proof}
 
 \begin{theorem}[weak solvability criterion]\label{thm:closure}
-Let $P\in\Rp[d\times T]$. An output vector $y\in\Rp[T]$ is weakly solvable at $P$ if and only if $y\in\cone\set{\ind S\mid S\in\wSp(P)}$.
+Let $P\in\Rp[d\times T]$. An output vector $y\in\Rp[T]$ is weakly solvable at $P$ if and only if $y\in\cone\set{\ind S\mid S\in\wSp(P)}$. \hfill\lean{weakSolvable_iff}, \lean{WeakSolvable.mem_indicatorCone}, \lean{weakSolvable_of_mem_indicatorCone}
 \end{theorem}
 
 \begin{proof}

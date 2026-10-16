@@ -1,40 +1,166 @@
-%% Source: poly-hardness/poly-hardness.tex. Lean: NeoTiling.Planar.{Chain,FlowLP}.
-%% Statements translated; proofs to be translated from the source (marked \src).
+%% Lean: NeoTiling.Planar.{Chain,FlowLP,Farkas}.
 \section{Dimension two: solvability is a linear program}\label{sec:planar}
 
-Two \emph{modes} $\star$ are treated in parallel: strict (reachable spectra, \cref{thm:solvability}) and weak (weakly reachable spectra, \cref{thm:closure}). We write $u\gs0$ for $u>0$ in the strict mode and $u\ge0$ in the weak mode, $\Spm(P)$ for $\Sp(P)$ or $\wSp(P)$, and $\beta_\star:=0$ or $1$. The problem $\WS_\star(d)$: given rational $P\subset\Rpp[d]$ and $y\in\Q^T_+$, decide whether $y\in\cone\set{\ind S\mid S\in\Spm(P)}$.
+Throughout this chapter $d=2$, $P=\set{p_t\in\Rpp}_{t\in[T]}$, $X_t:=p_t^1$ and $Y_t:=p_t^2$. Two \emph{modes} $\star$ are treated in parallel: strict (reachable spectra, \cref{thm:solvability}) and weak (weakly reachable spectra, \cref{thm:closure}). We write $u\gs0$ for $u>0$ in the strict mode and $u\ge0$ in the weak mode, and put $\beta_\star:=0$ in the strict mode and $\beta_\star:=1$ in the weak mode. In Lean the mode is a Boolean $b$, with $b=\mathrm{true}$ strict.
 
-\subsection{Chains and slabs}\src{poly-hardness.tex \S2}
+\begin{definition}[mode $\star$]\label{def:modes}
+A set $S\subset[T]$ belongs to $\Spm(P)$ if for every $t\in S$ there is a nonzero $\xi\in\Rp$ with $\ip{\xi}{p_s-p_t}\gs0$ for all $s\notin S$. Thus $\Spm(P)=\Sp(P)$ in the strict mode and $\Spm(P)=\wSp(P)$ in the weak mode. The problem $\WS_\star(2)$: given rational $P\subset\Rpp$ and $y\in\Q^T_+$, decide whether $y\in\cone\set{\ind S\mid S\in\Spm(P)}$. \hfill\lean{Ok}, \lean{IsReachableB}, \lean{isReachableB_false_iff}, \lean{isReachableB_true_iff}, \lean{beta}
+\end{definition}
+
+\subsection{Chains and slabs}
+
+For $a,b,q\in[T]$ put
+\[
+\chi(a,b,q):=(X_b-X_a)(Y_q-Y_a)-(Y_b-Y_a)(X_q-X_a).
+\]
+If $X_a<X_b$, then $\chi(a,b,q)>0$ if and only if $p_q$ lies strictly above the line through $p_a$ and $p_b$.
 
 \begin{definition}[chain]\label{def:chain}
-\todo{Translate: strictly convex lower-left chains through points of $P$, the region of a chain, $\Out$ and $\Bnd$ of a vertical slab.}
+A \emph{chain} is a sequence $V=(v_0,\dots,v_k)$ of indices with $X_{v_0}<\dots<X_{v_k}$, $Y_{v_0}>\dots>Y_{v_k}$ and $\chi(v_j,v_{j+1},v_{j+2})>0$ for $j+2\le k$. The \emph{region} $C(V)$ is the set of $q\in[T]$ with
+\[
+X_q\ge X_{v_0},\qquad Y_q\ge Y_{v_k},\qquad \chi(v_j,v_{j+1},q)\ge0\quad(j<k),
+\]
+and the \emph{interior} $C^\circ(V)$ is the set of $q$ satisfying all these inequalities strictly. The \emph{forbidden region} is $F_\star(V):=C^\circ(V)$ in the weak mode and $F_\star(V):=C(V)$ in the strict mode. \hfill\lean{cross}, \lean{IsChain}, \lean{InHull}, \lean{InInt}, \lean{Forbidden}
 \end{definition}
 
-\begin{theorem}[chains]\label{thm:chain}
-For $d=2$, a set $S\subset[T]$ is $\star$-reachable if and only if there is a strictly convex chain $\pi$ with $\Out(\pi)\subseteq S\subseteq\Out(\pi)\cup\beta_\star\Bnd(\pi)$. \hfill\lean{isReachableB_iff_chain}
-\end{theorem}
-\begin{proof}\todo{translate}\end{proof}
-
-\begin{lemma}[locality]\label{lem:local-slab}
-\todo{Translate \lean{inHull_iff_of_piece}: membership in the hull region is decided slab by slab.}
+\begin{lemma}[hull chain]\label{lem:hull}
+Let $U\subset[T]$ and let $v_0\in U$ be a lexicographic minimum of $p$ on $U$ (smallest $X$, then smallest $Y$). There is a chain $V=(v_0,\dots,v_k)$ with $v_i\in U$ for all $i$ and $U\subset C(V)$. \hfill\lean{exists_hull_chain}
 \end{lemma}
 
-\subsection{The chain graph and the flow LP}\src{poly-hardness.tex \S3}
+\begin{proof}
+Strong induction on $\abs U$. If no point of $U$ lies below $v_0$, then $V=(v_0)$. Otherwise choose $w\in U$ below $v_0$ of least slope $(Y_w-Y_{v_0})/(X_w-X_{v_0})$, and among those the rightmost. Then $w$ is the lexicographic minimum of $U':=\set{s\in U\mid Y_s\le Y_w}$ and $\abs{U'}<\abs U$. By induction there is a chain for $U'$ starting at $w$; prepend $v_0$. The choice of $w$ gives strict convexity at $w$ and $\chi(v_0,w,s)\ge0$ for $s\in U$. A point of $U\setminus U'$ satisfies the inequality of every later edge $ab$ by two algebraic identities for $f:=\chi(a,b,\cdot)$, one at $a$ and one at $s$, which express $f$ at $v_0$ and at $s$ through $f(w)\ge0$, $f(v_0)\ge0$ and $\chi(v_0,w,\cdot)\ge0$ (\lean{cross_nonneg_left}, \lean{cross_nonneg_of_above}).
+\end{proof}
 
-\begin{definition}[chain graph]\label{def:graph}
-The graph $G_P$ has a node ``the chain starts at $b$'' for every index $b$ and a node ``the last edge is $ab$'' for every ordered pair, a source $\sigma$ and a sink $\tau$. Its $\sigma$--$\tau$ paths are exactly the strictly convex lower-left chains. Every arc $e$ carries the index sets $\Out_e$ and $\Bnd_e$ of its vertical slab. \todo{precise arc rules}
-\end{definition}
+The indices outside $V$ are divided into \emph{slabs}: the left slab $X_q\le X_{v_0}$, the slab of the edge $j$, $X_{v_j}<X_q\le X_{v_{j+1}}$, and the right slab $X_q>X_{v_k}$.
 
-\begin{theorem}[family]\label{thm:family}
-$S\in\Spm(P)$ if and only if $\Out(\pi)\subseteq S\subseteq\Out(\pi)\cup\beta_\star\Bnd(\pi)$ for some $\sigma$--$\tau$ path $\pi$ of $G_P$. \hfill\lean{isReachableB_iff_path}
+\begin{lemma}[locality]\label{lem:local-slab}
+Let $V$ be a chain.
+\begin{enumerate}[label=\textup{(\alph*)}]
+\item Every vertex $v_i$ lies in $C(V)$.
+\item If $X_{v_j}<X_q\le X_{v_{j+1}}$, then $q\in C(V)$ if and only if $\chi(v_j,v_{j+1},q)\ge0$, and $q\in C^\circ(V)$ if and only if $\chi(v_j,v_{j+1},q)>0$.
+\item If $X_q\le X_{v_0}$, then $q\notin C^\circ(V)$, and $q\in C(V)$ if and only if $X_q=X_{v_0}$ and $Y_q\ge Y_{v_0}$.
+\item If $X_q>X_{v_k}$, then $q\in C(V)$ if and only if $Y_q\ge Y_{v_k}$, and $q\in C^\circ(V)$ if and only if $Y_q>Y_{v_k}$.
+\end{enumerate}
+\hfill\lean{slope_mono}, \lean{inHull_vertex}, \lean{inHull_iff_of_piece}, \lean{inHull_iff_of_left}, \lean{inHull_iff_of_right}
+\end{lemma}
+
+\begin{proof}
+Strict convexity gives monotone slopes: $(X_{v_{j+1}}-X_{v_j})(Y_{v_{i+1}}-Y_{v_i})\ge(Y_{v_{j+1}}-Y_{v_j})(X_{v_{i+1}}-X_{v_i})$ for $j\le i<k$ (\lean{slope_mono}). Hence every vertex lies in $C(V)$ (\lean{inHull_vertex}). In the slab of the edge $j$ put $\lambda:=X_{v_{j+1}}-X_q\ge0$, $\mu:=X_q-X_{v_j}>0$ and $c:=\chi(v_j,v_{j+1},q)$. For every edge $i$
+\[
+(\lambda+\mu)\,\chi(v_i,v_{i+1},q)=\lambda\,\chi(v_i,v_{i+1},v_j)+\mu\,\chi(v_i,v_{i+1},v_{j+1})+c\,(X_{v_{i+1}}-X_{v_i}),
+\]
+and the same holds for the inequality $Y_q\ge Y_{v_k}$. The first two terms are nonnegative, so $c\ge0$ implies all inequalities of $C(V)$, and $c>0$ implies the strict ones; the converse is part of the definition (\lean{inHull_iff_of_piece}). In the left and right slabs $p_q$ is comparable coordinatewise with $p_{v_0}$ or $p_{v_k}$, which gives (c) and (d) (\lean{inHull_iff_of_left}, \lean{inHull_iff_of_right}).
+\end{proof}
+
+\begin{theorem}[chains]\label{thm:chain}
+For $d=2$, a set $S\subset[T]$ belongs to $\Spm(P)$ if and only if $S=[T]$ or there is a chain $V$ such that no vertex of $V$ lies in $S$, every index outside $C(V)$ lies in $S$, and no index of $F_\star(V)$ lies in $S$. \hfill\lean{isReachableB_iff_chain}, \lean{isWeakReachable_iff_chain}, \lean{isReachable_iff_chain}
 \end{theorem}
 
-\begin{lemma}[disjoint slabs]\label{lem:disjoint}\todo{translate}\end{lemma}
-\begin{lemma}[flow decomposition]\label{lem:decomp}\todo{translate; \lean{flow_decomposition}}\end{lemma}
-\begin{lemma}[cube]\label{lem:cube}\todo{translate; \lean{cube_mem_span}}\end{lemma}
+\begin{proof}
+\emph{Sufficiency} (\lean{isReachableB_of_chain}). For $S=[T]$ there are no $s\notin S$, and $\xi=(1,1)$ is a witness. Let $V$ be as in the statement and $t\in S$. All $s\notin S$ lie in $C(V)$. Since $t\notin F_\star(V)$, one of the inequalities of $C(V)$ fails at $t$ in the sense $\gs$ (\lean{ok_of_not_forbidden}): $X_{v_0}-X_t\gs0$, or $Y_{v_k}-Y_t\gs0$, or $-\chi(v_j,v_{j+1},t)\gs0$ for some $j$. The witness is $\xi=(1,0)$ in the first case, $\xi=(0,1)$ in the second, and the edge normal $\xi=(Y_{v_j}-Y_{v_{j+1}},\,X_{v_{j+1}}-X_{v_j})\ge0$ in the third. For $s\notin S$ the quantity $\ip{\xi}{p_s-p_t}$ is, respectively, $(X_s-X_{v_0})+(X_{v_0}-X_t)$, $(Y_s-Y_{v_k})+(Y_{v_k}-Y_t)$ and $\chi(v_j,v_{j+1},s)-\chi(v_j,v_{j+1},t)$. In each case the first summand is nonnegative as $s\in C(V)$, and the second satisfies $\gs0$.
+
+\emph{Necessity} (\lean{isReachableB_iff_chain}). Let $S\ne[T]$ and $U:=[T]\setminus S$. Let $v_0$ be a lexicographic minimum of $p$ on $U$. \Cref{lem:hull} gives a chain $V$ with vertices in $U$ and $U\subset C(V)$. Thus no vertex lies in $S$ and every index outside $C(V)$ lies in $S$. Let $q\in F_\star(V)\cap S$ with witness $\xi$. Every vertex lies outside $S$, so $\ip{\xi}{p_{v_i}-p_q}\gs0$ for all $i$. We show that this is impossible (\lean{exists_not_ok_of_forbidden}, \lean{ok_of_forbidden}).
+\begin{itemize}
+\item If $X_q>X_{v_k}$, then $p_q\ge p_{v_k}$ coordinatewise, and $p_q>p_{v_k}$ in the weak mode. So $\ip{\xi}{p_{v_k}-p_q}\ngs0$.
+\item If $X_q\le X_{v_0}$, then the mode is strict, since in the weak mode $q\in C^\circ(V)$ forces $X_q>X_{v_0}$. Then $p_q\ge p_{v_0}$ and $\ip{\xi}{p_{v_0}-p_q}\le0$.
+\item Otherwise $X_{v_j}<X_q\le X_{v_{j+1}}$ for some $j$. Put $\lambda:=X_{v_{j+1}}-X_q\ge0$, $\mu:=X_q-X_{v_j}>0$, $A:=\ip{\xi}{p_{v_j}-p_q}$ and $B:=\ip{\xi}{p_{v_{j+1}}-p_q}$. Then
+\[
+\lambda A+\mu B=-\xi_2\,\chi(v_j,v_{j+1},q)\le0 .
+\]
+From $A\gs0$ and $B\gs0$ we get $\lambda A+\mu B\gs0$. In the strict mode this is a contradiction. In the weak mode the sum is $0$ while $\chi(v_j,v_{j+1},q)>0$, hence $\xi_2=0$, $\xi_1>0$ and $A=\xi_1(X_{v_j}-X_q)<0$, a contradiction.
+\end{itemize}
+The two corollaries are the cases of one mode; in the strict mode $S$ is exactly the set of indices outside $C(V)$.
+\end{proof}
+
+\subsection{Flows in acyclic graphs}
+
+Let $N$ be a finite set of nodes with a relation $u\to v$ (arcs), and let $\sigma\ne\tau$ be nodes. A \emph{path} of length $L$ from $a$ to $b$ is a sequence $w_0=a,\dots,w_L=b$ with $w_i\to w_{i+1}$. For a path $\pi$ we write $\ind\pi\in\R^{N\times N}$ for the vector counting how often $\pi$ uses each arc. A \emph{flow} is a function $f\ge0$ on $N\times N$ supported on arcs with $\sum_vf_{vu}=\sum_vf_{uv}$ at every node $u\ne\sigma,\tau$. \hfill\lean{IsPath}, \lean{pathVec}, \lean{IsFlow}
+
+\begin{lemma}[flow decomposition]\label{lem:decomp}
+Suppose that $\mathrm{rk}\colon N\to\N$ strictly increases along arcs, no arc enters $\sigma$ and no arc leaves $\tau$. Then every flow is a nonnegative combination $f=\sum_im_i\ind{\pi_i}$ of paths $\pi_i$ from $\sigma$ to $\tau$. \hfill\lean{flow_decomposition}
+\end{lemma}
+
+\begin{proof}
+A path from $\sigma$ to $\tau$ is a flow, since it neither starts nor ends at an inner node (\lean{isFlow_pathVec}); it uses every arc at most once because $\mathrm{rk}$ increases along it (\lean{pathVec_le_one}). We argue by induction on the number of arcs with $f\neq0$. If there is none, take the empty combination. Otherwise take an arc $u\to v$ with $f_{uv}>0$ and $\mathrm{rk}(u)$ minimal. Then $u=\sigma$: otherwise $u\ne\tau$, and by conservation some arc entering $u$ is positive, with tail of smaller rank. Follow positive arcs from $v$: at an inner node the outflow equals the inflow, which is positive, and the rank grows, so the walk ends at $\tau$ (\lean{exists_pos_path}). Let $\pi$ be the resulting path and $m>0$ the least value of $f$ on its arcs. Then $f-m\ind\pi$ is a flow and has fewer nonzero arcs, as the arc where the minimum is attained vanishes.
+\end{proof}
+
+\subsection{The chain graph}
+
+\begin{definition}[chain graph]\label{def:graph}
+The graph $G_P$ has the nodes $\sigma$ (source), $\tau$ (sink), $A_b$ for $b\in[T]$ (``the chain starts at $b$'') and $E_{ab}$ for $a,b\in[T]$ with $X_a<X_b$, $Y_a>Y_b$ (``the last edge is $ab$''). The arcs are
+\[
+\sigma\to\tau,\quad \sigma\to A_b,\quad A_a\to E_{ab},\quad E_{ab}\to E_{bc}\ \text{ if }X_b<X_c,\ Y_b>Y_c,\ \chi(a,b,c)>0,\quad A_b\to\tau,\quad E_{ab}\to\tau.
+\]
+Every arc $e$ carries two sets of indices $\Out_e$ and $\Bnd_e$.
+\begin{itemize}
+\item The arc $\sigma\to A_b$ (left slab of $b$): $\Out_e=\set{q\ne b\mid X_q<X_b\ \text{or}\ (X_q=X_b,\ Y_q<Y_b)}$ and $\Bnd_e=\set{q\ne b\mid X_q=X_b,\ Y_q\ge Y_b}$.
+\item The arcs $A_a\to E_{ab}$ and $E_{ca}\to E_{ab}$ (slab of the edge $ab$): $\Out_e=\set{q\ne b\mid X_a<X_q\le X_b,\ \chi(a,b,q)<0}$ and $\Bnd_e=\set{q\ne b\mid X_a<X_q\le X_b,\ \chi(a,b,q)=0}$.
+\item The arcs $A_b\to\tau$ and $E_{ab}\to\tau$ (right slab of $b$): $\Out_e=\set{q\mid X_q>X_b,\ Y_q<Y_b}$ and $\Bnd_e=\set{q\mid X_q>X_b,\ Y_q=Y_b}$.
+\item The arc $\sigma\to\tau$: $\Out_e=[T]$ and $\Bnd_e=\varnothing$.
+\end{itemize}
+For a path $\pi$ from $\sigma$ to $\tau$ put $\Out(\pi):=\bigcup_{e\in\pi}\Out_e$ and $\Bnd(\pi):=\bigcup_{e\in\pi}\Bnd_e$. \hfill\lean{Node}, \lean{Down}, \lean{Arc}, \lean{leftOut}, \lean{leftBnd}, \lean{edgeOut}, \lean{edgeBnd}, \lean{rightOut}, \lean{rightBnd}, \lean{Out}, \lean{Bnd}, \lean{pathOut}, \lean{pathBnd}
+\end{definition}
+
+\begin{lemma}[paths are chains]\label{lem:paths}
+Every path from $\sigma$ to $\tau$ is $\sigma\to\tau$ or the path $\sigma\to A_{v_0}\to E_{v_0v_1}\to\dots\to E_{v_{k-1}v_k}\to\tau$ of a chain $V=(v_0,\dots,v_k)$, and each chain gives such a path. Its arcs carry the left slab of $v_0$, the slabs of the edges and the right slab of $v_k$. \hfill\lean{chainPath}, \lean{chainPath_sets}, \lean{path_cases}, \lean{isPath_chainPath}
+\end{lemma}
+
+\begin{proof}
+The only arcs leaving $\sigma$ lead to $\tau$ or to some $A_{v_0}$, the only arcs leaving $A_a$ lead to $\tau$ or to some $E_{ab}$, and the arcs leaving $E_{ab}$ lead to $\tau$ or to $E_{bc}$ with $a,b,c$ a strictly convex turn. Induction along the path shows that the vertices form a chain. Conversely the arcs of the path of a chain exist by the definition of a chain. The carried sets are read off \cref{def:graph}.
+\end{proof}
+
+\begin{lemma}[slabs]\label{lem:slabs}
+Let $V$ be a chain and $\pi$ its path. The $k+2$ arcs of $\pi$ have slabs that partition $[T]$; the sets $\Out_e,\Bnd_e$ of an arc lie in its slab. Inside the slab of an arc $e$, $q\in\Out_e$ if and only if $q\notin C(V)$, and $q\in\Bnd_e$ if and only if $q\notin V$, $q\in C(V)$ and $q\notin C^\circ(V)$. Consequently
+\[
+\Out(\pi)=[T]\setminus C(V),\qquad \Bnd(\pi)=\set{q\notin V\mid q\in C(V)\setminus C^\circ(V)}.
+\]
+\hfill\lean{InSlab}, \lean{existsUnique_slab}, \lean{inSlab_of_mem}, \lean{mem_iff_of_inSlab}, \lean{chainPath_out_bnd}, \lean{path_congr}
+\end{lemma}
+
+\begin{proof}
+The slabs $X_q\le X_{v_0}$, $X_{v_j}<X_q\le X_{v_{j+1}}$, $X_q>X_{v_k}$ partition the plane because $X$ strictly increases along $V$ (\lean{chain_x_lt}, \lean{existsUnique_slab}). Each set of an arc lies in its slab by \cref{def:graph} (\lean{inSlab_of_mem}). Inside a slab the claim is \cref{lem:local-slab}: in the slab of an edge it is the sign of $\chi$, in the left slab the vertical ray above $v_0$, in the right slab the sign of $Y_q-Y_{v_k}$; the only vertex in the slab of an arc is its own end (\lean{mem_iff_of_inSlab}). A point belongs to the sets of some arc if and only if it belongs to the sets of the arc of its own slab, whence the formulas (\lean{chainPath_out_bnd}). A path that agrees with the path of $V$ has the same sets (\lean{path_congr}).
+\end{proof}
+
+\begin{theorem}[family]\label{thm:family}
+$S\in\Spm(P)$ if and only if $\Out(\pi)\subseteq S\subseteq\Out(\pi)\cup\beta_\star\Bnd(\pi)$ for some path $\pi$ from $\sigma$ to $\tau$ in $G_P$. Here $\beta_\star\Bnd(\pi)$ is $\Bnd(\pi)$ in the weak mode and $\varnothing$ in the strict mode. \hfill\lean{isReachableB_iff_path}
+\end{theorem}
+
+\begin{proof}
+By \cref{thm:chain} it suffices to match the chains with the paths. The path $\sigma\to\tau$ has $\Out(\pi)=[T]$ and corresponds to $S=[T]$. For a path of a chain $V$, \cref{lem:paths,lem:slabs} give $\Out(\pi)=[T]\setminus C(V)$ and $\Bnd(\pi)=C(V)\setminus(C^\circ(V)\cup V)$. The vertices lie in $C(V)\setminus C^\circ(V)$ (\cref{lem:local-slab}). Hence the three conditions of \cref{thm:chain} are equivalent to the two inclusions. In the weak mode the forbidden region is $C^\circ(V)$, and $S\subseteq\Out(\pi)\cup\Bnd(\pi)$ says that $S$ contains no vertex and no interior point. In the strict mode the forbidden region is $C(V)$ and $S=\Out(\pi)$.
+\end{proof}
+
+\begin{lemma}[disjoint slabs]\label{lem:disjoint}
+Let $\pi$ be a path from $\sigma$ to $\tau$. The sets $\Out_e\cup\Bnd_e$ of different arcs of $\pi$ are disjoint, and $\Out(\pi)\cap\Bnd(\pi)=\varnothing$. Hence $\ind{\Out(\pi)}=\sum_{e\in\pi}\ind{\Out_e}$ and $\ind{\Bnd(\pi)}=\sum_{e\in\pi}\ind{\Bnd_e}$. \hfill\lean{path_ind_eq}
+\end{lemma}
+
+\begin{proof}
+For $\sigma\to\tau$ there is one arc and $\Bnd=\varnothing$. For the path of a chain the sets of an arc lie in its slab and every index lies in exactly one slab (\cref{lem:slabs}), so different arcs have disjoint sets. By \cref{lem:slabs}, $\Out(\pi)\subset[T]\setminus C(V)$ and $\Bnd(\pi)\subset C(V)$ are disjoint. The indicator of a union of disjoint sets is the sum of the indicators; this is applied to $\Out_e$ and to $\Bnd_e$.
+\end{proof}
+
+\begin{lemma}[cube]\label{lem:cube}
+Let $O\cap B=\varnothing$ and $0\le z\le\ind B$. Then $\ind O+z\in\cone\set{\ind{O\cup B'}\mid B'\subset B}$. \hfill\lean{cube_mem_span}
+\end{lemma}
+
+\begin{proof}
+Induction on $\abs B$. For $B=\varnothing$ we have $z=0$. For $B=B_0\cup\set q$ write
+\[
+\ind O+z=(1-z_q)\bigl(\ind O+z|_{B_0}\bigr)+z_q\bigl(\ind{O\cup\set q}+z|_{B_0}\bigr)
+\]
+and apply the induction hypothesis to the pairs $(O,B_0)$ and $(O\cup\set q,B_0)$.
+\end{proof}
+
+\begin{lemma}[acyclicity]\label{lem:rank}
+There is $\mathrm{rk}\colon V(G_P)\to\N$ strictly increasing along the arcs of $G_P$. No arc enters $\sigma$ and no arc leaves $\tau$. \hfill\lean{exists_rank}
+\end{lemma}
+
+\begin{proof}
+Put $\mathrm{rk}(\sigma):=0$, $\mathrm{rk}(A_b):=1$, $\mathrm{rk}(E_{ab}):=2+\abs{\set{q\mid X_q<X_b}}$ and $\mathrm{rk}(\tau):=T+3$. Along $E_{ab}\to E_{bc}$ the index $b$ joins the points to the left of the last vertex, as $X_b<X_c$. The statement on $\sigma$ and $\tau$ is read off the arc list.
+\end{proof}
+
+\subsection{The flow LP}
 
 \begin{theorem}[$d=2$]\label{thm:lp}
-$y$ is $\star$-solvable if and only if the system
+A vector $y\in\R^T$ lies in $\cone\set{\ind S\mid S\in\Spm(P)}$ if and only if the system
 \[
 f\ \text{is a $\sigma$--$\tau$ flow in }G_P,\qquad y=\sum_ef_e\ind{\Out_e}+g,\qquad 0\le g\le\beta_\star\sum_ef_e\ind{\Bnd_e}
 \]
@@ -42,19 +168,48 @@ is feasible. \hfill\lean{mem_indicatorCone_iff_flow}
 \end{theorem}
 
 \begin{proof}
-$(\Rightarrow)$ Let $y=\sum_Sm_S\ind S$ with $m_S>0$, $S\in\Spm(P)$. By \cref{thm:family} choose a path $\pi_S$ for each $S$ and put $f:=\sum_Sm_S\ind{\pi_S}$, $g:=\sum_Sm_S\ind{S\setminus\Out(\pi_S)}$. A sum of paths is a flow. By \cref{lem:disjoint}, $\ind S=\sum_{e\in\pi_S}\ind{\Out_e}+\ind{S\setminus\Out(\pi_S)}$. In the weak mode $S\setminus\Out(\pi_S)\subset\Bnd(\pi_S)$, whence $g\le\sum_ef_e\ind{\Bnd_e}$; in the strict mode $S=\Out(\pi_S)$ and $g=0$.
+$(\Rightarrow)$ Let $y=\sum_Sm_S\ind S$ with $m_S>0$ and $S\in\Spm(P)$ (\lean{exists_coef_of_mem_indicatorCone}). By \cref{thm:family} choose a path $\pi_S$ with $\Out(\pi_S)\subseteq S\subseteq\Out(\pi_S)\cup\beta_\star\Bnd(\pi_S)$; for $m_S=0$ take the path $\sigma\to\tau$. Put $f:=\sum_Sm_S\ind{\pi_S}$ and $g:=\sum_Sm_S\ind{S\setminus\Out(\pi_S)}$. A nonnegative combination of paths is a flow (\lean{isFlow_pathVec}). Since $\Out(\pi_S)\subseteq S$, $\ind S=\ind{\Out(\pi_S)}+\ind{S\setminus\Out(\pi_S)}$, and by \cref{lem:disjoint} $\ind{\Out(\pi_S)}=\sum_{e\in\pi_S}\ind{\Out_e}$. Summing gives $y=\sum_ef_e\ind{\Out_e}+g$. Further $S\setminus\Out(\pi_S)\subseteq\beta_\star\Bnd(\pi_S)$, hence $g\le\beta_\star\sum_ef_e\ind{\Bnd_e}$ by \cref{lem:disjoint}; in the strict mode $g=0$.
 
-$(\Leftarrow)$ By \cref{lem:decomp}, $f=\sum_im_i\ind{\pi_i}$, and by \cref{lem:disjoint}, $\sum_ef_e\ind{\Out_e}=\sum_im_i\ind{\Out(\pi_i)}$ and $h:=\sum_ef_e\ind{\Bnd_e}=\sum_im_i\ind{\Bnd(\pi_i)}$. Split $g$ proportionally: $z_i(q):=g_q/h_q$ for $q\in\Bnd(\pi_i)$ and $0$ otherwise; if $h_q=0$ then $g_q=0$. Then $0\le z_i\le\beta_\star\ind{\Bnd(\pi_i)}$ and $\sum_im_iz_i=g$, so $y=\sum_im_i\bigl(\ind{\Out(\pi_i)}+z_i\bigr)$. By \cref{lem:cube} each term lies in the cone of the vectors $\ind{\Out(\pi_i)\cup B'}$ with $B'\subset\beta_\star\Bnd(\pi_i)$, and these sets lie in $\Spm(P)$ by \cref{thm:family}.
+$(\Leftarrow)$ By \cref{lem:rank,lem:decomp}, $f=\sum_im_i\ind{\pi_i}$ with $m_i\ge0$. By \cref{lem:disjoint},
+\[
+\sum_ef_e\ind{\Out_e}=\sum_im_i\ind{\Out(\pi_i)},\qquad h:=\sum_ef_e\ind{\Bnd_e}=\sum_im_i\ind{\Bnd(\pi_i)}.
+\]
+Split $g$ proportionally: $z_i(q):=g_q/h_q$ for $q\in\Bnd(\pi_i)$ and $z_i(q):=0$ otherwise. If $h_q=0$, then $g_q=0$ and the quotient is not used. Then $0\le z_i\le\beta_\star\ind{\Bnd(\pi_i)}$ and $\sum_im_iz_i=g$, so $y=\sum_im_i\bigl(\ind{\Out(\pi_i)}+z_i\bigr)$. The sets $\Out(\pi_i)$ and $\beta_\star\Bnd(\pi_i)$ are disjoint (\cref{lem:disjoint}). By \cref{lem:cube} each summand lies in the cone of the vectors $\ind{\Out(\pi_i)\cup B'}$ with $B'\subset\beta_\star\Bnd(\pi_i)$, and these sets belong to $\Spm(P)$ by \cref{thm:family}.
 \end{proof}
 
 \begin{corollary}[polynomiality]\label{cor:poly}
-In both modes $\WS_\star(2)$ is solvable in polynomial time. The graph is built in $O(T^4)$ arithmetic operations on numbers of degree two in the input; the system of \cref{thm:lp} has $O(T^3)$ variables, $O(T^2)$ constraints, coefficients $0,\pm1$ and right-hand side $y$, so it is solved in polynomial time by the ellipsoid or an interior-point method. From a basic solution a representation $y=\sum_km_k\ind{S_k}$, $S_k\in\Spm(P)$, with $k\le T$ is obtained in polynomial time (flow decomposition, \cref{lem:cube}, Carath\'eodory).
+In both modes $\WS_\star(2)$ is solvable in polynomial time. The graph is built in $O(T^4)$ arithmetic operations on numbers of degree two in the input. The system of \cref{thm:lp} has $O(T^3)$ variables, $O(T^2)$ constraints, coefficients $0,\pm1$ and right-hand side $y$, so it is solved in polynomial time by the ellipsoid method or an interior-point method. From a basic solution a representation $y=\sum_km_k\ind{S_k}$ with $S_k\in\Spm(P)$ and $k\le T$ is obtained in polynomial time (flow decomposition, \cref{lem:cube}, Carath\'eodory). The equivalence of \cref{thm:lp} is formalized; the complexity statement is not formalized.
 \end{corollary}
+
+\subsection{The column problem and the certificate}
+
+\begin{lemma}[Farkas lemma for indicator cones]\label{lem:farkas-cone}
+For $\mathcal A\subset2^{[T]}$ and $y\in\R^T$, $y\notin\cone\set{\ind S\mid S\in\mathcal A}$ if and only if there is $c\in\R^T$ with $\ip cy<0$ and $c(S):=\sum_{q\in S}c_q\ge0$ for all $S\in\mathcal A$. \hfill\lean{not_mem_indicatorCone_iff}, \lean{pairing_nonneg_of_mem}, \lean{exists_farkas_of_sum_pos}
+\end{lemma}
+
+\begin{proof}
+($\Leftarrow$) A nonnegative combination of indicators pairs nonnegatively with $c$ (\lean{pairing_nonneg_of_mem}). ($\Rightarrow$) If some $y_q<0$, take $c=\e_q$. Otherwise $y\ge0$, and $y\ne0$ since $0$ lies in the cone, so $\sum y>0$. Let $G$ be the set of indicators of the nonempty $S\in\mathcal A$. The convex hull of $G$ is compact and lies in the cone and in the half-space $\sum x\ge1$ (\lean{mem_convexHull_bounds}). The ray $\R_+y$ is closed and convex, and it is disjoint from the hull: a point $sy$ of the hull with $s>0$ would put $y$ into the cone. Separate them: there are a linear form $\varphi$ and $u<v$ with $\varphi<u$ on the hull and $\varphi>v$ on the ray. Then $v<0$, since $0$ is on the ray, and $\varphi(y)\ge0$. Put $\mu:=-u/(T+1)>0$ and $c_q:=-\varphi(\e_q)-\mu$. Then $\ip cy=-\varphi(y)-\mu\sum y<0$, and for nonempty $S\in\mathcal A$, $c(S)=-\varphi(\ind S)-\mu\abs S>-u-\mu T>0$.
+\end{proof}
+
+For $c\in\R^T$ the \emph{weight} of an arc $e$ of $G_P$ is $c(\Out_e)+\beta_\star\sum_{q\in\Bnd_e}\min(c_q,0)$, and the weight of a path is the sum over its arcs. \hfill\lean{arcW}, \lean{pathW}, \lean{pathW_eq_sum_pathVec}
 
 \begin{corollary}[column problem]\label{cor:col}
-\todo{translate: pricing over the family is a longest path in the DAG $G_P$, $O(T^4)$.}
+Let $c\in\R^T$.
+\begin{enumerate}[label=\textup{(\alph*)}]
+\item For every path $\pi$ from $\sigma$ to $\tau$ there is $S\in\Spm(P)$ with $c(S)=\mathrm{wt}_c(\pi)$.
+\item For every $S\in\Spm(P)$ there is a path $\pi$ with $\mathrm{wt}_c(\pi)\le c(S)$.
+\end{enumerate}
+Hence $\min_{S\in\Spm(P)}c(S)$ is the shortest $\sigma$--$\tau$ path in the acyclic graph $G_P$, and $c\ge0$ on $\Spm(P)$ if and only if every path has nonnegative weight. \hfill\lean{min_family_eq_min_path}, \lean{nonneg_family_iff_path}
 \end{corollary}
 
+\begin{proof}
+By \cref{lem:disjoint}, the weight of a path is $c(\Out(\pi))+\beta_\star\sum_{q\in\Bnd(\pi)}\min(c_q,0)$ (\lean{pathW_eq}). (a) In the weak mode take $S=\Out(\pi)\cup\set{q\in\Bnd(\pi)\mid c_q<0}$, which lies in $\Spm(P)$ by \cref{thm:family}. In the strict mode take $S=\Out(\pi)$. (b) By \cref{thm:family}, $S=\Out(\pi)\cup B'$ with $B'\subseteq\beta_\star\Bnd(\pi)$, and $c(B')\ge\sum_{q\in\Bnd(\pi)}\min(c_q,0)$ in the weak mode, while $B'=\varnothing$ in the strict mode. The second claim follows from (a) and (b).
+\end{proof}
+
 \begin{corollary}[certificate of unsolvability]\label{cor:farkas}
-\todo{translate: infeasibility yields $w$ with $\ip wy<0$ and $w(S)\ge0$ on $\Spm(P)$, checkable by one longest path.}
+$y\notin\cone\set{\ind S\mid S\in\Spm(P)}$ if and only if there is $c\in\R^T$ with $\ip cy<0$ and $c(S)\ge0$ for all $S\in\Spm(P)$. Equivalently, there is $c\in\R^T$ with $\ip cy<0$ and nonnegative weight of every $\sigma$--$\tau$ path; the certificate is checked by one shortest-path computation. \hfill\lean{not_mem_iff_farkas}, \lean{not_mem_iff_path_certificate}
 \end{corollary}
+
+\begin{proof}
+The first equivalence is \cref{lem:farkas-cone} for $\mathcal A=\Spm(P)$, the second follows from \cref{cor:col}.
+\end{proof}

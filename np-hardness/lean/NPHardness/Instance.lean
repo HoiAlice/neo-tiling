@@ -49,7 +49,7 @@ lemma svalQ_cast (w : G.Node) : ((G.svalQ w : ℚ) : ℝ) = G.sval w := by
 def aQ (w : G.Node) : Fin 2 → ℚ := ![scaleQ n m * (G.pos w).1, scaleQ n m * (G.pos w).2]
 
 /-- The heights over `ℚ`. -/
-def ηQ (k : G.Link) : ℚ :=
+def etaQ (k : G.Link) : ℚ :=
   scaleQ n m ^ 2 * ((nrm (G.pos (G.linkV k) - G.pos (G.linkU k)) : ℚ) / 4 + 1 / 512)
 
 /-- `Gadget.price` over `ℚ`. -/
@@ -57,7 +57,7 @@ def priceQ : Option (G.Node ⊕ G.Link) → Fin 3 → ℚ
   | none => fun _ => 1 / 4
   | some (.inl v) => liftQ (G.aQ v)
   | some (.inr k) =>
-      liftQ (fun j => (G.aQ (G.linkU k) j + G.aQ (G.linkV k) j) / 2) + fun _ => G.ηQ k
+      liftQ (fun j => (G.aQ (G.linkU k) j + G.aQ (G.linkV k) j) / 2) + fun _ => G.etaQ k
 
 /-- `output` over `ℚ`. -/
 def outputQ : Option (G.Node ⊕ G.Link) → ℚ
@@ -77,7 +77,7 @@ lemma priceQ_cast (x : Option (G.Node ⊕ G.Link)) (i : Fin 3) :
       smul_eq_mul, one3, mul_one]
     congr 2
     · funext j; simp [mid, aQ_cast, gadget, Drawing.gadget]
-    · simp [ηQ, gadget, Drawing.gadget, drawing, scaleQ_cast]
+    · simp [etaQ, gadget, Drawing.gadget, drawing, scaleQ_cast]
 
 lemma outputQ_cast (x : Option (G.Node ⊕ G.Link)) :
     ((G.outputQ x : ℚ) : ℝ) = output (E := G.Link) G.sval x := by

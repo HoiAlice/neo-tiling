@@ -57,7 +57,7 @@ def test_dominated_pair():
     between the two years, ln 4 * 2^(1/p - 1); l_inf: ln 4 / 2."""
     P, y = [(F(4), F(9)), (F(1), F(1))], [F(5), F(1)]
     for p, opt in ((1.0, math.log(4)), (2.0, math.log(4) / math.sqrt(2)), (math.inf, math.log(4) / 2)):
-        res = solve(Problem(P, y, p=p), eps=1e-6, time_limit=60)
+        res = solve(Problem(P, y, p=p, metric="log"), eps=1e-6, time_limit=60)
         assert abs(res["UB"] - opt) < 1e-5 and opt - 1e-5 <= res["LB"] <= opt + 1e-7
     # relative metric: l_1 lowers p_1^1 = 4 to 1 (cost 3/4); l_inf meets at 4(1 - e) = 1 + e, e = 3/5
     for p, opt in ((1.0, 0.75), (math.inf, 0.6)):

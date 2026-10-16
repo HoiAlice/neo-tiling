@@ -5,4 +5,5 @@ import NPHardness.Coloring
 import NPHardness.Main
 import NPHardness.Instance
 import NPHardness.Size
+import NPHardness.Costed
 import NPHardness.Cost

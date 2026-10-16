@@ -2,11 +2,12 @@
 
 Prices P (rational, T points of R^d_{>0}), outputs y >= 0, weights c[t][i] > 0, 1 <= p <= inf.
 Cost of new prices Q: one weighted l_p norm of the whole vector of deviations,
-    C_p(Q) = || c o dev(Q) ||_p,   dev = ln Q - ln P (metric "log")  or  Q / P - 1 (metric "rel").
-Half-widths (alpha, beta) >= 0 give the box [P g(-alpha), P g(beta)], g = exp ("log") or
-g(z) = 1 + z ("rel", alpha < 1), of cost ||c o (alpha + beta)||_p; a cost is achievable by some Q iff
-it is achievable by a box passing ONE box query (Lean `exists_weakSolvable_iff_boxFeasible_lp`,
-`_linf`, `_rel_lp`).  In "rel" the corners are linear in the half-widths: the master's cover rows are exact.
+    C_p(Q) = || c o dev(Q) ||_p,   dev = Q / P - 1 (metric "rel", the paper)  or  ln Q - ln P ("log").
+Half-widths (alpha, beta) >= 0 give the box [P g(-alpha), P g(beta)], g(z) = 1 + z ("rel", alpha < 1)
+or g = exp ("log").  Box cost ||c o max(alpha, beta)||_p: every Q in the box has |dev| <= max(alpha, beta),
+and a cost is achievable by some Q iff it is achievable by a box passing ONE box query (Lean
+`exists_weakSolvable_iff_boxFeasible`, relative metric).  In "rel" the corners are linear in the
+half-widths, so the master's cover rows are exact; "log" is kept as a flag only (piecewise-linear rows).
 """
 
 from __future__ import annotations
@@ -32,7 +33,7 @@ def _short(v, up):
 class Problem:
     AMAX = 1 - 1e-9                                    # "rel": lower half-widths stay below 1
 
-    def __init__(self, P, y, c=None, p=1.0, metric="log"):
+    def __init__(self, P, y, c=None, p=1.0, metric="rel"):
         self.P = [tuple(F(v) for v in q) for q in P]
         self.y = [F(v) for v in y]
         self.T, self.d = len(P), len(P[0])

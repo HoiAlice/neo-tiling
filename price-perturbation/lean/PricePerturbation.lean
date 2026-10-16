@@ -7,3 +7,5 @@ import PricePerturbation.Radius
 import PricePerturbation.Shape
 import PricePerturbation.Weighted
 import PricePerturbation.Profile
+import PricePerturbation.Search
+import PricePerturbation.SearchWeighted

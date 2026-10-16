@@ -7,14 +7,14 @@
 Throughout, $d\in\N$, $d\ge2$. For $p,x\in\R^d$ we write $p\circ x:=(p^1x^1,\dots,p^dx^d)$ for the coordinatewise product, $\e:=(1,\dots,1)\in\R^d$, and $\ind S\in\R^T$ for the indicator of $S\subset[T]$. Inequalities between vectors are coordinatewise.
 
 \begin{definition}[neoclassical functions]\label{def:neoclassical}
-A function $f\colon\Rp[d]\to\R_+$ is \emph{neoclassical} if it is continuous, concave and positively homogeneous of degree one. The class of neoclassical functions of $d$ variables is denoted $\Phi_d$.
+A function $f\colon\Rp[d]\to\R_+$ is \emph{neoclassical} if it is continuous, concave and positively homogeneous of degree one. The class of neoclassical functions of $d$ variables is denoted $\Phi_d$. \hfill\lean{IsNeoclassical}
 \end{definition}
 
 \begin{definition}[neoclassical solvability]\label{def:neo-solvability}
 Let $\set{\hat p_t\in\Rpp[d]}_{t\in[T]}$ be a finite set of prices. An output vector $y\in\Rp[T]$ is \emph{neoclassically solvable} at these prices if there exist $h\in\Phi_d$ and neighbourhoods $U_t\ni\hat p_t$, $U_t\subset\Rpp[d]$, such that for every choice $\set{p_t\in U_t}_{t\in[T]}$ there is a nonnegative absolutely continuous measure $\mu$ on $\Rp[d]$ with
 \[
 \mu(A_t)=y_t\quad\text{for all }t\in[T],\qquad A_t:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1}.
-\]
+\] \hfill\lean{NeoSolvable}, \lean{Realizes}
 \end{definition}
 
 \subsection{Spectrum}
@@ -24,15 +24,15 @@ Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. For $S\subset[T]$ the \
 \[
 R_S:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1\text{ for }t\in S,\ h(p_s\circ x)>1\text{ for }s\notin S}.
 \]
-The \emph{spectrum} of the pair $(h,P)$ is the family of spectra of nonempty chambers, $\Sp(h,P):=\set{S\subset[T]\mid R_S\ne\varnothing}$.
+The \emph{spectrum} of the pair $(h,P)$ is the family of spectra of nonempty chambers, $\Sp(h,P):=\set{S\subset[T]\mid R_S\ne\varnothing}$. \hfill\lean{specRegion}, \lean{spectrum}
 \end{definition}
 
 \begin{proposition}\label{prop:null}
-Let $h\in\Phi_d$. For every $p\in\Rpp[d]$ the set $\set{x\in\Rpp[d]\mid h(p\circ x)=1}$ has Lebesgue measure zero. Hence $\mathcal L^d\bigl(A_t\mathbin{\triangle}\bigsqcup_{S\ni t}R_S\bigr)=0$ for every $t\in[T]$.
+Let $h\in\Phi_d$. For every $p\in\Rpp[d]$ the set $\set{x\in\Rpp[d]\mid h(p\circ x)=1}$ has Lebesgue measure zero. Hence $\mathcal L^d\bigl(A_t\mathbin{\triangle}\bigsqcup_{S\ni t}R_S\bigr)=0$ for every $t\in[T]$. \hfill\lean{IsNeoclassical.volume_levelSet_eq_zero}, \lean{measure_demandSet_eq_sum}
 \end{proposition}
 
 \begin{lemma}[signature]\label{lem:signature}
-Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $y\in\Rp[T]$ lies in $\cone\set{\ind S\mid S\in\Sp(h,P)}$ if and only if there is an absolutely continuous measure $\mu$ on $\Rp[d]$ with $\mu(A_t)=y_t$ for all $t\in[T]$, where $A_t:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1}$.
+Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $y\in\Rp[T]$ lies in $\cone\set{\ind S\mid S\in\Sp(h,P)}$ if and only if there is an absolutely continuous measure $\mu$ on $\Rp[d]$ with $\mu(A_t)=y_t$ for all $t\in[T]$, where $A_t:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1}$. \hfill\lean{IsNeoclassical.realizes_iff_mem_indicatorCone}
 \end{lemma}
 
 \begin{proof}
@@ -40,7 +40,7 @@ By \cref{prop:null} the level sets are null, so $\mu(A_t)=\sum_{S\ni t}\mu(R_S)$
 \end{proof}
 
 \begin{lemma}[stability]\label{lem:stability}
-Let $h\in\Phi_d$ and $P\in\Rpp[d\times T]$. There is a neighbourhood $V\subset\Rpp[d\times T]$ of $P$ such that $\Sp(h,Q)\supseteq\Sp(h,P)$ for every $Q\in V$.
+Let $h\in\Phi_d$ and $P\in\Rpp[d\times T]$. There is a neighbourhood $V\subset\Rpp[d\times T]$ of $P$ such that $\Sp(h,Q)\supseteq\Sp(h,P)$ for every $Q\in V$. \hfill\lean{IsNeoclassical.eventually_spectrum_subset}
 \end{lemma}
 
 \begin{proof}
@@ -50,11 +50,11 @@ Let $S\in\Sp(h,P)$ and $x\in R_S$. The strict inequalities $h(p_t\circ x)\gtrles
 \subsection{Reachable spectra}
 
 \begin{definition}[reachable spectra]\label{def:reachable}
-Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. A set $S\subset[T]$ is a \emph{reachable spectrum} at $P$ if for every $t\in S$ there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{p_s-p_t}>0$ for all $s\notin S$. Such $\xi$ is a \emph{witness} of the index $t$. The family of reachable spectra is denoted $\Sp(P)$.
+Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. A set $S\subset[T]$ is a \emph{reachable spectrum} at $P$ if for every $t\in S$ there is a nonzero $\xi\in\Rp[d]$ with $\ip{\xi}{p_s-p_t}>0$ for all $s\notin S$. Such $\xi$ is a \emph{witness} of the index $t$. The family of reachable spectra is denoted $\Sp(P)$. \hfill\lean{IsReachable}, \lean{reachableSpectra}
 \end{definition}
 
 \begin{lemma}[necessity]\label{lem:necessity}
-Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $\Sp(h,P)\subseteq\Sp(P)$.
+Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $\Sp(h,P)\subseteq\Sp(P)$. \hfill\lean{IsNeoclassical.spectrum_subset_reachableSpectra}
 \end{lemma}
 
 \begin{proof}
@@ -66,7 +66,7 @@ By the separation theorem there are a linear functional $f$ and a number $u$ wit
 \subsection{The solvability criterion}
 
 \begin{lemma}[separation]\label{lem:separation}
-Let $S\in\Sp(P)$ and $t\in S$. There is $\xi\in\Rpp[d]$ with $\ip{\xi}{p_t}<1<\ip{\xi}{p_s}$ for all $s\notin S$.
+Let $S\in\Sp(P)$ and $t\in S$. There is $\xi\in\Rpp[d]$ with $\ip{\xi}{p_t}<1<\ip{\xi}{p_s}$ for all $s\notin S$. \hfill\lean{IsReachable.exists_vector}
 \end{lemma}
 
 \begin{proof}
@@ -74,7 +74,7 @@ Let $\xi_0$ be a witness of $t$. For small $\delta>0$ the vector $\xi_1:=\xi_0+\
 \end{proof}
 
 \begin{lemma}[patching]\label{lem:patch}
-Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. There is $h\in\Phi_d$ with $\Sp(P)\subseteq\Sp(h,P)$.
+Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. There is $h\in\Phi_d$ with $\Sp(P)\subseteq\Sp(h,P)$. \hfill\lean{exists_polyMin_patch}, \lean{exists_spectrum_eq_reachableSpectra}
 \end{lemma}
 
 \begin{proof}
@@ -94,7 +94,7 @@ Since $\ip{\xi_{S,t}\circ x_{-E_S}}{p_r\circ x_{E_{S'}}}=\ip{\xi_{S,t}}{p_r\circ
 \end{proof}
 
 \begin{theorem}[solvability criterion]\label{thm:solvability}
-Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. An output vector $y\in\Rp[T]$ is neoclassically solvable at $P$ if and only if $y\in\cone\set{\ind S\mid S\in\Sp(P)}$.
+Let $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. An output vector $y\in\Rp[T]$ is neoclassically solvable at $P$ if and only if $y\in\cone\set{\ind S\mid S\in\Sp(P)}$. \hfill\lean{neoSolvable_iff_mem_indicatorCone}
 \end{theorem}
 
 \begin{proof}

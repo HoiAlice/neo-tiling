@@ -74,7 +74,7 @@ lemma priceQ_mul_int (x : Option (G.Node ⊕ G.Link)) (i : Fin 3) :
     · exact ⟨512 * (K * a + K ^ 2 + a ^ 2 + b ^ 2), by push_cast; field_simp; ring⟩
     · exact ⟨512 * (K * b + K ^ 2 + a ^ 2 + b ^ 2), by push_cast; field_simp; ring⟩
     · exact ⟨512 * (-(K * a) - K * b + K ^ 2 + a ^ 2 + b ^ 2), by push_cast; field_simp; ring⟩
-  · fin_cases i <;> simp [priceQ, liftQ, sqnQ, aQ, ηQ, Matrix.vecHead, Matrix.vecTail]
+  · fin_cases i <;> simp [priceQ, liftQ, sqnQ, aQ, etaQ, Matrix.vecHead, Matrix.vecTail]
     all_goals
       generalize (G.pos (G.linkU k)).1 = a1
       generalize (G.pos (G.linkU k)).2 = b1
@@ -133,8 +133,8 @@ lemma abs_priceQ_le (x : Option (G.Node ⊕ G.Link)) (i : Fin 3) :
       unfold nrm; positivity
     have hn16 : (nrm (G.pos (G.linkV k) - G.pos (G.linkU k)) : ℚ) ≤ 16 := by
       exact_mod_cast hn
-    have he : 0 ≤ G.ηQ k ∧ G.ηQ k ≤ 1 / 1000 := by
-      unfold ηQ
+    have he : 0 ≤ G.etaQ k ∧ G.etaQ k ≤ 1 / 1000 := by
+      unfold etaQ
       constructor
       · positivity
       · have h2 : scaleQ n m ^ 2 ≤ 1 / 16384 := by nlinarith

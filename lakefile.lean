@@ -25,4 +25,10 @@ lean_lib PricePerturbation where
   srcDir := "price-perturbation/lean"
   globs := #[.andSubmodules `PricePerturbation]
 
+-- Least l_p price perturbation (`l1-perturbation/`). Not a default target:
+-- build with `lake build L1Perturbation`.
+lean_lib L1Perturbation where
+  srcDir := "l1-perturbation/lean"
+  globs := #[.submodules `L1Perturbation]
+
 require mathlib from git "https://github.com/leanprover-community/mathlib4" @ "v4.28.0-rc1"

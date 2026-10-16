@@ -1,45 +1,204 @@
-%% Source: l1-perturbation/tex/l1-perturbation.tex. Lean: NeoTiling.Lp.Reduction.
-%% Decision 2026-10-16: reduction for a general increasing g, then the RELATIVE metric for the algorithm
-%% (exact linear cover cuts); the log version as one paragraph plus a comparison table.
+%% Source: l1-perturbation/tex/l1-perturbation.tex. Lean: NeoTiling.Lp.{Reduction,Cover,Algorithm,Closed}.
+%% Decision 2026-10-16: ONLY the relative metric q = p (1 + eps), cost ||c o eps||_p, 1 <= p < oo;
+%% box cost ||c o max(alpha, beta)||_p, L = ||c||_p; the log metric in one sentence.
 \section{The least $\ell_p$ perturbation: an exact algorithm}\label{sec:lp}
 
-\subsection{Problem}\src{l1-perturbation.tex \S1}
-Let $g\colon\R\to\R_{++}$ be increasing with $g(0)=1$; the deviation of $q$ from $p$ is $\dev(q,p):=g^{-1}(q/p)$, coordinatewise. Two instances: $g(z)=e^z$ (logarithmic, $\dev=\ln q-\ln p$) and $g(z)=1+z$ (relative, $\dev=q/p-1$, the price error of \citet{Varian1985,DemuynckRehbeck2023}). Weights $c^i_t>0$, $1\le p\le\infty$,
+\subsection{Problem}
+New prices are written $q_t=p_t\circ(1+\varepsilon_t)$ with $\varepsilon_t>-1$ coordinatewise; the deviation of $q$ from $p$ is the relative price error $\dev(q,p):=q/p-1$, coordinatewise (\lean{relDev}), as in \citet{Varian1985,DemuynckRehbeck2023}. For weights $c^i_t\ge0$ and $1\le p<\infty$,
 \[
-C_p(Q):=\norm{c\circ\dev(Q,P)}_p,\qquad\OPT_p:=\inf\set{C_p(Q)\mid y\text{ weakly solvable at }Q}.
+C_p(Q):=\norm{c\circ\dev(Q,P)}_p,\qquad\OPT_p:=\inf\set{C_p(Q)\mid Q>0,\ y\text{ weakly solvable at }Q}.
 \]
-To half-widths $\alpha,\beta\in\Rp[d\times T]$ ($\alpha<1$ in the relative metric) associate the box with corners $a_t:=p_t\circ g(-\alpha_t)$, $b_t:=p_t\circ g(\beta_t)$; $\BOX(\alpha,\beta)$ is the box-oracle query of \cref{sec:corners} on $W(\alpha,\beta)=(a,b)$.
+Replacing $\dev$ by the logarithmic deviation $\ln q-\ln p$ changes $C_p$ only in the second order, and the algorithm below applies verbatim to any coordinatewise increasing reparametrization of the deviation, but then the corners are no longer linear in the half-widths and the cover cuts of \cref{sec:conflicts} are no longer linear.
 
-\paragraph{Literature.}\todo{translate: Afriat/Varian/Houtman--Maks indices \citep{Cherchye2014}; one MILP for GARP in \citet{DemuynckRehbeck2023} because GARP is linear in prices, impossible here (latent witnesses, NP-hard for $d\ge3$); cycles and set cover in \citet{DeanMartin2016}; monotonic optimization \citep{Tuy2000,TuyAlKhayyalThach2005}; combinatorial Benders cuts \citep{CodatoFischetti2006,FischettiSalvagninZanette2010}.}
+To half-widths $\alpha,\beta\in\Rp[d\times T]$ with $\alpha<1$ associate the box with corners $a_t:=p_t\circ(1-\alpha_t)$, $b_t:=p_t\circ(1+\beta_t)$ and the corner family $W(\alpha,\beta):=(a_1,\dots,a_T,b_1,\dots,b_T)$. The query $\BOX(\alpha,\beta)$ is the box-oracle query of \cref{sec:corners} on $W(\alpha,\beta)$ with $\mathrm{lo}=(y,0)$, $\mathrm{hi}=(\infty,y)$: some $w\in\cone\set{\ind S\mid S\in\wSp(W(\alpha,\beta))}$ has $w(a_t)\ge y_t\ge w(b_t)$ for all $t$.
 
-\subsection{Reduction to boxes}\src{l1-perturbation.tex \S2}
+\begin{definition}[box feasibility]\label{def:boxfeasible}
+The half-widths $(\alpha,\beta)$ are \emph{feasible} if $\BOX(\alpha,\beta)$ holds. The \emph{box cost} of $(\alpha,\beta)$ is $\norm{c\circ\max(\alpha,\beta)}_p$, the maximum taken coordinatewise. \hfill\lean{BoxFeasible}, \lean{maxHW}, \lean{lpPow}
+\end{definition}
+A point $q$ of the box has $\dev(q,p)\in[-\alpha,\beta]$, hence $\abs{\dev(q,p)}\le\max(\alpha,\beta)$ coordinatewise; so the box cost bounds $C_p(Q)$ for every $Q$ in the box.
+
+\paragraph{Literature.} The goodness-of-fit measures of revealed preference perturb one scalar per observation (the indices of Afriat, Varian and Houtman--Maks); the Afriat index is computed by bisection, the Varian index is NP-hard and the Houtman--Maks index is inapproximable \citep{Cherchye2014}. Our maximum over years is the analogue of the Afriat index. The $\ell_1$ perturbation of every price is treated for GARP in \citet{DemuynckRehbeck2023} by a single MILP, because GARP is linear in the prices once the quantities are given. This is impossible here: the witnesses are latent and weak solvability is NP-hard for $d\ge3$ (\cref{sec:hardness}). The problem therefore splits into a master problem and an exact oracle, as the cycle enumeration with set cover in \citet{DeanMartin2016}. The master is a monotonic optimization problem \citep{Tuy2000,TuyAlKhayyalThach2005}, and the cuts from conflicts are combinatorial Benders cuts \citep{CodatoFischetti2006,FischettiSalvagninZanette2010}.
+
+\subsection{Reduction to boxes}
 \begin{theorem}[reduction]\label{thm:reduction}
-$\OPT_p=\inf\set{\norm{c\circ(\alpha+\beta)}_p\mid\BOX(\alpha,\beta)}$, and the set of feasible half-widths is closed upward. \hfill\lean{exists_weakSolvable_iff_boxFeasible_lp}, \lean{_linf}, \lean{_rel_lp}, \lean{BoxFeasible.mono}
+Let $d\ge2$, $1\le p<\infty$ and $c\ge0$. For every $C$: there is a positive $Q$ with $y$ weakly solvable at $Q$ and $\sum_{t,i}(c^i_t\abs{\dev(q^i_t,p^i_t)})^p\le C$ if and only if there are feasible half-widths $\alpha,\beta\ge0$, $\alpha<1$, with $\sum_{t,i}(c^i_t\max(\alpha^i_t,\beta^i_t))^p\le C$. Hence
+\[
+\OPT_p=\inf\set{\norm{c\circ\max(\alpha,\beta)}_p\mid\alpha,\beta\ge0,\ \alpha<1,\ \BOX(\alpha,\beta)}.
+\]
+The feasible half-widths are closed upward: if $\BOX(\alpha,\beta)$, $\alpha\le\alpha'\le1$ and $\beta\le\beta'$, then $\BOX(\alpha',\beta')$. \hfill\lean{exists_weakSolvable_iff_boxFeasible}, \lean{BoxFeasible.mono}
 \end{theorem}
-\begin{proof}\todo{translate}\end{proof}
+The Lean statement is the equivalence for the $p$-th power $\sum_{t,i}(c^i_t\abs{x^i_t})^p$ (\lean{lpPow}), which is monotone in the absolute values of the entries (\lean{lpPow_mono}); the infimum formula follows because $x\mapsto x^{1/p}$ is increasing.
+\begin{proof}
+($\Rightarrow$) Let $\varepsilon:=\dev(Q,P)$, $\alpha:=\varepsilon^-$ and $\beta:=\varepsilon^+$. Since $q>0$, $\alpha<1$, and $a_t\le q_t\le b_t$, so $Q$ lies in the box and the corner theorem (\cref{thm:corners}, \lean{box_iff}) gives $\BOX(\alpha,\beta)$ (\lean{boxFeasible_of_weakSolvable}). Moreover $\max(\varepsilon^-,\varepsilon^+)\le\abs\varepsilon$ (\lean{max_negPart_posPart_le}; in fact equality holds), so the box cost is at most $C$.
 
-\subsection{One-signedness}\src{l1-perturbation.tex \S3}
+($\Leftarrow$) By \cref{thm:onesigned}(a) the box contains a positive $Q$ at which $y$ is weakly solvable and $\abs{\dev(Q,P)}\le\max(\alpha,\beta)$ coordinatewise, so the cost does not increase.
+
+Monotonicity (\lean{BoxFeasible.mono}): by \lean{box_iff} a feasible box contains a $Q$ with $y$ weakly solvable, and this $Q$ lies in every larger box; the condition $\alpha'\le1$ keeps the lower corners nonnegative, as \lean{box_iff} requires.
+\end{proof}
+
+\begin{lemma}[deleting years]\label{lem:delete}
+If $(\alpha,\beta)$ is feasible for $(P,y)$ and $e\colon[k]\hookrightarrow[T]$ is an embedding, then $(\alpha_{e},\beta_{e})$ is feasible for $(P_e,y_e)$. \hfill\lean{BoxFeasible.restrict}
+\end{lemma}
+\begin{proof}
+A weakly reachable set of all corners, intersected with the corners of the kept years, is weakly reachable at these corners with the same witnesses. Hence the cone of all corners restricts to the cone of the kept corners, and the bounds $w(a_t)\ge y_t\ge w(b_t)$ are preserved on the kept years.
+\end{proof}
+Thus a NO on a subset of the years is a NO on all of them. Together with \lean{BoxFeasible.mono} this makes the polyblock cuts of the algorithm valid.
+
+\subsection{One-signedness}
+A positive $Q$ is \emph{one-signed} if every year moves in one direction: for each $t$ either $q_t\le p_t$ or $q_t\ge p_t$.
 \begin{theorem}[one-signedness]\label{thm:onesigned}
-There is an optimal $Q$ in which every year moves in one direction: for each $t$ either $q_t\le p_t$ or $q_t\ge p_t$. \hfill\lean{exists_oneSigned_le}, \lean{exists_lt_of_mixed_lp}
+Let $d\ge2$.
+\begin{enumerate}[label=(\alph*)]
+\item If $\alpha,\beta\ge0$, $\alpha<1$, and $\BOX(\alpha,\beta)$, then there is a one-signed positive $Q$ with $y$ weakly solvable at $Q$, $-\alpha^i_t\le\dev(q^i_t,p^i_t)\le\beta^i_t$ and $\abs{\dev(q^i_t,p^i_t)}\le\max(\alpha^i_t,\beta^i_t)$ for all $t,i$. \hfill\lean{exists_oneSigned_of_boxFeasible}
+\item For every positive $Q$ with $y$ weakly solvable at $Q$ there is a one-signed positive $Q'$ with $y$ weakly solvable at $Q'$ and $\abs{\dev(q'^i_t,p^i_t)}\le\abs{\dev(q^i_t,p^i_t)}$ for all $t,i$. \hfill\lean{exists_oneSigned_le}
+\end{enumerate}
+In particular every cost monotone in the absolute deviations, such as $C_p$, does not increase from $Q$ to $Q'$, and $\OPT_p$ is the infimum over one-signed $Q$.
 \end{theorem}
+\begin{proof}
+(a) Take the path through the box that runs from $a_t$ to $p_t$ and on to $b_t$, namely $s\mapsto p_t\circ\bigl(1-\alpha_t\max(1-2s,0)+\beta_t\max(2s-1,0)\bigr)$, $s\in[0,1]$. It is continuous, and positive because $\alpha<1$. The corner theorem (\cref{thm:corners}, \lean{path_of_corners}) gives a point $q_t$ of the path for each $t$ such that $y$ is weakly solvable at $Q$. If $s_t\le1/2$, then $q_t\le p_t$ and $\abs{\dev(q_t,p_t)}\le\alpha_t$; otherwise $q_t\ge p_t$ and $\abs{\dev(q_t,p_t)}\le\beta_t$.
 
-\subsection{Covers and the certificate of infeasibility}\src{l1-perturbation.tex \S4}
-\begin{definition}\todo{translate: cover $(t,A)$ present in $W$.}\end{definition}
+(b) The box with half-widths $(\varepsilon^-,\varepsilon^+)$, $\varepsilon:=\dev(Q,P)$, contains $Q$, has $\varepsilon^-<1$ and is feasible (\lean{boxFeasible_of_weakSolvable}); apply (a) and use $\max(\varepsilon^-,\varepsilon^+)\le\abs\varepsilon$.
+\end{proof}
+The half-widths $(\varepsilon^-,\varepsilon^+)$ of a one-signed $Q$ vanish in one block in every year: $\alpha_t=0$ or $\beta_t=0$. The master problem uses this through a year sign $\sigma_t\in\set{0,1}$ with $\alpha_t\le\mathbf M^\alpha_t\sigma_t$, $\beta_t\le\mathbf M^\beta_t(1-\sigma_t)$, where $\mathbf M^\alpha,\mathbf M^\beta$ are the upper bounds of the half-widths (\cref{sec:algo}). On such half-widths $\max(\alpha,\beta)=\alpha+\beta$, so the box cost equals $\norm{c\circ(\alpha+\beta)}_p$, which is the objective of the master.
+
+\subsection{Covers and the certificate of infeasibility}\label{sec:covers}
+\begin{definition}[cover]\label{def:cover}
+Let $W=(W_r)_{r\in R}$ be a family of points. A pair $(t,A)$ with $t\in R$, $A\subset R$ is a \emph{cover present in $W$} if some convex combination $\sum_{s\in A}\mu_sW_s$ is strictly below $W_t$ in every coordinate.
+\end{definition}
 \begin{proposition}[cover]\label{prop:cover}
-Every weakly reachable set containing $t$ meets every $A$ whose convex hull has a point strictly below $w_t$; in particular dominance $w_s<w_t$ forces $s\in S$ whenever $t\in S$. \hfill\lean{meets_of_conv_lt}, \lean{le_of_lt}
+Let $(t,A)$ be a cover present in $W$ and $S\in\wSp(W)$ with $t\in S$. Then $S\cap A\ne\varnothing$. If $d\ge2$, $y\ge0$ is weakly solvable at $Q\ge0$ and $(t,A)$ is a cover present in $Q$, then $y_t\le\sum_{s\in A}y_s$; in particular $Q_s<Q_t$ implies $y_t\le y_s$. \hfill\lean{meets_of_conv_lt}, \lean{le_sum_of_conv_lt}, \lean{le_of_lt}
 \end{proposition}
-\begin{theorem}[certificate]\label{thm:certificate}
-Let the oracle answer NO on $W$ with a Farkas vector $\lambda$ and a finite set $\mathcal C$ of covers present in $W$ such that $\lambda(S)\ge0$ for every $S$ respecting $\mathcal C$ and $\ip\lambda{\cdot}<0$ on the bounds. Then the answer is NO on every box in which all covers of $\mathcal C$ are present. \hfill\lean{not_boxCone_of_certificate}
-\end{theorem}
-\paragraph{Minimal conflicts and cover cuts.}\todo{translate: deletion filter to a minimal $\mathcal C'$ (0/1 MILP), the cut ``some cover of $\mathcal C'$ is absent''; in the relative metric the corners are linear in $(\alpha,\beta)$ so the cut is linear and exact for a fixed convex combination $\mu$; in the log metric a piecewise-linear relaxation.}
+\begin{proof}
+Let $S\cap A=\varnothing$ and let $\xi\ge0$, $\xi\ne0$ be a weak witness of $t$. Then $\ip\xi{W_s-W_t}\ge0$ for $s\in A$, and weighing with $\mu_s$ gives $\ip\xi{\sum_s\mu_sW_s-W_t}\ge0$. The vector in the bracket is strictly negative, so the product is negative: a contradiction (\lean{meets_of_conv_lt}). For the second claim, \cref{thm:closure} puts $y$ in the cone of the indicators of weakly reachable sets; the functional $x\mapsto\sum_{s\in A}x_s-x_t$ is $\ge0$ on every generator (if $t\in S$, the set $S$ contains some $s\in A$ by the first claim, so the value is $\ge0$; if $t\notin S$, the value is $\ge0$ trivially), hence on the cone (\lean{le_sum_of_conv_lt}). Dominance is the case $A=\set{s}$ with $\mu=\delta_s$ (\lean{le_of_lt}).
+\end{proof}
+The converse is \cref{lem:cover} (\lean{isWeakReachable_iff_no_cover}, proved by Gordan's alternative): a set $S$ is weakly reachable if and only if no cover $(t,A)$ with $t\in S$, $A\cap S=\varnothing$ is present. So the cover inequalities $x_t\le\sum_{s\in A}x_s$ describe $\wSp(W)$ completely, and a cut by covers loses no solution.
 
-\subsection{Algorithm}\src{l1-perturbation.tex \S5}
-\paragraph{Master problem.}\todo{translate: variables $(\alpha,\beta)$, year signs, dominance rows, polyblock cuts, cover cuts, $\ell_p$ objective (linear for $p=1,\infty$, tangents otherwise).}
-\paragraph{Query with tolerance $\delta$.}\todo{translate: optima lie on ties; query the box $v+\delta\e$, $\delta=\varepsilon\UB/(4\norm c)$.}
-\paragraph{Projection along $\e$ and the polyblock cut.}\todo{translate; Tuy 2000 p.~479.}
-\begin{lemma}[packing]\label{lem:packing}\todo{translate; \lean{separated_bound}}\end{lemma}
-\begin{theorem}[correctness and termination]\label{thm:algo}
-At every iteration $\LB\le\OPT_p\le\UB$, where $\UB$ is the cost of a box that passed the oracle, and the final $Q$ is a rational point with an exact certificate of weak solvability. For every $\varepsilon>0$ the algorithm stops after finitely many iterations with $\UB-\LB\le\varepsilon\UB$.
+The exact box oracle solves the cone problem by column generation. The pricing problem looks for a set $S$ minimizing $\lambda(S)$ among the sets satisfying the cover inequalities, and covers are added lazily and checked exactly in rational arithmetic. On the answer NO the oracle returns a Farkas vector $\lambda\in\Q^{2T}$ and a finite set $\mathcal C$ of covers present in $W$ such that
+\begin{enumerate}[label=(F\arabic*)]
+\item $\lambda\le0$ on the lower corners and $\sum_t(-\lambda_{a_t})y_t>\sum_t\max(\lambda_{b_t},0)y_t$;
+\item $\lambda(S):=\sum_{r\in S}\lambda_r\ge0$ for every $S\subset[2T]$ that respects $\mathcal C$, i.e.\ contains a point of $A$ whenever it contains $t$, for each $(t,A)\in\mathcal C$.
+\end{enumerate}
+Condition (F2) is one 0/1 problem with integer weights. The bounds of the query depend on $y$ only, not on the box.
+\begin{theorem}[certificate]\label{thm:certificate}
+Let $(\lambda,\mathcal C)$ satisfy (F1), (F2), and let $W'$ be a family of $2T$ points in which all covers of $\mathcal C$ are present. Then no $w$ of the cone $\cone\set{\ind S\mid S\in\wSp(W')}$ satisfies the bounds of the box query. In particular, if $W'=W(\alpha',\beta')$, then $\BOX(\alpha',\beta')$ fails. \hfill\lean{not_boxCone_of_certificate}
 \end{theorem}
-\begin{proof}\todo{translate. Not formalized in Lean.}\end{proof}
-\begin{remark}\todo{translate: the step bound is exponential in $2dT$; with a YES/NO oracle only, exponentially many queries are unavoidable (sum over an abstract up-closed set); the up-closed feasible set equals the closure of its interior, so Tuy's essential-optimality machinery is not needed; Tuy's reduction cut is void here.}\end{remark}
+\begin{proof}
+By \cref{prop:cover} every $S\in\wSp(W')$ respects $\mathcal C$, so $\lambda(S)\ge0$ by (F2); the coordinates of $\ind S$ are $\ge0$ as well. By induction over the span, $\sum_r\lambda_rw_r\ge0$ and $w\ge0$ for every $w$ of the cone. Now let $w_{a_t}\ge y_t\ge w_{b_t}$. Since $\lambda\le0$ on the lower corners, $\sum_t\lambda_{a_t}w_{a_t}\le\sum_t\lambda_{a_t}y_t$; since $w\ge0$, $\sum_t\lambda_{b_t}w_{b_t}\le\sum_t\max(\lambda_{b_t},0)y_t$. So $\sum_r\lambda_rw_r\le-\sum_t(-\lambda_{a_t})y_t+\sum_t\max(\lambda_{b_t},0)y_t<0$ by (F1), a contradiction.
+\end{proof}
+
+\paragraph{Minimal conflicts and cover cuts.}\label{sec:conflicts}
+Covers are deleted from $\mathcal C$ in blocks while (F2) is preserved (a deletion filter, as the search for an irreducible infeasible subsystem in \citet{CodatoFischetti2006}; each test is a 0/1 problem). The result is an inclusion-minimal $\mathcal C'$. By \cref{thm:certificate} every feasible box destroys at least one cover of $\mathcal C'$, i.e.\ makes $(t,A)$ \emph{absent}: for every $\mu$ in the simplex on $A$ some coordinate $i$ has $\sum_{s\in A}\mu_sW^i_s\ge W^i_t$. The corners have the form $p^i(1-\alpha^i)$ and $p^i(1+\beta^i)$, linear in the half-widths $z=(\alpha,\beta)$. For a fixed $\mu$ (the combination from the certificate, for which the cover is strict at $W$) the inequality is therefore linear in $z$, and the cut
+\[
+\bigvee_{(t,A)\in\mathcal C'}\ \bigvee_{i\in[d]}\Bigl[\sum_{s\in A}\mu_sW^i_s(z)\ge W^i_t(z)\Bigr]
+\]
+is a linear disjunction, which is valid by \cref{thm:certificate} and exact for this $\mu$. Covers with $\abs A=1$ are dominances $Q_s<Q_t\Rightarrow y_t\le y_s$ (\cref{prop:cover}), whose condition is linear in $z$ as well.
+
+\subsection{Algorithm}\label{sec:algo}
+We present the polyblock method abstractly, exactly as it is modelled in Lean (\lean{NeoTiling.L1Perturbation.Polyblock}), prove its correctness and termination in this generality, instantiate it for the box query, and then say how the implemented algorithm refines it.
+
+\paragraph{The abstract problem.}
+Let $\iota$ be a finite index set, $\mathbf M=(M_j)_{j\in\iota}$ with $M_j>0$, $B:=\prod_{j\in\iota}[0,M_j]$ the product box, and $\mathbf M\in B$ its top corner. For a finite list $C$ of cut points put $\mathrm{Sat}(C):=\set{z\mid\forall\hat z\in C\ \exists j\colon\hat z_j<z_j}$ (strict cuts). A \emph{problem} consists of
+\begin{itemize}
+\item a set $H$, up-closed in $B$: $z\in H$, $z\le w\in B$ imply $w\in H$; and $\mathbf M\in H$;
+\item a cost $f\colon\R^\iota\to\R_+$, monotone, with $f(v+a\e)\le f(v)+aL$ for $a\ge0$ and a constant $L>0$;
+\item a membership oracle $O$ with $O(z)=\mathrm{YES}$ iff $z\in H$, for $z\in B$;
+\item a class of \emph{one-signed} points that represents $H\cap B$: for every $z\in H\cap B$ there is a one-signed $z'\in H\cap B$ with $f(z')\le f(z)$;
+\item a master oracle. Given $C$ such that $\mathrm{Sat}(C)\cap B$ contains a one-signed point, and a number $\UB$, it returns $v\in\mathrm{Sat}(C)\cap B$ and $\mathrm{lb}$ with $\mathrm{lb}\le f(z)$ for all \emph{one-signed} $z\in\mathrm{Sat}(C)\cap B$, and, if $\mathrm{lb}<\UB$, with the relative gap $f(v)\le\mathrm{lb}+\tfrac14(\UB-\mathrm{lb})$.
+\end{itemize}
+\hfill\lean{Problem}, \lean{Problem.reduce}, \lean{Problem.master_lb}, \lean{Sat}, \lean{box}
+
+The oracles are hypotheses (fields of the structure), not programs. The master spec is required only on a cut region containing a one-signed point, its lower bound only over the one-signed points of that region, and the gap only when $\mathrm{lb}<\UB$, so an exact master over the one-signed points satisfies it; the returned point $v$ need not be one-signed. The cut points are strict, $\hat z_j<z_j$; this keeps the points of $\mathrm{Sat}(C)$ separated from a cut even when the query point has been clipped to $\mathbf M$. Put $\OPT:=\inf f(H\cap B)$ (\lean{Problem.opt}).
+
+\paragraph{The method.}
+A \emph{state} is $s=(C,\UB,\LB,\mathrm{best})$ (\lean{State}); it is \emph{stopped} for $\varepsilon>0$ if $\UB-\LB\le\varepsilon\UB$ (\lean{Stopped}).
+\begin{itemize}
+\item \emph{Step~0} (\lean{Problem.init}): query $O(0)$. If YES, the state is $(\varnothing,f(0),f(0),0)$. If NO, it is $([0],f(\mathbf M),0,\mathbf M)$: the point $0$ is the first cut.
+\item \emph{Step} (\lean{Problem.step}): if $s$ is stopped, $s$ is unchanged. Otherwise let $(v,\mathrm{lb})$ be the master's answer for $(C,\UB)$, $\tau:=(\UB-\LB)/(2L)$, and $w:=\min(v+\tau\e,\mathbf M)$ coordinatewise, $w_j=\min(v_j+\tau,M_j)$ (\lean{Problem.tau}, \lean{Problem.query}). Query $O(w)$. YES: $\UB\leftarrow\min(\UB,f(w))$, $\mathrm{best}\leftarrow w$ if $f(w)<\UB$, $\LB\leftarrow\max(\LB,\mathrm{lb})$. NO: add the cut point $w$ to $C$ and $\LB\leftarrow\max(\LB,\mathrm{lb})$.
+\item \emph{Run} (\lean{Problem.run}): the state $\mathrm{run}_n$ after $n$ steps from step~0.
+\end{itemize}
+The query point lies in $B$, because $v\in B$ and $\tau\ge0$.
+
+\paragraph{The box instance.}
+Here $\iota=([T]\times[d])\sqcup([T]\times[d])$ and $z=(\alpha,\beta)$ (\lean{alphaOf}, \lean{betaOf}); the top corner splits accordingly, $\mathbf M=(\mathbf M^\alpha,\mathbf M^\beta)$. $H\cap B$ is the set of $z\in B$ with $\BOX(\alpha,\beta)$, and $O$ is the exact box oracle. For $\mathbf M^\alpha\le1$ this set is up-closed in $B$ by \cref{thm:reduction} (\lean{boxFeasible_upClosed}). The cost is the box cost $f(z)=\norm{c\circ\max(\alpha,\beta)}_p$ or a monotone function of it. Since $\max(\alpha+a\e,\beta+a\e)=\max(\alpha,\beta)+a\e$, Minkowski's inequality gives $f(z+a\e)\le f(z)+a\norm c_p$, so $L=\norm c_p$, and the step length is $\tau=(\UB-\LB)/(2\norm c_p)$. A point $z$ is one-signed if every year moves in one direction: $\alpha_t=0$ or $\beta_t=0$ for each $t$ (\lean{BoxOneSigned}). The representative property holds for $\mathbf M^\alpha<1$ (\lean{box_reduce}): for a feasible $z\in B$, \cref{thm:onesigned}(a) gives a one-signed $Q$ in the box, so $-\alpha\le\varepsilon\le\beta$ and $\abs\varepsilon\le\max(\alpha,\beta)$ for $\varepsilon:=\dev(Q,P)$; then $z':=(\varepsilon^-,\varepsilon^+)\le(\alpha,\beta)$ is one-signed, feasible by \cref{thm:reduction} (\lean{boxFeasible_of_weakSolvable}), lies in $B$, and $\max(\varepsilon^-,\varepsilon^+)\le\abs\varepsilon\le\max(\alpha,\beta)$, so $f(z')\le f(z)$.
+
+\paragraph{The master problem and the model.}
+The implemented master is a MILP over $z=(\alpha,\beta)\in B$ with year signs $\sigma_t$ (sign rows $\alpha_t\le\mathbf M^\alpha_t\sigma_t$, $\beta_t\le\mathbf M^\beta_t(1-\sigma_t)$), dominance rows, the polyblock cuts and the cover cuts, and objective $\norm{c\circ(\alpha+\beta)}_p$. Because of the sign rows, its dual bound $\mathrm{lb}$ bounds the cost only over \emph{one-signed} points; the box cost $\norm{c\circ\max(\alpha,\beta)}_p$ of a point with $\alpha^i_t,\beta^i_t>0$ may be smaller, and the MILP says nothing about it. The abstract model requires exactly this: $\mathrm{lb}\le f(z)$ on the one-signed points of the cut region (\lean{Problem.master_lb}), together with the representative property (\lean{Problem.reduce}, discharged by \lean{box_reduce}). In the proof of correctness the representative of a point of $H\cap B$ satisfies the cuts and is one-signed, so $\mathrm{lb}$ bounds its cost and hence $\OPT$ (\lean{Problem.master_lb_le_opt}). This closes the gap between the model and the implementation. The sign rows force one sign per year, which is the class \lean{BoxOneSigned}, and the representative of \lean{box_reduce} lies in it, because it is built from the half-widths $(\varepsilon^-,\varepsilon^+)$ of a $Q$ that is one-signed by years (\cref{thm:onesigned}(a)). The dominance rows and the cover cuts hold at every point of $H$ (\cref{prop:cover,thm:certificate}), so taking the one-signed points to be those of $H$ only (the representative lies in $H$) the bound of the MILP is the bound of the model. The returned point $v$ is one-signed, so $f(v)$ is the master objective at $v$; the relative gap holds for an exact optimum.
+
+\begin{theorem}[correctness and termination]\label{thm:algo}
+Let a problem be given.
+\begin{enumerate}[label=(\alph*)]
+\item At every iteration $\LB\le\OPT\le\UB$, and $\UB=f(\mathrm{best})$ with $\mathrm{best}\in H\cap B$. \hfill\lean{Problem.run_correct}
+
+For the box instance, let $d\ge2$, $1\le p<\infty$, $c\ge0$, $\mathbf M^\alpha<1$, and $f(z)=g(\sum_{t,i}(c^i_t\max(\alpha^i_t,\beta^i_t))^p)$ with $g$ monotone. Then at every iteration there is a positive $Q$ with $y$ weakly solvable at $Q$ and $g(\sum_{t,i}(c^i_t\abs{\dev(q^i_t,p^i_t)})^p)\le\UB$, and $\LB\le g(\sum_{t,i}(c^i_t\abs{\dev(q^i_t,p^i_t)})^p)$ for every positive $Q$ at which $y$ is weakly solvable and whose half-widths lie in the box, $\varepsilon^-\le\mathbf M^\alpha$ and $\varepsilon^+\le\mathbf M^\beta$ for $\varepsilon:=\dev(Q,P)$. \hfill\lean{boxRun_correct}
+\item Let $\OPT>0$ and $\varepsilon>0$. Then the method reaches a stopped state, $\UB-\LB\le\varepsilon\UB$, after at most
+\[
+\Bigl\lceil\log_{4/3}\frac{f(\mathbf M)}{\varepsilon\OPT}\Bigr\rceil+1+\Bigl(\Bigl\lfloor\frac{2LM_{\max}}{\varepsilon\OPT}\Bigr\rfloor+1\Bigr)^{\abs\iota}
+\]
+iterations, where $M_{\max}:=\max_jM_j$ and $\abs\iota=2dT$ for the box instance. \hfill\lean{Problem.run_stops}
+\end{enumerate}
+\end{theorem}
+The bound $\mathbf M^\alpha<1$ is a limit of the model: no price is moved down by $100\%$ or more, and the lower bound covers only the $Q$ whose downward moves stay below $\mathbf M^\alpha$; this is irrelevant on data where the corrections are below $25\%$. The bounds $\mathbf M^\beta$ of the upward moves are arbitrary. Since $c^i_t\abs{\varepsilon^i_t}\le C_p(Q)$, the choice $(\mathbf M^\beta)^i_t\ge\UB_0/c^i_t$ for a known feasible cost $\UB_0$ (and likewise $(\mathbf M^\alpha)^i_t\ge\UB_0/c^i_t$ where this is below $1$) puts the half-widths of every $Q$ of cost at most $\UB_0$ in the box, hence $\LB\le\OPT_p$. This is the choice $z^{\max}=\UB/c$ of the implementation (not formalized).
+
+\begin{proof}[Proof of (a)]
+Call a state \emph{good} if $\LB\le\OPT$, $\mathrm{best}\in H\cap B$, $f(\mathrm{best})=\UB$, and every cut point lies in $B\setminus H$ (\lean{Problem.Inv}). Every $z\in H$ satisfies every cut $\hat z$ of a good state, for otherwise $z\le\hat z\in B$ and $\hat z\in H$ by up-closedness (\lean{Problem.sat_of_cuts}). The one-signed representative of $\mathbf M$ lies in $H\cap B$, hence in $\mathrm{Sat}(C)\cap B$, so the master is in its domain (\lean{Problem.exists_reg}). For $z\in H\cap B$ its one-signed representative $z'\in H\cap B$ satisfies the cuts, so $\mathrm{lb}\le f(z')\le f(z)$; hence $\mathrm{lb}\le\OPT$ (\lean{Problem.master_lb_le_opt}, \lean{Problem.le_opt}). Step~0 gives a good state (\lean{Problem.inv_init}): for YES, $f(z)\ge f(0)$ for all $z\ge0$; for NO, $\mathbf M\in H$ and $0\notin H$. A step preserves goodness (\lean{Problem.inv_step}): $\LB\leftarrow\max(\LB,\mathrm{lb})\le\OPT$; on YES the point $w\in H\cap B$ replaces $\mathrm{best}$ exactly when it lowers $\UB$; on NO, $w\in B\setminus H$ by the oracle spec. By induction every state is good (\lean{Problem.inv_run}), and $\OPT\le f(\mathrm{best})=\UB$ (\lean{Problem.opt_le}), which is the first claim.
+
+For the box instance (\lean{boxRun_correct}), $\mathrm{best}\in B$ has $\alpha\le\mathbf M^\alpha<1$ and passes $\BOX$, so the direction ($\Leftarrow$) of \cref{thm:reduction} gives $Q$ with cost at most $f(\mathrm{best})=\UB$. Conversely, for $Q$ at which $y$ is weakly solvable with half-widths in the box, $z:=(\varepsilon^-,\varepsilon^+)\in B$ is feasible (\lean{boxFeasible_of_weakSolvable}) and $f(z)$ is at most the cost of $Q$, since $\max(\varepsilon^-,\varepsilon^+)\le\abs\varepsilon$; hence $\LB\le\OPT\le f(z)$.
+\end{proof}
+The proof of (b) uses three lemmas.
+\begin{lemma}[YES step]\label{lem:yes}
+If the state is good and not stopped and $O(w)=\mathrm{YES}$, then the new gap satisfies $\UB'-\LB'\le\frac34(\UB-\LB)$. The gap never grows. \hfill\lean{Problem.gap_step_yes}, \lean{Problem.gap_step_le}
+\end{lemma}
+\begin{proof}
+By monotonicity and the shift property, $f(w)\le f(v+\tau\e)\le f(v)+\tau L=f(v)+\frac12(\UB-\LB)$. If $\mathrm{lb}<\UB$, the master gap gives $f(v)\le\mathrm{lb}+\frac14(\UB-\mathrm{lb})\le\LB'+\frac14(\UB-\LB')$ with $\LB':=\max(\LB,\mathrm{lb})\ge\LB$, hence $\UB'-\LB'\le f(w)-\LB'\le\frac14(\UB-\LB)+\frac12(\UB-\LB)$. If $\mathrm{lb}\ge\UB$, then $\LB'\ge\UB\ge\UB'$ and the gap is $\le0$.
+\end{proof}
+\begin{lemma}[separation]\label{lem:lp-separation}
+Let $\tau_0:=\varepsilon\OPT/(2L)$. While not stopped, $\tau\ge\tau_0$ (\lean{Problem.tau_ge}). If step $m$ is a NO and step $n>m$ is not stopped, then some coordinate $j$ has $v^{(m)}_j+\tau_0\le v^{(n)}_j$, where $v^{(k)}$ is the master point of step $k$. \hfill\lean{Problem.master_separated}
+\end{lemma}
+\begin{proof}
+Not stopped means $\UB-\LB>\varepsilon\UB\ge\varepsilon\OPT$, so $\tau>\tau_0$. Cuts are never removed (\lean{Problem.cuts_run_subset}), so the master point of step $n$ satisfies the cut $w^{(m)}$: some $j$ has $w^{(m)}_j<v^{(n)}_j$. If $w^{(m)}_j=M_j$ (clipped), then $v^{(n)}_j>M_j$ would contradict $v^{(n)}\in B$; so $w^{(m)}_j=v^{(m)}_j+\tau$ and $v^{(n)}_j>v^{(m)}_j+\tau\ge v^{(m)}_j+\tau_0$. This is where the strict cuts and the box constraint on the master are used.
+\end{proof}
+\begin{lemma}[packing]\label{lem:packing}
+If $z^1,\dots,z^K\in[0,M]^n$ and for $k<l$ there is $j$ with $z^l_j\ge z^k_j+\tau$, $\tau>0$, then $K\le(\lfloor M/\tau\rfloor+1)^n$. \hfill\lean{separated_bound}
+\end{lemma}
+\begin{proof}
+The cells $\lfloor z^k/\tau\rfloor\in\set{0,\dots,\lfloor M/\tau\rfloor}^n$ are pairwise different: if $z^l_j\ge z^k_j+\tau$, then $\lfloor z^l_j/\tau\rfloor\ge\lfloor z^k_j/\tau\rfloor+1$.
+\end{proof}
+\begin{proof}[Proof of (b)]
+Suppose $\mathrm{run}_n$ is not stopped for all $n\le N$, where $N$ is the bound. If $O(0)=\mathrm{YES}$, step~0 gives gap $0$ and the state is stopped, so $O(0)=\mathrm{NO}$ and $\UB_0-\LB_0=f(\mathbf M)$. The gap shrinks by $3/4$ at every YES step (\cref{lem:yes}) and never grows, so after $Y$ YES steps $\varepsilon\OPT\le\varepsilon\UB<\UB-\LB\le(3/4)^Yf(\mathbf M)$, i.e.\ $Y<\log_{4/3}(f(\mathbf M)/(\varepsilon\OPT))$ (\lean{Problem.gap_run_le}, \lean{Problem.card_yes_lt}). The master points of the NO steps lie in $B\subset[0,M_{\max}]^\iota$ and are $\tau_0$-separated (\cref{lem:lp-separation}), so by \cref{lem:packing} there are at most $(\lfloor M_{\max}/\tau_0\rfloor+1)^{\abs\iota}$ of them (\lean{Problem.card_no_le}). The sum of the two counts is below $N$, a contradiction.
+\end{proof}
+
+\paragraph{The case $\OPT=0$.}
+Step~0 is necessary: with a relative stopping rule and $\LB=0$ the test $\UB-\LB\le\varepsilon\UB$ never holds if $\OPT=0$ is not attained at once, so (b) needs $\OPT>0$. If $0$ is feasible, $0\in H$ and step~0 stops with $\UB=\LB=f(0)$ (\lean{init_stopped_of_boxFeasible_zero}). If $0\notin H$, then $\OPT>0$ for the box instance, by closedness.
+\begin{proposition}[closedness]\label{prop:closed}
+The set of half-widths $z=(\alpha,\beta)$ passing $\BOX$ is closed. \hfill\lean{isClosed_setOf_boxFeasible}, \lean{isClosed_setOf_isWeakReachable}
+\end{proposition}
+\begin{proof}
+For fixed $S$, the families $W$ at which $S$ is weakly reachable form a closed set (\lean{isClosed_setOf_isWeakReachable}): the witness of each $t\in S$ can be scaled into the compact standard simplex, the pairs $(\xi,W)$ with $\ip\xi{W_s-W_t}\ge0$ for $s\notin S$ form a closed set, and the projection along a compact factor is closed. The bounds $y$ do not depend on $z$; only the family of weakly reachable spectra does, and the cone condition is monotone in the family. So $z$ passes iff some finite family $\mathcal A$ of sets, all weakly reachable at the corners of $z$, carries a good cone vector (\lean{boxFeasible_iff_exists_finset}). Hence the set is a finite union, over the families $\mathcal A$ that carry a good cone vector, of the finite intersections of the preimages, under the continuous map $z\mapsto W(\alpha,\beta)$ (\lean{corners}, \lean{continuous_corners}), of these closed sets.
+\end{proof}
+\begin{corollary}\label{cor:optpos}
+Let $0$ fail $\BOX$ and let $f$ be bounded away from $0$ on $\set{z\in B\mid\max_jz_j\ge r}$ for every $r>0$. Then $\OPT>0$, and the bound of \cref{thm:algo}(b) holds for every $\varepsilon>0$. \hfill\lean{opt_pos_of_not_boxFeasible_zero}, \lean{run_stops_of_not_boxFeasible_zero}, \lean{exists_coord_ge_of_not_boxFeasible_zero}
+\end{corollary}
+\begin{proof}
+The complement of the closed set of \cref{prop:closed} is open and contains $0$, so some ball $[0,r)^\iota$ around $0$ is infeasible; every feasible point has a coordinate $\ge r$ and costs at least $\eta>0$. Hence $\OPT\ge\eta$ and \cref{thm:algo}(b) applies.
+\end{proof}
+The cost hypothesis holds for the box cost when $c>0$: a coordinate $\ge r$ gives $f(z)\ge r\min_{t,i}c^i_t$. In Lean it is a hypothesis on $f$ (\lean{run_stops_of_not_boxFeasible_zero}).
+
+\paragraph{The implemented algorithm as a refinement.}
+The program differs from the model in the following elements. None of them is formalized, and none of them affects correctness: each adds only constraints valid on $H$ or extra queries. The master oracle hypothesis for the MILP depends on the solver (below).
+\begin{itemize}
+\item \emph{Master problem.} Variables $z=(\alpha,\beta)\in B$ and year signs $\sigma_t$. Constraints: sign rows (\cref{thm:onesigned}); dominance rows, added lazily for violated pairs (covers with $\abs A=1$, \cref{prop:cover}); polyblock cuts; cover cuts. The objective $\norm{c\circ(\alpha+\beta)}_p$ is linear for $p=1$, and for $1<p<\infty$ through tangents to $(c^i_tz^i_t/\UB)^p$, a lower bound. $\LB$ is the dual bound of the MILP. As explained above, this bound is the lower bound over the one-signed points of $H$ in the cut region that the model requires, and the proof of (b) uses only that the master point lies in $B$ and satisfies the strict polyblock cuts. The formal master hypothesis (exact optimum, or the gap $1/4$) is an assumption on the solver, as for any MILP with tolerances; $\UB$ never depends on it.
+\item \emph{Query with tolerance $\delta$.} Optima lie on degeneracies (coinciding coordinates), and a master point computed in floating point meets such a coincidence only approximately; the box $v+\delta\e$ with $\delta$ proportional to $\varepsilon\UB/L$ covers it strictly. A YES updates $\UB$ by the cost of the box; a NO is a valid cut (\cref{lem:delete}, \lean{BoxFeasible.mono}). This is an extra query, and the tolerance affects speed only.
+\item \emph{Projection by bisection} \citep[p.~479]{Tuy2000}. The bisection over $\lambda\ge\tau$ for the boxes $v+\lambda\e$ (with a bounded number of queries) starts with $\lambda=\tau$, the query of the model. A YES at $\lambda_{\mathrm{hi}}$ updates $\UB$. A NO at $\lambda_{\mathrm{lo}}\ge\tau$ gives a cut point at least as large as the model's $w$ in every coordinate, hence a cut that implies the model's (\cref{lem:lp-separation} then holds with the same $\tau_0$).
+\item \emph{Polyblock cut over a minimal set of years.} If the query on a set $Y$ of years answers NO at $\hat z$, the cut is $\bigvee_{j\in Y}z_j>\hat z_j$. It is valid by \cref{lem:delete} and \lean{BoxFeasible.mono}: otherwise the box $\hat z$ would be feasible on $Y$. It is the strict polyblock cut at the point equal to $\hat z$ on $Y$ and to $\mathbf M$ elsewhere, which lies in $B\setminus H$ and is at least the model's $w$ coordinatewise; so it is a cut of the model, only stronger.
+\item \emph{Cover cuts from certificates} (\cref{sec:conflicts}). The disjunction over a minimal conflict $\mathcal C'$ is valid on the feasible set by \cref{thm:certificate}, and exact for the fixed $\mu$; by \cref{lem:cover} it removes no feasible point. These cuts shrink the cut region only by infeasible points, so (a) is unchanged, and (b) is unchanged because the separation of \cref{lem:lp-separation} comes from the polyblock cuts that remain in $C$.
+\item \emph{Final rational $Q$.} From the best box a rational $Q$ is built by the corner construction along price-linear segments (as in \cref{prop:rational-Q}), and weak solvability of $y$ at $Q$ is verified independently in rational arithmetic. The answer is $Q$, $\UB=C_p(Q)$ and $\LB$.
+\item \emph{Rounding.} All decisions of feasibility are taken on rational boxes. Corners are rounded in the direction that keeps the query box containing the master box, and the half-widths of a cut are those of the box actually queried, rounded down; a zero half-width gives a corner equal to the price. Hence $\UB$ is exact, while $\LB$ rests on the correctness of the MILP solution up to solver tolerances, as does the exact oracle.
+\end{itemize}
+The implementation computes $\tau=(\UB-\LB)/(2\norm c_p)$ and $\delta=\varepsilon\UB/(4\norm c_p)$, i.e.\ with the constant $L=\norm c_p$ of the box cost.
+
+\begin{remark}[bound and stability]
+The step bound in (b) is exponential in $2dT$: it is a guarantee of termination, not of speed. With a YES/NO oracle only, exponentially many queries cannot be avoided in general (minimizing a sum over an abstract up-closed set), and polyblock methods are reliable only in small dimension \citep{TuyAlKhayyalThach2005}. The cover cuts use the certificate of the oracle and describe the curved boundary of the feasible set, which the staircase polyblock cuts approximate slowly. The set of feasible half-widths is closed (\cref{prop:closed}) and closed upward, hence equals the closure of its interior; the machinery of essentially optimal solutions \citep{Tuy2005} is not needed, since $\LB$ bounds the optimum itself, and a reduction cut of \citet{Tuy2000} is void here. The tolerance $\delta$ affects speed only.
+\end{remark}
+\begin{remark}[open questions]
+The complexity of the problem for $d=2$, where the oracle is polynomial, and whether polynomially many oracle calls with certificates suffice, are open.
+\end{remark}
