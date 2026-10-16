@@ -31,7 +31,7 @@ Every weakly reachable set containing $t$ meets every $A$ whose convex hull has 
 \begin{theorem}[certificate]\label{thm:certificate}
 Let the oracle answer NO on $W$ with a Farkas vector $\lambda$ and a finite set $\mathcal C$ of covers present in $W$ such that $\lambda(S)\ge0$ for every $S$ respecting $\mathcal C$ and $\ip\lambda{\cdot}<0$ on the bounds. Then the answer is NO on every box in which all covers of $\mathcal C$ are present. \hfill\lean{not_boxCone_of_certificate}
 \end{theorem}
-\paragraph{Minimal conflicts and cover cuts.}\todo{translate: deletion filter to a minimal $\mathcal C'$ (0/1 MILP), the cut \enquote{some cover of $\mathcal C'$ is absent}; in the relative metric the corners are linear in $(\alpha,\beta)$ so the cut is linear and exact for a fixed convex combination $\mu$; in the log metric a piecewise-linear relaxation.}
+\paragraph{Minimal conflicts and cover cuts.}\todo{translate: deletion filter to a minimal $\mathcal C'$ (0/1 MILP), the cut ``some cover of $\mathcal C'$ is absent''; in the relative metric the corners are linear in $(\alpha,\beta)$ so the cut is linear and exact for a fixed convex combination $\mu$; in the log metric a piecewise-linear relaxation.}
 
 \subsection{Algorithm}\src{l1-perturbation.tex \S5}
 \paragraph{Master problem.}\todo{translate: variables $(\alpha,\beta)$, year signs, dominance rows, polyblock cuts, cover cuts, $\ell_p$ objective (linear for $p=1,\infty$, tangents otherwise).}

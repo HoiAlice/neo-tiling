@@ -1,21 +1,32 @@
-%% Mathematics of Operations Research, INFORMS template.
-%% Needs informs4.cls and informs2014.bst from https://pubsonline.informs.org/authorportal
-%% (drop them into this folder). Build: latexmk -pdf main
-\documentclass[mor,blindrev]{informs4}
-\usepackage{amsmath,amssymb,amsthm,mathtools}
-\usepackage{graphicx}
-\graphicspath{{figures/}}
+%% Mathematics of Operations Research. INFORMS class informs4 (option moor); informs4.cls,
+%% informs2014.bst and informs_Logo.* live in this folder, the template's samples are in informs/.
+%% The class already loads amsmath, amssymb, url, graphicx, color and the `theorem' package.
+\documentclass[moor,blindrev]{informs4}
+\usepackage{mathtools}
 \usepackage{booktabs}
-\usepackage{xcolor}
 \usepackage{enumitem}
-\usepackage{url}
-\usepackage{csquotes}
+\usepackage{natbib}          % informs2014.bst is a natbib (author-year) style
+\providecommand{\newblock}{} % informs4 does not define it; natbib's thebibliography renews it
+\providecommand{\BIBand}{and} % emitted by informs2014.bst, not defined by the class
 \usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
 \usepackage{cleveref}
+\graphicspath{{figures/}}
 \input{macros}
 
 \TheoremsNumberedThrough
 \EquationsNumberedThrough
+% amsthm-style proof environment on top of the class's \proof{<label>} ... \endproof.
+\let\informsproof\proof
+\let\informsendproof\endproof
+\renewenvironment{proof}[1][Proof.]{\informsproof{#1}}{\Halmos\informsendproof}
+% cleveref names (the `theorem' package does not register them)
+\crefname{theorem}{Theorem}{Theorems}
+\crefname{lemma}{Lemma}{Lemmas}
+\crefname{proposition}{Proposition}{Propositions}
+\crefname{corollary}{Corollary}{Corollaries}
+\crefname{definition}{Definition}{Definitions}
+\crefname{remark}{Remark}{Remarks}
+\crefname{section}{Section}{Sections}
 
 \begin{document}
 
@@ -26,14 +37,11 @@
 \AUTHOR{Oleg Lavrin}
 \AFF{\todo{affiliation}, \EMAIL{\todo{email}}}
 }
-
-\ABSTRACT{%
-\todo{Abstract. One paragraph: the solvability criterion through reachable spectra and its closure (weak solvability); the complexity dichotomy (polynomial at $d=2$ by a flow LP, NP-complete at $d=3$); reduction of every least-price-perturbation problem to one query of a box oracle on the $2T$ corners, rational breakpoints and the exact least radius; an exact algorithm for the least weighted $\ell_p$ perturbation by monotonic optimization with combinatorial Benders cuts from oracle certificates; computations on BEA KLEMS data showing that aggregation destroys the information the model uses. All structural results are verified in Lean 4 / Mathlib.}
-}
+\ABSTRACT{\input{abstract}}
 \KEYWORDS{production theory; revealed preference; rationalizability; linear programming; NP-completeness; monotonic optimization; combinatorial Benders cuts; formal verification}
 \MSCCLASS{90C27, 90C05, 91B38, 68Q17}
 \ORMSCLASS{\todo{ORMS subject classification}}
-
+\HISTORY{Draft of \today.}
 \maketitle
 
 \input{01-solvability}
@@ -47,5 +55,8 @@
 
 \bibliographystyle{informs2014}
 \bibliography{refs}
+
+%% E-companion (Lean correspondence table), when written:
+%% \ECSwitch \ECHead{Formal verification: statement--Lean correspondence} ...
 
 \end{document}

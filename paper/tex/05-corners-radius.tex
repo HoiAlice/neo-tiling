@@ -11,7 +11,7 @@ Prices are $(d+1)$-tuples of positive numbers known up to a common factor; norma
 d_{\kappa_t}(q,p):=\min_{s\in\R}\max\Bigl(\kappa^0_t\abs s,\ \max_{i\in[d]}\kappa^i_t\abs{u_i+s}\Bigr),\qquad u:=\ln q-\ln p .
 \]
 \begin{lemma}[shape of the ball]\label{lem:shape}
-The ball $\set{q\mid d_{\kappa_t}(q,p_t)\le\rho}$ is, in log coordinates, the zonotope \enquote{box $\prod_i[-\rho/\kappa^i_t,\rho/\kappa^i_t]$ plus the diagonal segment of half-length $\rho/\kappa^0_t$}. Its bounding box has half-widths $a^i_t=\rho v^i_t$, $v^i_t:=1/\kappa^i_t+1/\kappa^0_t$; the corners $\pm a_t$ and the path $\theta\mapsto\theta v_t$ lie in the ball. \hfill\lean{wdist_le_iff}, \lean{mem_wbox_of_wdist}, \lean{wdist_wpath_le}
+The ball $\set{q\mid d_{\kappa_t}(q,p_t)\le\rho}$ is, in log coordinates, the zonotope ``box $\prod_i[-\rho/\kappa^i_t,\rho/\kappa^i_t]$ plus the diagonal segment of half-length $\rho/\kappa^0_t$''. Its bounding box has half-widths $a^i_t=\rho v^i_t$, $v^i_t:=1/\kappa^i_t+1/\kappa^0_t$; the corners $\pm a_t$ and the path $\theta\mapsto\theta v_t$ lie in the ball. \hfill\lean{wdist_le_iff}, \lean{mem_wbox_of_wdist}, \lean{wdist_wpath_le}
 \end{lemma}
 \begin{remark}[the normalizing price]\todo{translate: an error in price 0 moves the normalized point along the diagonal, an equal error in all other prices does the same; the metric picks the cheaper explanation.}\end{remark}
 
@@ -33,7 +33,7 @@ Let $d\ge2$, $y\in\Rp[T]$, $\rho\ge0$, $a_t:=p_t\circ e^{-\rho v_t}$, $b_t:=p_t\
 \begin{proof}\todo{translate}\end{proof}
 \begin{lemma}[cube]\label{lem:cube-corners}\todo{translate}\end{lemma}
 
-\paragraph{The box oracle.} Condition (C) is one query to the \emph{box oracle}: given points $W$ indexed by $R$ and bounds $\mathrm{lo},\mathrm{hi}\in[-\infty,\infty]^R$, decide whether some $w\in\cone\set{\ind S\mid S\in\wSp(W)}$ satisfies $\mathrm{lo}\le w\le\mathrm{hi}$. With $\mathrm{lo}=\mathrm{hi}=y$ and $W=P$ this is weak solvability (\cref{thm:closure}); with $W=(a,b)$, $\mathrm{lo}=(y,0)$, $\mathrm{hi}=(\infty,y)$ it is (C). Thus \enquote{is there $Q$ in the box $[a,b]$ at which $y$ is weakly solvable} is \emph{one} call of the same algorithm on $2T$ points with inequalities instead of equalities.
+\paragraph{The box oracle.} Condition (C) is one query to the \emph{box oracle}: given points $W$ indexed by $R$ and bounds $\mathrm{lo},\mathrm{hi}\in[-\infty,\infty]^R$, decide whether some $w\in\cone\set{\ind S\mid S\in\wSp(W)}$ satisfies $\mathrm{lo}\le w\le\mathrm{hi}$. With $\mathrm{lo}=\mathrm{hi}=y$ and $W=P$ this is weak solvability (\cref{thm:closure}); with $W=(a,b)$, $\mathrm{lo}=(y,0)$, $\mathrm{hi}=(\infty,y)$ it is (C). Thus ``is there $Q$ in the box $[a,b]$ at which $y$ is weakly solvable'' is \emph{one} call of the same algorithm on $2T$ points with inequalities instead of equalities.
 
 \subsection{Breakpoints}\src{price-perturbation.tex \S4}
 \begin{lemma}[weak reachability as a sign condition]\label{lem:signs}\todo{translate; \lean{witness_iff_homogeneous}}\end{lemma}
@@ -64,7 +64,7 @@ For $d=2$ the oracle is a linear program of polynomial size (\cref{thm:lp}), so 
 \end{theorem}
 \begin{proof}\todo{translate; re-check the bound $\bar\rho$ via the separation $\delta=1/\Lambda$ of the exponents.}\end{proof}
 
-\subsection{The exact oracle for every $d$}\src{onesided.tex \S"Точный оракул"; RESULTS.md "оракулы и их связь"}
+\subsection{The exact oracle for every $d$}\src{onesided.tex, section "exact oracle"; RESULTS.md, "oracles"}
 \begin{lemma}[cover inequalities]\label{lem:cover}
 $S\in\wSp(W)$ if and only if no convex combination of at most $d+1$ points $w_s$, $s\notin S$, is strictly below some $w_t$, $t\in S$. Each such pair $(t,A)$ is the 0/1 inequality $x_t\le\sum_{s\in A}x_s$. \hfill\lean{meets_of_conv_lt}, \lean{le_sum_of_conv_lt}
 \end{lemma}

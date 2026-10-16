@@ -5,8 +5,9 @@ Created 2026-10-16 from `latex/notes.tex`, `poly-hardness/`, `np-hardness/`, `pr
 `l1-perturbation/`; those folders are the Russian sources and stay until the paper is complete.
 
 ```
-tex/     main.tex (INFORMS informs4 class, option mor), macros.tex, chapters 01-08 as \input, refs.bib,
-         figures/. Needs informs4.cls + informs2014.bst from the INFORMS author portal in this folder.
+tex/     main.tex (INFORMS class informs4, option moor),
+         macros.tex, abstract.tex, chapters 01-08 as \input, refs.bib, informs/ (template samples),
+         figures/. informs4.cls, informs2014.bst, informs_Logo.* are the INFORMS files (keep in tex/).
          Chapters 01-02 are fully translated; 03-07 have the statements translated and the proofs marked
          \todo{translate} with a \src{...} margin pointer to the Russian source.
 lean/    independent Lake project, library NeoTiling (Core, Planar, Hardness, Perturbation, Lp).

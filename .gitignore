@@ -38,3 +38,5 @@ paper/tex/*.blg
 paper/tex/*.synctex.gz
 paper/code/*.egg-info/
 paper/code/**/__pycache__/
+paper/tex/main.pdf
+paper/tex/informs/
