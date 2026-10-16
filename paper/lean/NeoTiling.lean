@@ -4,10 +4,13 @@ import NeoTiling.Core.Reachable
 import NeoTiling.Core.Solvability
 import NeoTiling.Core.Spectrum
 import NeoTiling.Hardness.Coloring
+import NeoTiling.Hardness.Cost
 import NeoTiling.Hardness.Disks
 import NeoTiling.Hardness.Gadget
+import NeoTiling.Hardness.Instance
 import NeoTiling.Hardness.Layout
 import NeoTiling.Hardness.Main
+import NeoTiling.Hardness.Size
 import NeoTiling.Lp.Reduction
 import NeoTiling.Perturbation.Box
 import NeoTiling.Perturbation.Hex

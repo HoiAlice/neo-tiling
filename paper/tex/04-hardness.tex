@@ -12,8 +12,12 @@ From a loopless graph $G$ with $n$ vertices and $m$ edges one constructs explici
 \end{theorem}
 
 \begin{corollary}
-Deciding neoclassical solvability and deciding weak solvability at fixed rational prices in $\R^3$ are NP-complete under Karp reductions.
+Deciding neoclassical solvability and deciding weak solvability at fixed rational prices in $\R^3$ are NP-complete under Karp reductions. \hfill\lean{karp\_threeCol\_weakSolvable}, \lean{karp\_threeCol\_neoSolvable}
 \end{corollary}
+
+\begin{remark}[what is formalized]
+The map $G\mapsto(P,y)$ is a computable function to rational data (\lean{pricesQ}, \lean{outputsQ}); its correctness, the bound on the number of prices, the bit size of the output ($\mathrm{den}\le2^{17}B^2$, $\abs{\mathrm{num}}\le2^{18}B^2$ with $B=24m+8n+8$) and its cost in the unit-cost model on rationals of $O(\log(n+m))$ bits are proved in Lean, packaged as a \lean{KarpReduction} with $C=2^{40}$, $k=4$. Two facts are used from outside: NP-completeness of 3-colouring, and membership of our problems in NP, which rests on the polynomial solvability of linear programming. \todo{Decide whether the remark stays here or moves to \cref{sec:lean}.}
+\end{remark}
 
 \begin{proof}
 3-colouring is NP-complete, and the construction of \cref{thm:hard-main} is polynomial: the coordinates are explicit formulas of $O(\log(nm))$ bits. Membership in NP: a certificate is a decomposition $y=\sum_km_k\ind{S_k}$ into at most $T$ spectra (Carath\'eodory) with its coefficients; reachability of each $S_k$ is checked by $\abs{S_k}$ linear programs and the decomposition by a linear system.
