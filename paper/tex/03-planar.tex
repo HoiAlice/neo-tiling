@@ -1,0 +1,60 @@
+%% Source: poly-hardness/poly-hardness.tex. Lean: NeoTiling.Planar.{Chain,FlowLP}.
+%% Statements translated; proofs to be translated from the source (marked \src).
+\section{Dimension two: solvability is a linear program}\label{sec:planar}
+
+Two \emph{modes} $\star$ are treated in parallel: strict (reachable spectra, \cref{thm:solvability}) and weak (weakly reachable spectra, \cref{thm:closure}). We write $u\gs0$ for $u>0$ in the strict mode and $u\ge0$ in the weak mode, $\Spm(P)$ for $\Sp(P)$ or $\wSp(P)$, and $\beta_\star:=0$ or $1$. The problem $\WS_\star(d)$: given rational $P\subset\Rpp[d]$ and $y\in\Q^T_+$, decide whether $y\in\cone\set{\ind S\mid S\in\Spm(P)}$.
+
+\subsection{Chains and slabs}\src{poly-hardness.tex \S2}
+
+\begin{definition}[chain]\label{def:chain}
+\todo{Translate: strictly convex lower-left chains through points of $P$, the region of a chain, $\Out$ and $\Bnd$ of a vertical slab.}
+\end{definition}
+
+\begin{theorem}[chains]\label{thm:chain}
+For $d=2$, a set $S\subset[T]$ is $\star$-reachable if and only if there is a strictly convex chain $\pi$ with $\Out(\pi)\subseteq S\subseteq\Out(\pi)\cup\beta_\star\Bnd(\pi)$. \hfill\lean{isReachableB_iff_chain}
+\end{theorem}
+\begin{proof}\todo{translate}\end{proof}
+
+\begin{lemma}[locality]\label{lem:local-slab}
+\todo{Translate \lean{inHull_iff_of_piece}: membership in the hull region is decided slab by slab.}
+\end{lemma}
+
+\subsection{The chain graph and the flow LP}\src{poly-hardness.tex \S3}
+
+\begin{definition}[chain graph]\label{def:graph}
+The graph $G_P$ has a node \enquote{the chain starts at $b$} for every index $b$ and a node \enquote{the last edge is $ab$} for every ordered pair, a source $\sigma$ and a sink $\tau$. Its $\sigma$--$\tau$ paths are exactly the strictly convex lower-left chains. Every arc $e$ carries the index sets $\Out_e$ and $\Bnd_e$ of its vertical slab. \todo{precise arc rules}
+\end{definition}
+
+\begin{theorem}[family]\label{thm:family}
+$S\in\Spm(P)$ if and only if $\Out(\pi)\subseteq S\subseteq\Out(\pi)\cup\beta_\star\Bnd(\pi)$ for some $\sigma$--$\tau$ path $\pi$ of $G_P$. \hfill\lean{isReachableB_iff_path}
+\end{theorem}
+
+\begin{lemma}[disjoint slabs]\label{lem:disjoint}\todo{translate}\end{lemma}
+\begin{lemma}[flow decomposition]\label{lem:decomp}\todo{translate; \lean{flow_decomposition}}\end{lemma}
+\begin{lemma}[cube]\label{lem:cube}\todo{translate; \lean{cube_mem_span}}\end{lemma}
+
+\begin{theorem}[$d=2$]\label{thm:lp}
+$y$ is $\star$-solvable if and only if the system
+\[
+f\ \text{is a $\sigma$--$\tau$ flow in }G_P,\qquad y=\sum_ef_e\ind{\Out_e}+g,\qquad 0\le g\le\beta_\star\sum_ef_e\ind{\Bnd_e}
+\]
+is feasible. \hfill\lean{mem_indicatorCone_iff_flow}
+\end{theorem}
+
+\begin{proof}
+$(\Rightarrow)$ Let $y=\sum_Sm_S\ind S$ with $m_S>0$, $S\in\Spm(P)$. By \cref{thm:family} choose a path $\pi_S$ for each $S$ and put $f:=\sum_Sm_S\ind{\pi_S}$, $g:=\sum_Sm_S\ind{S\setminus\Out(\pi_S)}$. A sum of paths is a flow. By \cref{lem:disjoint}, $\ind S=\sum_{e\in\pi_S}\ind{\Out_e}+\ind{S\setminus\Out(\pi_S)}$. In the weak mode $S\setminus\Out(\pi_S)\subset\Bnd(\pi_S)$, whence $g\le\sum_ef_e\ind{\Bnd_e}$; in the strict mode $S=\Out(\pi_S)$ and $g=0$.
+
+$(\Leftarrow)$ By \cref{lem:decomp}, $f=\sum_im_i\ind{\pi_i}$, and by \cref{lem:disjoint}, $\sum_ef_e\ind{\Out_e}=\sum_im_i\ind{\Out(\pi_i)}$ and $h:=\sum_ef_e\ind{\Bnd_e}=\sum_im_i\ind{\Bnd(\pi_i)}$. Split $g$ proportionally: $z_i(q):=g_q/h_q$ for $q\in\Bnd(\pi_i)$ and $0$ otherwise; if $h_q=0$ then $g_q=0$. Then $0\le z_i\le\beta_\star\ind{\Bnd(\pi_i)}$ and $\sum_im_iz_i=g$, so $y=\sum_im_i\bigl(\ind{\Out(\pi_i)}+z_i\bigr)$. By \cref{lem:cube} each term lies in the cone of the vectors $\ind{\Out(\pi_i)\cup B'}$ with $B'\subset\beta_\star\Bnd(\pi_i)$, and these sets lie in $\Spm(P)$ by \cref{thm:family}.
+\end{proof}
+
+\begin{corollary}[polynomiality]\label{cor:poly}
+In both modes $\WS_\star(2)$ is solvable in polynomial time. The graph is built in $O(T^4)$ arithmetic operations on numbers of degree two in the input; the system of \cref{thm:lp} has $O(T^3)$ variables, $O(T^2)$ constraints, coefficients $0,\pm1$ and right-hand side $y$, so it is solved in polynomial time by the ellipsoid or an interior-point method. From a basic solution a representation $y=\sum_km_k\ind{S_k}$, $S_k\in\Spm(P)$, with $k\le T$ is obtained in polynomial time (flow decomposition, \cref{lem:cube}, Carath\'eodory).
+\end{corollary}
+
+\begin{corollary}[column problem]\label{cor:col}
+\todo{translate: pricing over the family is a longest path in the DAG $G_P$, $O(T^4)$.}
+\end{corollary}
+
+\begin{corollary}[certificate of unsolvability]\label{cor:farkas}
+\todo{translate: infeasibility yields $w$ with $\ip wy<0$ and $w(S)\ge0$ on $\Spm(P)$, checkable by one longest path.}
+\end{corollary}

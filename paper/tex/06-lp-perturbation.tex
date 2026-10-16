@@ -1,0 +1,45 @@
+%% Source: l1-perturbation/tex/l1-perturbation.tex. Lean: NeoTiling.Lp.Reduction.
+%% Decision 2026-10-16: reduction for a general increasing g, then the RELATIVE metric for the algorithm
+%% (exact linear cover cuts); the log version as one paragraph plus a comparison table.
+\section{The least $\ell_p$ perturbation: an exact algorithm}\label{sec:lp}
+
+\subsection{Problem}\src{l1-perturbation.tex \S1}
+Let $g\colon\R\to\R_{++}$ be increasing with $g(0)=1$; the deviation of $q$ from $p$ is $\dev(q,p):=g^{-1}(q/p)$, coordinatewise. Two instances: $g(z)=e^z$ (logarithmic, $\dev=\ln q-\ln p$) and $g(z)=1+z$ (relative, $\dev=q/p-1$, the price error of \citet{Varian1985,DemuynckRehbeck2023}). Weights $c^i_t>0$, $1\le p\le\infty$,
+\[
+C_p(Q):=\norm{c\circ\dev(Q,P)}_p,\qquad\OPT_p:=\inf\set{C_p(Q)\mid y\text{ weakly solvable at }Q}.
+\]
+To half-widths $\alpha,\beta\in\Rp[d\times T]$ ($\alpha<1$ in the relative metric) associate the box with corners $a_t:=p_t\circ g(-\alpha_t)$, $b_t:=p_t\circ g(\beta_t)$; $\BOX(\alpha,\beta)$ is the box-oracle query of \cref{sec:corners} on $W(\alpha,\beta)=(a,b)$.
+
+\paragraph{Literature.}\todo{translate: Afriat/Varian/Houtman--Maks indices \citep{Cherchye2014}; one MILP for GARP in \citet{DemuynckRehbeck2023} because GARP is linear in prices, impossible here (latent witnesses, NP-hard for $d\ge3$); cycles and set cover in \citet{DeanMartin2016}; monotonic optimization \citep{Tuy2000,TuyAlKhayyalThach2005}; combinatorial Benders cuts \citep{CodatoFischetti2006,FischettiSalvagninZanette2010}.}
+
+\subsection{Reduction to boxes}\src{l1-perturbation.tex \S2}
+\begin{theorem}[reduction]\label{thm:reduction}
+$\OPT_p=\inf\set{\norm{c\circ(\alpha+\beta)}_p\mid\BOX(\alpha,\beta)}$, and the set of feasible half-widths is closed upward. \hfill\lean{exists_weakSolvable_iff_boxFeasible_lp}, \lean{_linf}, \lean{_rel_lp}, \lean{BoxFeasible.mono}
+\end{theorem}
+\begin{proof}\todo{translate}\end{proof}
+
+\subsection{One-signedness}\src{l1-perturbation.tex \S3}
+\begin{theorem}[one-signedness]\label{thm:onesigned}
+There is an optimal $Q$ in which every year moves in one direction: for each $t$ either $q_t\le p_t$ or $q_t\ge p_t$. \hfill\lean{exists_oneSigned_le}, \lean{exists_lt_of_mixed_lp}
+\end{theorem}
+
+\subsection{Covers and the certificate of infeasibility}\src{l1-perturbation.tex \S4}
+\begin{definition}\todo{translate: cover $(t,A)$ present in $W$.}\end{definition}
+\begin{proposition}[cover]\label{prop:cover}
+Every weakly reachable set containing $t$ meets every $A$ whose convex hull has a point strictly below $w_t$; in particular dominance $w_s<w_t$ forces $s\in S$ whenever $t\in S$. \hfill\lean{meets_of_conv_lt}, \lean{le_of_lt}
+\end{proposition}
+\begin{theorem}[certificate]\label{thm:certificate}
+Let the oracle answer NO on $W$ with a Farkas vector $\lambda$ and a finite set $\mathcal C$ of covers present in $W$ such that $\lambda(S)\ge0$ for every $S$ respecting $\mathcal C$ and $\ip\lambda{\cdot}<0$ on the bounds. Then the answer is NO on every box in which all covers of $\mathcal C$ are present. \hfill\lean{not_boxCone_of_certificate}
+\end{theorem}
+\paragraph{Minimal conflicts and cover cuts.}\todo{translate: deletion filter to a minimal $\mathcal C'$ (0/1 MILP), the cut \enquote{some cover of $\mathcal C'$ is absent}; in the relative metric the corners are linear in $(\alpha,\beta)$ so the cut is linear and exact for a fixed convex combination $\mu$; in the log metric a piecewise-linear relaxation.}
+
+\subsection{Algorithm}\src{l1-perturbation.tex \S5}
+\paragraph{Master problem.}\todo{translate: variables $(\alpha,\beta)$, year signs, dominance rows, polyblock cuts, cover cuts, $\ell_p$ objective (linear for $p=1,\infty$, tangents otherwise).}
+\paragraph{Query with tolerance $\delta$.}\todo{translate: optima lie on ties; query the box $v+\delta\e$, $\delta=\varepsilon\UB/(4\norm c)$.}
+\paragraph{Projection along $\e$ and the polyblock cut.}\todo{translate; Tuy 2000 p.~479.}
+\begin{lemma}[packing]\label{lem:packing}\todo{translate; \lean{separated_bound}}\end{lemma}
+\begin{theorem}[correctness and termination]\label{thm:algo}
+At every iteration $\LB\le\OPT_p\le\UB$, where $\UB$ is the cost of a box that passed the oracle, and the final $Q$ is a rational point with an exact certificate of weak solvability. For every $\varepsilon>0$ the algorithm stops after finitely many iterations with $\UB-\LB\le\varepsilon\UB$.
+\end{theorem}
+\begin{proof}\todo{translate. Not formalized in Lean.}\end{proof}
+\begin{remark}\todo{translate: the step bound is exponential in $2dT$; with a YES/NO oracle only, exponentially many queries are unavoidable (sum over an abstract up-closed set); the up-closed feasible set equals the closure of its interior, so Tuy's essential-optimality machinery is not needed; Tuy's reduction cut is void here.}\end{remark}

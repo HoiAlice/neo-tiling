@@ -1,0 +1,44 @@
+%% Source: np-hardness/np-hardness.tex. Lean: NeoTiling.Hardness.{Gadget,Disks,Layout,Coloring,Main}.
+\section{Dimension three: NP-completeness}\label{sec:hardness}
+
+\begin{theorem}[main]\label{thm:hard-main}
+From a loopless graph $G$ with $n$ vertices and $m$ edges one constructs explicitly at most $100(n+1)(m+1)$ rational prices $P\subset\Rpp[3]$ and a rational vector $y\ge0$ such that the following are equivalent:
+\begin{enumerate}[label=(\roman*)]
+\item $y$ is neoclassically solvable at $P$;
+\item $y$ is weakly solvable at $P$;
+\item $G$ is 3-colourable.
+\end{enumerate}
+\hfill\lean{neoSolvable_iff_colorable}, \lean{weakSolvable_iff_colorable}, \lean{numPrices_le}
+\end{theorem}
+
+\begin{corollary}
+Deciding neoclassical solvability and deciding weak solvability at fixed rational prices in $\R^3$ are NP-complete under Karp reductions.
+\end{corollary}
+
+\begin{proof}
+3-colouring is NP-complete, and the construction of \cref{thm:hard-main} is polynomial: the coordinates are explicit formulas of $O(\log(nm))$ bits. Membership in NP: a certificate is a decomposition $y=\sum_km_k\ind{S_k}$ into at most $T$ spectra (Carath\'eodory) with its coefficients; reachability of each $S_k$ is checked by $\abs{S_k}$ linear programs and the decomposition by a linear system.
+\end{proof}
+
+The proof has three parts. A gadget on the paraboloid turns solvability into membership in the stable set polytope of a graph $H$ drawn in the plane (\cref{sec:gadget}). The drawing condition is checked locally on a lattice (\cref{sec:disks}). The graph $H$ is a lattice drawing of $G\mathbin{\square}K_3$, and membership of the point $s$ in $\STAB(H)$ is equivalent to 3-colourability of $G$ (\cref{sec:layout,sec:coloring}).
+
+\subsection{The paraboloid gadget}\label{sec:gadget}\src{np-hardness.tex \S2}
+\begin{lemma}[disk witness]\label{lem:wit}\todo{translate}\end{lemma}
+\begin{lemma}[chord]\label{lem:chord}\todo{translate}\end{lemma}
+\begin{definition}[empty disks]\label{def:valid}\todo{translate}\end{definition}
+\begin{theorem}[gadget]\label{thm:gadget}\todo{translate; \lean{Gadget.neoSolvable_iff}, \lean{Gadget.weakSolvable_iff}}\end{theorem}
+
+\subsection{Empty disks on a lattice}\label{sec:disks}\src{np-hardness.tex \S3}
+\begin{definition}[lattice drawing]\label{def:drawing}\todo{translate}\end{definition}
+\begin{lemma}[empty disks]\label{lem:disks}\todo{translate; \lean{gadget_valid}}\end{lemma}
+
+\subsection{Drawing $G\mathbin{\square}K_3$}\label{sec:layout}\src{np-hardness.tex \S4}
+\begin{lemma}[parity]\label{lem:parity}\todo{translate: rows and columns live on complementary parity classes, so crossings need no gadget.}\end{lemma}
+\begin{lemma}\label{lem:drawing}\todo{translate; \lean{pos_injective}, \lean{drawing}}\end{lemma}
+
+\subsection{The colouring lemma}\label{sec:coloring}\src{np-hardness.tex \S5}
+\begin{lemma}[colouring]\label{lem:coloring}
+$s\in\STAB(H)$ if and only if $G$ is 3-colourable. \hfill\lean{inStab_iff_colorable}
+\end{lemma}
+\begin{proof}\todo{translate}\end{proof}
+
+\subsection{Proof of \cref{thm:hard-main}}\todo{translate np-hardness.tex \S6}

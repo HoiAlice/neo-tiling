@@ -1,0 +1,51 @@
+%% Mathematics of Operations Research, INFORMS template.
+%% Needs informs4.cls and informs2014.bst from https://pubsonline.informs.org/authorportal
+%% (drop them into this folder). Build: latexmk -pdf main
+\documentclass[mor,blindrev]{informs4}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{csquotes}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+\usepackage{cleveref}
+\input{macros}
+
+\TheoremsNumberedThrough
+\EquationsNumberedThrough
+
+\begin{document}
+
+\RUNAUTHOR{Lavrin}
+\RUNTITLE{Neoclassical solvability of price--output data}
+\TITLE{Neoclassical solvability of price--output data: a criterion, its complexity, and the least price perturbation}
+\ARTICLEAUTHORS{%
+\AUTHOR{Oleg Lavrin}
+\AFF{\todo{affiliation}, \EMAIL{\todo{email}}}
+}
+
+\ABSTRACT{%
+\todo{Abstract. One paragraph: the solvability criterion through reachable spectra and its closure (weak solvability); the complexity dichotomy (polynomial at $d=2$ by a flow LP, NP-complete at $d=3$); reduction of every least-price-perturbation problem to one query of a box oracle on the $2T$ corners, rational breakpoints and the exact least radius; an exact algorithm for the least weighted $\ell_p$ perturbation by monotonic optimization with combinatorial Benders cuts from oracle certificates; computations on BEA KLEMS data showing that aggregation destroys the information the model uses. All structural results are verified in Lean 4 / Mathlib.}
+}
+\KEYWORDS{production theory; revealed preference; rationalizability; linear programming; NP-completeness; monotonic optimization; combinatorial Benders cuts; formal verification}
+\MSCCLASS{90C27, 90C05, 91B38, 68Q17}
+\ORMSCLASS{\todo{ORMS subject classification}}
+
+\maketitle
+
+\input{01-solvability}
+\input{02-weak}
+\input{03-planar}
+\input{04-hardness}
+\input{05-corners-radius}
+\input{06-lp-perturbation}
+\input{07-computations}
+\input{08-lean}
+
+\bibliographystyle{informs2014}
+\bibliography{refs}
+
+\end{document}

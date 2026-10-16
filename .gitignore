@@ -27,3 +27,14 @@ references/
 
 # LaTeX build dirs in subprojects
 **/tex/build/
+
+# paper/ (consolidated article)
+paper/lean/.lake/
+paper/tex/build/
+paper/tex/*.aux
+paper/tex/*.log
+paper/tex/*.bbl
+paper/tex/*.blg
+paper/tex/*.synctex.gz
+paper/code/*.egg-info/
+paper/code/**/__pycache__/

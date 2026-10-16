@@ -1,0 +1,72 @@
+%% Sources: price-perturbation/tex/price-perturbation.tex (§§1-6, 8 "Алгоритм"); the exact-oracle part of
+%% price-perturbation/tex/onesided.tex (§"Точный оракул при любом d", prop. "рациональность").
+%% Lean: NeoTiling.Perturbation.{Support,Box,Proj,Hex,Shape,LocalConstancy,Radius,Weighted}.
+%% Decision 2026-10-16: theory in the LOG metric; the one-sided profile is NOT included.
+\section{Least price perturbation: corners, breakpoints and the least radius}\label{sec:corners}
+
+Prices are $(d+1)$-tuples of positive numbers known up to a common factor; normalizing by price $0$ gives $p\in\Rpp[d]$. Data: $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$ and $y\in\Rp[T]$. Each price $i=0,\dots,d$ in each period $t$ carries a penalty $\kappa^i_t>0$; a larger penalty means a more precisely measured price. $\exp$ and $\ln$ of vectors are coordinatewise. Indices of spectra may range over any finite set of points of $\Rp[d]$.
+
+\subsection{The metric}\src{price-perturbation.tex \S2}
+\[
+d_{\kappa_t}(q,p):=\min_{s\in\R}\max\Bigl(\kappa^0_t\abs s,\ \max_{i\in[d]}\kappa^i_t\abs{u_i+s}\Bigr),\qquad u:=\ln q-\ln p .
+\]
+\begin{lemma}[shape of the ball]\label{lem:shape}
+The ball $\set{q\mid d_{\kappa_t}(q,p_t)\le\rho}$ is, in log coordinates, the zonotope \enquote{box $\prod_i[-\rho/\kappa^i_t,\rho/\kappa^i_t]$ plus the diagonal segment of half-length $\rho/\kappa^0_t$}. Its bounding box has half-widths $a^i_t=\rho v^i_t$, $v^i_t:=1/\kappa^i_t+1/\kappa^0_t$; the corners $\pm a_t$ and the path $\theta\mapsto\theta v_t$ lie in the ball. \hfill\lean{wdist_le_iff}, \lean{mem_wbox_of_wdist}, \lean{wdist_wpath_le}
+\end{lemma}
+\begin{remark}[the normalizing price]\todo{translate: an error in price 0 moves the normalized point along the diagonal, an equal error in all other prices does the same; the metric picks the cheaper explanation.}\end{remark}
+
+\subsection{Reduction to corners}\src{price-perturbation.tex \S3}
+For a finite set $W=\set{w_r}_{r\in R}\subset\Rpp[d]$ and $S\subset R$ put $K_S:=\conv\set{w_r\mid r\notin S}+\Rp[d]$, $K_R:=\varnothing$.
+
+\begin{lemma}[reachability and interior]\label{lem:interior}\todo{translate: $S\in\wSp(W)$ iff no $w_t$, $t\in S$, lies in $\interior K_S$.}\end{lemma}
+\begin{lemma}[exit along the path]\label{lem:ray}\todo{translate}\end{lemma}
+
+\begin{theorem}[corners]\label{thm:corners}
+Let $d\ge2$, $y\in\Rp[T]$, $\rho\ge0$, $a_t:=p_t\circ e^{-\rho v_t}$, $b_t:=p_t\circ e^{\rho v_t}$, $W:=(a,b)$. The following are equivalent:
+\begin{enumerate}[label=(\Alph*)]
+\item there is $Q\in\Rpp[d\times T]$ with $d_{\kappa_t}(q_t,p_t)\le\rho$ for all $t$ at which $y$ is weakly solvable;
+\item there are $\theta_t\in[-\rho,\rho]$ such that $y$ is weakly solvable at $(p_t\circ e^{\theta_tv_t})_{t\in[T]}$;
+\item there is $w\in\cone\set{\ind S\mid S\in\wSp(W)}$ with $w(a_t)\ge y_t\ge w(b_t)$ for all $t\in[T]$.
+\end{enumerate}
+\hfill\lean{wfeasible_iff_corners}, \lean{wfeasible_iff_path}; general box form \lean{box_iff}, \lean{path_of_corners}
+\end{theorem}
+\begin{proof}\todo{translate}\end{proof}
+\begin{lemma}[cube]\label{lem:cube-corners}\todo{translate}\end{lemma}
+
+\paragraph{The box oracle.} Condition (C) is one query to the \emph{box oracle}: given points $W$ indexed by $R$ and bounds $\mathrm{lo},\mathrm{hi}\in[-\infty,\infty]^R$, decide whether some $w\in\cone\set{\ind S\mid S\in\wSp(W)}$ satisfies $\mathrm{lo}\le w\le\mathrm{hi}$. With $\mathrm{lo}=\mathrm{hi}=y$ and $W=P$ this is weak solvability (\cref{thm:closure}); with $W=(a,b)$, $\mathrm{lo}=(y,0)$, $\mathrm{hi}=(\infty,y)$ it is (C). Thus \enquote{is there $Q$ in the box $[a,b]$ at which $y$ is weakly solvable} is \emph{one} call of the same algorithm on $2T$ points with inequalities instead of equalities.
+
+\subsection{Breakpoints}\src{price-perturbation.tex \S4}
+\begin{lemma}[weak reachability as a sign condition]\label{lem:signs}\todo{translate; \lean{witness_iff_homogeneous}}\end{lemma}
+\begin{lemma}[local constancy]\label{lem:local}\todo{translate; \lean{eventually_exists_sign_eq}}\end{lemma}
+\begin{corollary}\label{cor:local}\todo{translate}\end{corollary}
+
+\subsection{The least radius}\src{price-perturbation.tex \S5}
+\begin{theorem}[least radius]\label{thm:least}
+The set $F$ of feasible radii is $[\rho^*,\infty)$ or empty, and $\rho^*=0$ or $\rho^*$ is a breakpoint: a zero of a nonzero exponential sum $\sum_jC_je^{\lambda_j\rho}$ given by a $(d+1)$-minor of the homogenized corners. \hfill\lean{least_wradius_breakpoint}
+\end{theorem}
+\begin{corollary}[gaps]\label{cor:gap}\todo{translate: feasibility is constant between consecutive breakpoints.}\end{corollary}
+\begin{proposition}[equal penalties]\label{prop:rational}
+If $v^i_t=c$ for all $i,t$, every $(d+1)$-minor of the vectors $(p_t,1)$, $(zp_t,1)$, $(e_i,0)$, $z:=e^{2c\rho}$, equals $z^{b-1}(D_0z+D_1)$; hence all breakpoints are rational in $z$ and $e^{2c\rho^*}\in\Q$ for rational data. \hfill\lean{least_radius_rational}
+\end{proposition}
+
+\subsection{Algorithm and complexity}\src{price-perturbation.tex \S8}
+\paragraph{Bisection with safe rounding.}\todo{translate: inner box for YES, outer box for NO, $O(\log(\rho_{\max}/\varepsilon))$ calls.}
+\paragraph{Exact search for equal penalties.}\todo{translate the three steps; $O(d\log(T+d))$ calls, independent of the bit length.}
+\begin{remark}[bisection without enumeration]\todo{translate the Hadamard-bound remark.}\end{remark}
+
+\begin{theorem}[complexity]\label{thm:complexity}
+Let $d$ be fixed and the data $P,y,\kappa$ rational of total bit length $L$.
+\begin{enumerate}[label=(\alph*)]
+\item If the penalties are equal, $e^{2c\rho^*}$ is rational and $\rho^*$ is found exactly with $O(d\log(T+d))$ oracle calls and $O((2T+d)^{d+1})$ determinants of order $d+1$ on numbers of length $O(dL)$. The number of calls does not depend on $L$.
+\item For arbitrary penalties there is $\bar\rho$ with $\log\bar\rho=\mathrm{poly}(L)$ such that $F\ne\varnothing$ iff $\bar\rho\in F$; bisection with safe rounding finds an interval of length $\varepsilon$ containing $\rho^*$ with $\mathrm{poly}(L)+O(\log(1/\varepsilon))$ oracle calls, all on rational data of length $\mathrm{poly}(L,\log(1/\varepsilon))$.
+\end{enumerate}
+For $d=2$ the oracle is a linear program of polynomial size (\cref{thm:lp}), so (a) is polynomial and (b) weakly polynomial.
+\end{theorem}
+\begin{proof}\todo{translate; re-check the bound $\bar\rho$ via the separation $\delta=1/\Lambda$ of the exponents.}\end{proof}
+
+\subsection{The exact oracle for every $d$}\src{onesided.tex \S"Точный оракул"; RESULTS.md "оракулы и их связь"}
+\begin{lemma}[cover inequalities]\label{lem:cover}
+$S\in\wSp(W)$ if and only if no convex combination of at most $d+1$ points $w_s$, $s\notin S$, is strictly below some $w_t$, $t\in S$. Each such pair $(t,A)$ is the 0/1 inequality $x_t\le\sum_{s\in A}x_s$. \hfill\lean{meets_of_conv_lt}, \lean{le_sum_of_conv_lt}
+\end{lemma}
+\paragraph{Column generation with exact geometry.}\todo{translate: LP master over found sets; pricing MILP with lazy cover cuts only; every cut and every accepted set verified in rationals; exact finish with integer weights; YES = sets and rational masses, NO = Farkas vector $\lambda$ and a finite cover set $\mathcal C$, verified independently. Mention that floating-point witness formulations fail at degeneracies, where optima lie.}
+\begin{proposition}[rational solutions]\label{prop:rational-Q}\todo{translate: from an exact YES at a rational box, the corner construction along the price-linear segment gives rational $Q$ with an exact certificate.}\end{proposition}

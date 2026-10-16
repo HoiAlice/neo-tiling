@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neotiling"
+version = "0.1.0"
+description = "Weak solvability of price data: exact oracles, least perturbation radius, exact l_p price perturbation"
+requires-python = ">=3.9"
+dependencies = ["numpy", "scipy"]
+
+[project.optional-dependencies]
+plot = ["matplotlib"]
+tests = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["neotiling*"]
+
+[tool.setuptools.package-data]
+"neotiling.data" = ["csv/*"]
+
+[tool.pytest.ini_options]
+markers = ["slow: long-running tests (deselect with -m 'not slow')"]
