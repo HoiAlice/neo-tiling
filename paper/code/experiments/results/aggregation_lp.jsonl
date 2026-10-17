@@ -20,3 +20,17 @@
 {"kind": "real", "ind": 31, "d": 3, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 1.6215391952295255, "UB": 1.6215738612923, "status": "optimal", "time": 70.98343873023987, "n_moved": 31}
 {"kind": "real", "ind": 31, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.6365195385321758, "UB": 1.8213206524090098, "status": "time_limit", "time": 930.9004068374634, "n_moved": 320}
 {"kind": "real", "ind": 46, "d": 2, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.21415680553015265, "UB": 0.21416182890532803, "status": "optimal", "time": 34.18015694618225, "n_moved": 11}
+{"kind": "real", "ind": 46, "d": 3, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.13330150990298115, "UB": 0.13413850024769752, "status": "time_limit", "time": 653.5292103290558, "n_moved": 16}
+{"kind": "real", "ind": 46, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.005134646443595959, "UB": 0.005134962494397029, "status": "optimal", "time": 142.93304204940796, "n_moved": 2}
+{"kind": "real", "ind": 49, "d": 2, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.283111988673805, "UB": 0.7856946494343156, "status": "time_limit", "time": 748.2473638057709, "n_moved": 80}
+{"kind": "real", "ind": 49, "d": 3, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.03641950501631837, "UB": 0.087636655511515, "status": "time_limit", "time": 717.4072897434235, "n_moved": 120}
+{"kind": "real", "ind": 49, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.014983831604652217, "UB": 0.014984518204398714, "status": "optimal", "time": 278.2380452156067, "n_moved": 2}
+{"kind": "real", "ind": 63, "d": 2, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 2.093811759409397, "UB": 3.7470393147286964, "status": "time_limit", "time": 637.7807002067566, "n_moved": 39}
+{"kind": "real", "ind": 63, "d": 3, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.0, "UB": 0.0, "status": "optimal", "time": 300.47105622291565, "n_moved": 0}
+{"kind": "real", "ind": 63, "d": 8, "seed": null, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.0, "UB": 0.0, "status": "optimal", "time": 51.81782913208008, "n_moved": 0}
+{"kind": "placebo", "ind": 15, "d": 8, "seed": 1, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.5437779911048721, "UB": 1.7154889005548652, "status": "time_limit", "time": 899.124046087265, "n_moved": 39}
+{"kind": "placebo", "ind": 15, "d": 8, "seed": 2, "T": 40, "p": 1.0, "metric": "rel", "LB": 0.6403914058805859, "UB": 1.7154889005548652, "status": "time_limit", "time": 915.7930970191956, "n_moved": 39}
+{"kind": "placebo", "ind": 24, "d": 8, "seed": 1, "T": 40, "p": 1.0, "metric": "rel", "LB": 1.7983724613810366, "UB": 2.861313392969091, "status": "time_limit", "time": 884.5033202171326, "n_moved": 39}
+{"kind": "placebo", "ind": 24, "d": 8, "seed": 2, "T": 40, "p": 1.0, "metric": "rel", "LB": 1.3242056595535971, "UB": 2.861313392969091, "status": "time_limit", "time": 816.6115968227386, "n_moved": 39}
+{"kind": "placebo", "ind": 1, "d": 8, "seed": 1, "T": 40, "p": 1.0, "metric": "rel", "LB": 2.096496047419571, "UB": 5.099529763152329, "status": "time_limit", "time": 2042.2890000343323, "n_moved": 39}
+{"kind": "placebo", "ind": 1, "d": 8, "seed": 2, "T": 40, "p": 1.0, "metric": "rel", "LB": 2.8131286208293336, "UB": 5.099529763152329, "status": "time_limit", "time": 848.0872690677643, "n_moved": 39}
