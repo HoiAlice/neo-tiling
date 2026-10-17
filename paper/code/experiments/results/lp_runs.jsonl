@@ -1,0 +1,1 @@
+{"slice": "bea:24", "d": 8, "T": 40, "p": 1.0, "metric": "rel", "eps": 0.0001, "time_limit": 600.0, "LB": 0.10255166644377497, "UB": 0.10255447312040343, "status": "optimal", "time": 163.98750519752502, "log": "/Users/olegoleg/Code/neo-tiling/paper/code/experiments/results/logs/lp_runs/2026-10-17/205725_bea_24.log"}

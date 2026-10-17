@@ -9,6 +9,10 @@ va:<geo>:<industry> (EU KLEMS value-added model, d = 2), bw (Berndt-Wood, d = 4)
 Example (one solver run at a time; nice for long runs):
     nice -n 19 python experiments/lp_runs.py us3 bea:15 va:US:M-N --p 1 --metric rel --eps 1e-4 \
         --time-limit 600 --out results/lp_runs.jsonl
+
+Logging (neotiling.logs): the solver's progress goes to stderr in real time and, per slice, to
+results/logs/lp_runs/<date>/<time>_<slice>.log.  -v adds the oracle's subproblems (column generation,
+pricing rounds, cover cuts, filters).
 """
 
 import argparse
@@ -17,7 +21,7 @@ import math
 import time
 
 from figures import RESULTS
-from neotiling import data
+from neotiling import data, logs
 from neotiling.lp.problem import Problem
 from neotiling.lp.solve import solve
 
@@ -49,7 +53,9 @@ def main():
     ap.add_argument("--eps", type=float, default=1e-4, help="relative gap UB - LB <= eps UB")
     ap.add_argument("--time-limit", type=float, default=600.0, help="seconds per slice")
     ap.add_argument("--out", default=str(RESULTS / "lp_runs.jsonl"))
+    ap.add_argument("-v", "--verbose", action="store_true", help="log the oracle's subproblems too")
     args = ap.parse_args()
+    logs.setup(verbose=args.verbose)
     for spec in args.slices:
         P, y, years = load(spec)
         if not P:
@@ -57,10 +63,11 @@ def main():
             continue
         prob = Problem(P, y, p=args.p, metric=args.metric)
         t0 = time.time()
-        res = solve(prob, eps=args.eps, time_limit=args.time_limit)
+        with logs.run_file(logs.run_path(RESULTS, "lp_runs", spec)) as logfile:
+            res = solve(prob, eps=args.eps, time_limit=args.time_limit)
         row = {"slice": spec, "d": prob.d, "T": prob.T, "p": args.p, "metric": args.metric, "eps": args.eps,
                "time_limit": args.time_limit, "LB": res["LB"], "UB": res["UB"], "status": res["status"],
-               "time": time.time() - t0}
+               "time": time.time() - t0, "log": logfile}
         print(f"{spec:16s} d={prob.d} T={prob.T}  LB {res['LB']:.6f}  UB {res['UB']:.6f}  {res['status']}  "
               f"{row['time']:.0f}s", flush=True)
         with open(args.out, "a") as f:

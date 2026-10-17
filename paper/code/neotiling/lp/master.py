@@ -17,11 +17,17 @@ LB = UB (sum v)^(1/p) stays valid).
 
 from __future__ import annotations
 
+import logging
 import math
+import time
 
 import numpy as np
 from scipy.optimize import Bounds, LinearConstraint, milp
 from scipy.sparse import coo_matrix
+
+from .. import logs
+
+logger = logging.getLogger(__name__)
 
 
 class Master:
@@ -120,9 +126,14 @@ class Master:
         else:
             c[:n] = np.concatenate([pr.c.ravel()] * 2)
         opts = {"mip_rel_gap": gap, **({"time_limit": time_limit} if time_limit else {})}
+        logger.info("master MILP: %d variables (%d binary), %d rows; %d polyblock cuts, %d pairs, %d cover cuts; "
+                    "UB=%.6g, mip gap %.3g", len(lb), int(sum(integ)), len(rlo), len(self.cuts), len(self.pairs),
+                    len(self.covers), self.UB, gap)
+        t0 = time.time()
         res = milp(c, integrality=np.array(integ), bounds=Bounds(lb, ub), options=opts,
                    constraints=[LinearConstraint(coo_matrix((vals, (rows, cols)),
                                                             shape=(len(rlo), len(lb))).tocsr(), rlo, rhi)])
+        logger.info("master MILP: %s", logs.milp_summary(res, time.time() - t0))
         if res.x is None:
             if "infeasible" in str(res.message).lower():
                 return None                      # no z of cost <= UB passes the cuts: UB is optimal

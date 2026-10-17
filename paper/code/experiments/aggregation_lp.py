@@ -16,6 +16,8 @@ eps).  One solver run at a time (see aggregation_queue.sh):
 Controls for "the correction sits on pII":
     nice -n 19 python experiments/aggregation_lp.py wii 24 1 27     d = 8, moving pII costs --w-ii (default 100)
     nice -n 19 python experiments/aggregation_lp.py d7go 24 1 27    the seven detailed prices / pGO, no pII coordinate
+Logging (neotiling.logs): progress on stderr in real time and per run in results/logs/aggregation/<date>/;
+-v adds the oracle's subproblems.
 """
 
 import argparse
@@ -27,7 +29,7 @@ import time
 from fractions import Fraction as F
 
 from figures import RESULTS
-from neotiling import data
+from neotiling import data, logs
 from neotiling.data import CSV
 from neotiling.lp.problem import Problem
 from neotiling.lp.solve import solve
@@ -102,7 +104,9 @@ def run(kind, ind, d, seed, args):
     P, y, years = load(kind, ind, d, seed, args.T)
     prob = Problem(P, y, c=weights(kind, d, len(P), args.w_ii), p=args.p, metric="rel")
     t0 = time.time()
-    res = solve(prob, eps=args.eps, time_limit=args.time_limit)
+    name = f"bea{ind}_d{d}_{kind}" + ("" if seed is None else f"_seed{seed}")
+    with logs.run_file(logs.run_path(RESULTS, "aggregation", name)) as logfile:
+        res = solve(prob, eps=args.eps, time_limit=args.time_limit)
     Q = res.get("Q")
     names = coord_names(d)
     moves = None if Q is None else [
@@ -112,7 +116,7 @@ def run(kind, ind, d, seed, args):
            "LB": res["LB"], "UB": res["UB"], "status": res["status"], "time": time.time() - t0,
            "time_limit": args.time_limit, "w_ii": args.w_ii if kind == "wii" else None,
            "n_moved": None if moves is None else len(moves), "moves": moves,
-           "Q": None if Q is None else [[float(v) for v in Qt] for Qt in Q]}
+           "Q": None if Q is None else [[float(v) for v in Qt] for Qt in Q], "log": logfile}
     print(f"BEA {ind:2d} d={d} {kind}{'' if seed is None else f' seed {seed}'}: LB {res['LB']:.6f} "
           f"UB {res['UB']:.6f} {res['status']} moved {row['n_moved']} {row['time']:.0f}s", flush=True)
     with open(args.out, "a") as f:
@@ -191,11 +195,13 @@ def main():
     ap.add_argument("--w-ii", type=float, default=100.0, help="weight of moving pII in mode wii (d = 8)")
     ap.add_argument("--out", default=str(RESULTS / "aggregation_lp.jsonl"))
     ap.add_argument("--table", action="store_true")
+    ap.add_argument("-v", "--verbose", action="store_true", help="log the oracle's subproblems too")
     args = ap.parse_args()
     if args.table or args.mode == "table":
         return table(args.out)
     if args.mode == "moves":
         return moves_table(args.out)
+    logs.setup(verbose=args.verbose)
     for a in args.items:
         if args.mode == "real":
             for d in map(int, args.dims.split(",")):

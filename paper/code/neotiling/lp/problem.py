@@ -12,7 +12,9 @@ half-widths, so the master's cover rows are exact; "log" is kept as a flag only 
 
 from __future__ import annotations
 
+import logging
 import math
+import time
 from fractions import Fraction as F
 
 import numpy as np
@@ -21,6 +23,8 @@ from ..geometry import reach
 from ..geometry.reach import gamma_linear
 from ..oracle import as_answer
 from ..oracle.exact import oracle_exact
+
+logger = logging.getLogger(__name__)
 
 
 def _short(v, up):
@@ -149,7 +153,14 @@ class Problem:
         """Exact box query at the corners W: YES with weakly reachable sets and rational masses, or NO
         with an exact Farkas vector (neotiling.oracle.exact)."""
         self.calls += 1
-        return as_answer(oracle_exact(W, self.lo, self.hi))
+        logger.info("box query #%d: exact oracle on %d corners, box cost %.6g", self.calls, len(W), self.box_cost(W))
+        t0 = time.time()
+        ans = as_answer(oracle_exact(W, self.lo, self.hi))
+        st = getattr(oracle_exact, "last_stats", None) or {}
+        logger.info("box query #%d: %s, %.1fs (%s CG iterations, %s columns, %s cover cuts, %s exact checks)",
+                    self.calls, "YES" if ans.feasible else "NO", time.time() - t0, st.get("iterations", "-"),
+                    st.get("columns", "-"), st.get("cuts", "-"), st.get("exact_checks", "-"))
+        return ans
 
     def solution_from_box(self, W, ans):
         """Rational Q in the box W from an exact YES certificate: the construction (C) => (B) of the
@@ -167,9 +178,14 @@ class Problem:
                 th = next(cv for cv in cands
                           if sum(m for m, g in zip(ans.masses, gam) if cv <= g) >= self.y[t])
                 Q.append(tuple(F(ai) + th * (F(bi) - F(ai)) for ai, bi in zip(a, b)))
-        except Exception:
+        except Exception as e:
+            logger.warning("solution from box: construction failed (%s: %s)", type(e).__name__, e)
             return None
-        return Q if self.verified(Q) else None
+        t0 = time.time()
+        ok = self.verified(Q)
+        logger.info("solution from box: rational Q built, exact check %s (%.1fs)", "passed" if ok else "FAILED",
+                    time.time() - t0)
+        return Q if ok else None
 
     def trivial(self):
         """A feasible Q: one coordinate of all years equal.  Every set is weakly reachable with the

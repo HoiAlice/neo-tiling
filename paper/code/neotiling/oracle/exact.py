@@ -35,15 +35,26 @@ bound on v, and v = 0 iff the answer is YES.
 
 from __future__ import annotations
 
+import logging
 import math
+import time
 from fractions import Fraction as F
 
 import numpy as np
 from scipy.optimize import Bounds, LinearConstraint, linprog, milp
 from scipy.sparse import coo_matrix
 
+from .. import logs
 from ..geometry import reach
 from . import OracleAnswer
+
+logger = logging.getLogger(__name__)
+SLOW = 2.0          # seconds: a subproblem slower than this is logged at INFO even without verbose
+
+
+def _lvl(dt):
+    return logging.INFO if dt > SLOW else logging.DEBUG
+
 
 def _finite(v):
     return not math.isinf(float(v))
@@ -198,6 +209,10 @@ class CoverCuts:
                     new.append((t, tuple(sorted(A))))
         new = [c for c in new if c not in self.cuts]
         self.cuts.update(new)
+        if new:
+            sizes = sorted(len(A) for _, A in new)
+            logger.debug("      separation: |S|=%d not weakly reachable, %d new cover cuts (sizes %s), %d in total",
+                         len(S), len(new), sizes, len(self.cuts))
         return new
 
 
@@ -212,7 +227,8 @@ def price_exact(cc, g, time_limit=None, max_rounds=10000):
     options = {"mip_rel_gap": 0.0}
     if time_limit is not None:
         options["time_limit"] = time_limit
-    for _ in range(max_rounds):
+    t_all = time.time()
+    for rnd in range(max_rounds):
         cuts = sorted(cc.cuts)
         if cuts:
             rows, cols, vals = [], [], []
@@ -224,12 +240,24 @@ def price_exact(cc, g, time_limit=None, max_rounds=10000):
             cons = [LinearConstraint(M, -np.inf, 0.0)]
         else:
             cons = []
+        logger.debug("    pricing round %d: MILP max g(S) over %d binaries x_r with %d cover cuts x_t <= sum_A x_s ...",
+                     rnd + 1, n, len(cuts))
+        t0 = time.time()
         res = milp(c, constraints=cons, integrality=np.ones(n), bounds=Bounds(np.zeros(n), np.ones(n)),
                    options=options)
+        dt = time.time() - t0
         if res.status != 0:
             raise RuntimeError(f"exact pricing MILP: {res.message}")
         S = frozenset(r for r in range(n) if res.x[r] > 0.5)
-        if not cc.separate(S):
+        t1 = time.time()
+        new = cc.separate(S)
+        logger.log(_lvl(dt + time.time() - t1),
+                   "    pricing round %d: %s -> |S|=%d; exact reachability check of S %.2fs: %s",
+                   rnd + 1, logs.milp_summary(res, dt), len(S), time.time() - t1,
+                   f"not reachable, {len(new)} new cover cuts" if new else "weakly reachable")
+        if not new:
+            if rnd:
+                logger.debug("    pricing: %d rounds, %.2fs", rnd + 1, time.time() - t_all)
             return S, float(sum(g[r] for r in S))
     raise RuntimeError("exact pricing: max_rounds reached")
 
@@ -251,13 +279,22 @@ def oracle_exact(W, lo, hi, max_iter=10000, tol=1e-9, time_limit=None):
     if any(float(v) < 0 for _, v in hi_rows):
         return OracleAnswer(False)
     cols = [frozenset(range(n))]                      # the full set is always weakly reachable
+    logger.debug("  oracle: %d points in R^%d, %d lower and %d upper bounds, %d cover cuts to start (incl. hints)",
+                 n, len(W[0]), len(lo_rows), len(hi_rows), len(cc.cuts))
+    t_or = time.time()
     val = None
     it = 0
     for it in range(max_iter):
         val, m, y_lo, y_hi = _master(cols, lo_rows, hi_rows, n)
         if val <= tol:
+            logger.debug("  CG iteration %d: master value 0 with %d columns, stop", it + 1, len(cols))
             break
+        logger.debug("  CG iteration %d: master LP value %.4g with %d columns, pricing a new column ...", it + 1, val,
+                     len(cols))
+        t0 = time.time()
         S, gv = price_exact(cc, y_lo - y_hi, time_limit)
+        logger.log(_lvl(time.time() - t0), "  CG iteration %d: master value %.4g, %d columns; pricing value %.4g "
+                   "(%.2fs, %d cover cuts)", it + 1, val, len(cols), gv, time.time() - t0, len(cc.cuts))
         if gv <= tol or S in cols:
             break
         cols.append(S)
@@ -265,7 +302,13 @@ def oracle_exact(W, lo, hi, max_iter=10000, tol=1e-9, time_limit=None):
              "integer_weights": True}
     while True:                                        # exact finish
         stats["finish_rounds"] += 1
+        logger.debug("  exact finish round %d: rational cone LP lo <= sum m_S 1_S <= hi over %d columns ...",
+                     stats["finish_rounds"], len(cols))
+        t0 = time.time()
         masses, lam = reach._cone_lp(cols, lo, hi)
+        logger.log(_lvl(time.time() - t0), "  exact finish round %d: rational cone LP over %d columns, %.2fs -> %s",
+                   stats["finish_rounds"], len(cols), time.time() - t0,
+                   "feasible" if masses is not None else "infeasible, re-pricing with the Farkas vector")
         if masses is not None:
             keep = [(S, mm) for S, mm in zip(cols, masses) if mm != 0]
             ans = OracleAnswer(True, [S for S, _ in keep], [mm for _, mm in keep])
@@ -278,13 +321,18 @@ def oracle_exact(W, lo, hi, max_iter=10000, tol=1e-9, time_limit=None):
             S, _ = price_exact(cc, [int(x) for x in w], time_limit)
         else:
             stats["integer_weights"] = False
+            logger.warning("  Farkas weights exceed 2^50: pricing with float weights")
             S, _ = price_exact(cc, [float(x) for x in w], time_limit)
         if sum(w[r] for r in S) > 0 and S not in cols:
+            logger.debug("  exact finish: improving column |S|=%d found, back to the rational LP", len(S))
             cols.append(S)
             continue
         ans = OracleAnswer(False, lam=list(lam), covers=sorted(cc.cuts))
         break
     _HINTS[(n, len(W[0]))] = sorted(c for c in cc.cuts if len(c[1]) > 1)[:5000]
     stats.update({"columns": len(cols), "cuts": len(cc.cuts), "exact_checks": cc.exact_checks})
+    logger.debug("  oracle: %s after %d CG iterations and %d finish rounds, %d columns, %d cover cuts, %d exact "
+                 "checks, %.2fs", "YES" if ans.feasible else "NO", stats["iterations"], stats["finish_rounds"],
+                 len(cols), len(cc.cuts), cc.exact_checks, time.time() - t_or)
     oracle_exact.last_stats = stats
     return ans
