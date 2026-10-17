@@ -6,10 +6,9 @@ Created 2026-10-16 from `latex/notes.tex`, `poly-hardness/`, `np-hardness/`, `pr
 
 ```
 tex/     main.tex (INFORMS class informs4, option moor),
-         macros.tex, abstract.tex, chapters 01-08 as \input, refs.bib, informs/ (template samples),
+         macros.tex, abstract.tex, chapters 01-09 as \input (01 introduction, 02 solvability, 03 weak, 04 planar, 05 hardness, 06 box oracle, 07 perturbation, 08 computations, 09 Lean), refs.bib, informs/ (template samples),
          figures/. informs4.cls, informs2014.bst, informs_Logo.* are the INFORMS files (keep in tex/).
-         Chapters 01-02 are fully translated; 03-07 have the statements translated and the proofs marked
-         \todo{translate} with a \src{...} margin pointer to the Russian source.
+         All chapters are in English; the introduction (01) and the computations (08) were written 2026-10-17.
 lean/    independent Lake project, library NeoTiling (Core, Planar, Hardness, Perturbation, Lp).
          `lake build` from this folder; .lake/packages is a symlink to the repository's Mathlib checkout.
          No sorry, standard axioms. Not ported: PricePerturbation/Profile.lean (per-year profile, dropped).

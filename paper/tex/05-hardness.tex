@@ -21,6 +21,16 @@ NP-hardness: 3-colorability is NP-complete \citep{GareyJohnsonStockmeyer1976}, \
 
 Duplicating a coordinate, $p^{d+1}_t:=p^d_t$ for all $t$, preserves the reachable and the weakly reachable families: a witness $\xi$ extends by $\xi^{d+1}:=0$, and conversely a witness $(\xi^1,\dots,\xi^{d+1})$ at the extended prices gives the witness $(\xi^1,\dots,\xi^{d-1},\xi^d+\xi^{d+1})$ at the original ones. By \cref{thm:solvability,thm:closure} the two problems are therefore NP-complete for every fixed $d\ge3$.
 
+\begin{corollary}[no explicit description of the cone]\label{cor:extended}
+Let $d\ge3$ and $\star$ be either mode. Unless $\mathrm P=\mathrm{NP}$, there is no polynomial-time algorithm that, given rational $P\subset\Rpp[d]$, outputs a system $Ay+Bz\le b$ of polynomial size whose projection to the $y$-coordinates is $\cone\set{\ind S\mid S\in\Spm(P)}$. For $d=2$ such a system exists and is the flow program of \cref{thm:lp}.
+\end{corollary}
+
+\begin{proof}
+Given such a system, membership of a rational $y$ is a linear feasibility problem of polynomial size, solvable in polynomial time \citep[Ch.~13]{Schrijver1986}, contradicting \cref{cor:hard-np}. For $d=2$ the system of \cref{thm:lp} has $O(T^3)$ variables and coefficients $0,\pm1$, and it is built from $P$ in polynomial time.
+\end{proof}
+
+With complete data and a fixed cost function the range of the profit-function operator has an explicit description, complete monotonicity after a Mellin division \citep{HenkinShananin1990,Agaltsov2015}; with finite data and a fixed cost function the cone of solvable outputs has integer facet normals, and the question when inequalities with coefficients $0,\pm1$ suffice led \citet{AgaltsovMolchanovShananin2018} and \citet{Molchanov2013a} to discrete convexity, which fails for two inputs already at $T=6$. \Cref{cor:extended} is the end of this line for an unknown cost function: for three or more inputs no description of the cone that can be written down and checked in polynomial time exists, extended variables included, unless $\mathrm P=\mathrm{NP}$. The obstruction is not stretchability, which concerns which arrangements of hypersurfaces occur, but the cone itself: the gadget of \cref{sec:gadget} produces data whose reachable spectra are explicit and whose cone is the stable set polytope of a graph, lifted to a cone.
+
 \begin{remark}[scope of the formalization]\label{rem:hard-scope}
 \Cref{thm:hard-main}, \cref{thm:gadget}, the lemmas of Sections~\ref{sec:disks}--\ref{sec:coloring} and \cref{thm:hard-karp} are verified in Lean (\cref{sec:lean}). The cost in \cref{thm:hard-karp} is counted by a program. The counter is advanced only by unit-cost primitives on numbers; numerals, coercions, Boolean connectives, tuple building and graph lookups are free. Three facts are taken from outside the formalization. The first is the NP-completeness of 3-coloring. The second is the membership of both problems in NP, which rests on polynomial-time linear programming. The third is the passage from unit cost to bit cost, for which only the bit sizes of the output are proved formally. In the absence of formal complexity classes, the formal statement is the explicit reduction with polynomial bounds of \cref{thm:hard-karp}.
 \end{remark}

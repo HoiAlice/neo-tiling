@@ -1,0 +1,19 @@
+queue start Sat Oct 17 13:43:39 MSK 2026
+== intervals
+BEA 15 d=2 real: lengths [3, 1, 2, 1, 6, 2, 6, 2, 3, 1, 4, 1, 1, 1, 1, 3, 1, 2] 0s
+BEA 15 d=3 real: lengths [4, 2, 1, 1, 6, 12, 1, 6, 1, 1, 6] 1s
+BEA 15 d=8 real: lengths [5, 12, 28] 10s
+BEA 24 d=2 real: lengths [3, 1, 6, 2, 1, 1, 1, 3, 4, 2, 2, 1, 5, 2, 2, 4, 4, 2] 0s
+BEA 24 d=3 real: lengths [3, 7, 6, 4, 4, 3, 4, 9, 4, 4] 1s
+BEA 24 d=8 real: lengths [3, 7, 6, 20, 7] 13s
+BEA  1 d=2 real: lengths [3, 1, 2, 1, 1, 3, 2, 3, 2, 2, 6, 1, 1, 8, 6] 0s
+BEA  1 d=3 real: lengths [4, 2, 2, 3, 3, 3, 2, 3, 4, 5, 6, 4, 6] 0s
+BEA  1 d=8 real: lengths [6, 2, 7, 3, 23] 7s
+BEA  6 d=2 real: lengths [3, 3, 4, 4, 1, 1, 1, 2, 3, 1, 4, 3, 7, 4, 4, 2] 0s
+BEA  6 d=3 real: lengths [5, 7, 9, 10, 4, 8, 5, 4, 6] 1s
+BEA  6 d=8 real: lengths [5, 29, 11, 6] 166s
+BEA 12 d=2 real: lengths [10, 2, 9, 5, 5, 4, 6, 5, 1] 1s
+BEA 12 d=3 real: lengths [10, 3, 4, 10, 11, 3, 1, 2, 3, 5, 1] 1s
+BEA 12 d=8 real: lengths [39, 5] 342s
+BEA 27 d=2 real: lengths [7, 4, 1, 2, 2, 4, 1, 4, 2, 1, 1, 4, 1, 2, 2, 2, 1] 0s
+BEA 27 d=3 real: lengths [1, 6, 2, 3, 2, 1, 4, 1, 6, 1, 1, 4, 4, 1, 2, 2] 0s

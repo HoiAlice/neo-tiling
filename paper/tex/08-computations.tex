@@ -1,0 +1,135 @@
+%% Sources: l1-perturbation/RESULTS.md (least perturbation tables), price-perturbation/README.md and tex/onesided.tex
+%% (oracle checks), code/experiments/results/aggregation_lp.jsonl (aggregation; `aggregation_lp.py table`, `moves`).
+%% All runs: relative metric, r = 1 unless stated, c = 1, eta = 1e-4, one solver process at a time (Apple M-series laptop,
+%% HiGHS through scipy for the MILP master, exact rational arithmetic for all geometry).
+\section{Computations}\label{sec:comp}
+
+\subsection{Data and their preparation}
+\paragraph{What the model needs.} An observation is a pair $(p_t,y_t)$: the vector of input prices of period $t$ divided by the output price of the same period, and the volume of output. Two invariances of the model fix what may and what may not be done to the published series. Multiplying one coordinate of all price vectors by the same constant changes nothing, since the constant is absorbed into the corresponding coordinate of the technologies $x$; hence units of measurement, index bases and the arbitrary scale of implicit prices are irrelevant, and we never rescale across periods but freely rescale within a coordinate. Multiplying the price vector of one period by a constant does change the active set $\set{x\mid h(p_t\circ x)<1}$, so the division by the output price of the same period is part of the model and cannot be replaced by another numeraire without changing the hypothesis being tested. Outputs are volume indices; the criterion is homogeneous in $y$, so their base is irrelevant too. All prices are rounded to the nearest rational with denominator at most $10^9$, far below the precision of the sources, in such a way that equal values stay equal; outputs are kept exact. All geometry is then done in rational arithmetic.
+
+\paragraph{EU KLEMS.} From the 2023 release, US total economy, 1995--2020 ($T=26$), we use nominal value added $VA$, compensation of employees $COMP$, hours worked $H$, the volume of capital services $K^q$, nominal and real intermediate inputs $II$, $II^q$, and real gross output $GO^q$. Implicit prices are $p_K=(VA-COMP)/K^q$ (capital compensation per unit of the real net capital stock), $p_L=COMP/H$, $p_{II}=II/II^q$ and $p_{GO}=(VA+II)/GO^q$; the slice $d=3$ is $(p_K,p_L,p_{II})/p_{GO}$ with $y=GO^q$. The value-added slices $d=2$ are the two-input model with value added as output: $p_K$, $p_L$ as above and $p_{VA}=VA/VA^q$, where the volume $VA^q$ is obtained by double deflation from the chain-linked volumes of gross output and intermediate inputs; prices $(p_K,p_L)/p_{VA}$, $y=VA^q$. They are computed for the industries M--N (professional, scientific and administrative services) and F (construction) of the US, Japan and France, 1995--2021 ($T=26$ or $27$); series with broken volume chains (the UK) are excluded.
+
+\paragraph{BEA--BLS.} The integrated industry-level production account, research extension 1963--2016 \citep{Eldridge2020}, gives for 63 industries the nominal and real gross output and, for each input, nominal compensation and a quantity index, hence implicit prices (compensation divided by quantity), for five capital types (IT equipment, software, R\&D, artistic originals, other), two labor types (college and non-college educated) and intermediate inputs. The aggregates $p_K$ and $p_L$ are built by us from the five and the two types: the quantity of capital (labor) is a chained T\"ornqvist index of the type quantities with the average nominal shares of adjacent years as weights, and the price is total compensation divided by that index. We use the last $T=40$ years, 1977--2016, and ten industries (\cref{tab:agg}) fixed before the $\ell_1$ computations: those of the Russian working notes, chosen for complete detail series over the window. The output is the volume of gross output in all BEA slices. Three slices of the same series differ only in the level of input aggregation:
+\begin{itemize}
+\item $d=8$: the seven detailed prices and $p_{II}$, all divided by $p_{GO}$;
+\item $d=3$: the T\"ornqvist aggregates $(p_K,p_L,p_{II})/p_{GO}$;
+\item $d=2$: $(p_K,p_L)/p_{II}$. This slice drops the output price and uses the price of intermediate inputs as numeraire, which by the second invariance above is a different hypothesis: it tests the model under the additional assumption that the output price is proportional to $p_{II}$ (a constant markup over intermediate inputs). It is included because two-input slices of this kind are what the fixed-$h$ literature works with; its results are read with this caveat.
+\end{itemize}
+The implicit price of artistic originals is three to five orders of magnitude below the other coordinates in most industries; by the first invariance this is immaterial, and no coordinate is zero.
+
+\paragraph{Placebo and controls.} The placebo for the aggregation study keeps the aggregates and destroys the information in the detail: for each capital and labor type the deviation $\ln p_{k,t}-\ln p_{K,t}$ (resp.\ $\ln p_{\ell,t}-\ln p_{L,t}$) of its price from the T\"ornqvist aggregate is permuted over the years with a fixed seed, and the detailed prices are rebuilt from the permuted deviations; $p_{II}$, $p_{GO}$ and $y$ are unchanged. Two further slices test where the correction sits (see below): $d=8$ with the move of $p_{II}$ weighted $100$ times more than the other coordinates ($c^{II}_t=100$, $c^i_t=1$ otherwise), and $d=7$, the seven detailed prices divided by $p_{GO}$ with no $p_{II}$ coordinate at all.
+
+%% CORE: oracle checks (two sentences could suffice).
+\subsection{The oracle}
+The exact oracle of \cref{sec:corners} was checked against two independent references. Against exhaustive enumeration of all weakly reachable sets ($d=3$, $T=3,4$ and $d=2$, $T=4$) it agreed on all 210 queries, and every NO certificate $(\lambda,\mathcal C)$ was verified on all weakly reachable sets. Against the flow linear program of \cref{rem:oracle-planar} ($d=2$, $T=10,20$) it agreed on all 105 queries, and on the real $d=2$ data (US, ten BEA industries) all box queries of the two oracles agreed; at $T=40$ a query takes $0.8$--$3$~s by column generation and $2$--$14$~s by the flow program solved by an interior-point method, so the general oracle is used throughout. An earlier pricing problem that encoded the witnesses $\ip\xi{W_s-W_t}\ge0$ in floating point accepted sets that are not weakly reachable whenever several points nearly shared a coordinate, and the column generation then did not terminate; the cover formulation of \cref{lem:cover}, with all geometry in rational arithmetic, removed this failure and is the reason the oracle is exact.
+
+%% CORE: Table tab:lp and the paragraph on the cover cuts; SECONDARY: the log-metric sentence.
+\subsection{Least \texorpdfstring{$\ell_1$}{l1} and \texorpdfstring{$\ell_2$}{l2} perturbation}
+\Cref{tab:lp} reports the algorithm of \cref{sec:lp} with $r=1$, stopping tolerance $\eta=10^{-4}$ and a limit of ten minutes per slice. Of 15 slices, 13 are solved to the tolerance: the eight BEA industries at $d=8$ in one to six minutes each, the US slice at $d=3$ in three seconds, the value-added slices in seconds to a minute; two BEA industries (6 and 31) stop at the limit with certified bounds, and for them a single iteration of the master problem with cover cuts takes several hundred seconds. In every solved slice the final rational $Q$ was verified exactly, and no oracle answer was ever contradicted by the independent check of the solution.
+
+\begin{table}[t]
+\TABLE{Least relative $\ell_1$ perturbation, $\eta=10^{-4}$, 600 s per slice. $\LB\le\OPT_1\le\UB$; moved = prices with $\abs{\varepsilon}>10^{-5}$ in the solution.\label{tab:lp}}
+{\small\begin{tabular}{llrrrrrl}
+\toprule
+Slice & & $d$ & $T$ & $\LB$ & $\UB$ & time, s & \\
+\midrule
+BEA 15 & Motor vehicles & 8 & 40 & 0.015590 & 0.015591 & 75 & optimal \\
+BEA 24 & Petroleum and coal & 8 & 40 & 0.102552 & 0.102554 & 105 & optimal \\
+BEA 1 & Farms & 8 & 40 & 0.287943 & 0.287951 & 338 & optimal \\
+BEA 12 & Machinery & 8 & 40 & 0.040827 & 0.040828 & 67 & optimal \\
+BEA 27 & Wholesale trade & 8 & 40 & 0.059815 & 0.059817 & 199 & optimal \\
+BEA 46 & Rental and leasing & 8 & 40 & 0.005135 & 0.005135 & 124 & optimal \\
+BEA 49 & Misc.\ professional services & 8 & 40 & 0.014984 & 0.014985 & 265 & optimal \\
+BEA 63 & State and local & 8 & 40 & 0 & 0 & 4 & solvable as given \\
+BEA 6 & Utilities & 8 & 40 & 0.409 & 3.603 & 600 & time limit \\
+BEA 31 & Water transportation & 8 & 40 & 0.638 & 1.881 & 600 & time limit \\
+US & EU KLEMS, total economy & 3 & 26 & 0.528209 & 0.528219 & 3 & optimal \\
+US M--N & value added & 2 & 27 & 0.295305 & 0.295321 & 7 & optimal \\
+JP M--N & value added & 2 & 26 & 1.495396 & 1.495516 & 6 & optimal \\
+FR M--N & value added & 2 & 27 & 0.084909 & 0.084921 & 600 & gap $1.4\cdot10^{-4}$ \\
+JP F & value added & 2 & 26 & 1.206440 & 1.206457 & 77 & optimal \\
+\bottomrule
+\end{tabular}}
+{}
+\end{table}
+
+\paragraph{The effect of the cover cuts.} Without the cover cuts of \cref{sec:conflicts} the method is the polyblock algorithm with a MILP master, and it stalls: on random instances with $T=4$ and $d=2,3$ it did not reach the tolerance in 300~s for $r=1,2$, with the cuts it solves them in under a minute; on the real data the slices FR~M--N and JP~F did not converge at all without the cuts. The reason is the one given in \cref{sec:lp}: the boundary of the feasible set of half-widths is curved, polyblock cuts remove one orthant per NO answer, and the cover cut removes the whole region in which the same covers are present. Solving the same slices in the logarithmic metric $q=p\circ e^{\varepsilon}$ gives optima within $1$--$3\%$ of the relative ones; it is $1.1$--$2$ times slower where dominance cuts suffice and up to $18$ times slower where cover cuts are needed, because the cover cuts are linear in the relative half-widths and only piecewise linear in the logarithmic ones.
+
+%% CORE: Table tab:p1p2 (it motivates reporting the moved coordinates); the figure is optional.
+\paragraph{The norm.} \Cref{tab:p1p2} compares $r=1$ and $r=2$ on the eleven slices solved to optimality under both. Both solutions are sparse and repair the same dominance violations between pairs of years. With $r=1$ a violation is removed by moving one price of one year; with $r=2$ the gap is split between the two years of the pair, the largest move falls by up to a factor of two and the sum of moves barely grows. The support of the $r=1$ solution is contained in that of the $r=2$ solution in ten slices; the exception is BEA~27, where $r=1$ moves the price of intermediate inputs in 2009 by $5.5\%$ and $r=2$ instead makes six small moves of labor and other-capital prices (\cref{fig:p1p2}). The two norms choose different repair mechanisms for the same violation, which is a reason to report the moved coordinates and not only the value.
+
+\begin{table}[t]
+\TABLE{$r=1$ against $r=2$, relative metric, all slices solved to optimality. Moved = prices with $\abs{\varepsilon}>10^{-5}$; common = moved under both norms.\label{tab:p1p2}}
+{\small\begin{tabular}{lrrrrrrr}
+\toprule
+Slice & $\OPT_1$ & $\OPT_2$ & $\max\abs{\varepsilon_1}$ & $\max\abs{\varepsilon_2}$ & moved $r{=}1$ & moved $r{=}2$ & common \\
+\midrule
+BEA 15 & 0.0156 & 0.0091 & 1.2\% & 0.6\% & 2 & 4 & 2 \\
+BEA 12 & 0.0408 & 0.0297 & 2.9\% & 2.4\% & 2 & 4 & 2 \\
+BEA 46 & 0.0051 & 0.0032 & 0.4\% & 0.2\% & 2 & 4 & 2 \\
+BEA 24 & 0.1026 & 0.0439 & 4.4\% & 2.3\% & 7 & 12 & 7 \\
+BEA 27 & 0.0598 & 0.0471 & 5.5\% & 3.8\% & 2 & 6 & 0 \\
+BEA 49 & 0.0150 & 0.0104 & 1.3\% & 0.8\% & 2 & 5 & 2 \\
+BEA 1 & 0.2880 & 0.1187 & 8.8\% & 7.3\% & 7 & 10 & 7 \\
+US $d=3$ & 0.5282 & 0.1209 & 4.0\% & 4.2\% & 24 & 28 & 24 \\
+US M--N & 0.2953 & 0.0862 & 10.0\% & 5.0\% & 14 & 26 & 14 \\
+JP M--N & 1.4955 & 0.3605 & 17.5\% & 12.5\% & 26 & 33 & 25 \\
+JP F & 1.2065 & 0.3457 & 22.0\% & 18.1\% & 24 & 31 & 24 \\
+\bottomrule
+\end{tabular}}
+{}
+\end{table}
+
+\begin{figure}[t]
+\FIGURE{\includegraphics[width=0.8\textwidth]{p1p2_bea27}}
+{BEA 27 (wholesale trade), $d=8$: relative moves of the eight prices by year in the optimal solutions for $r=1$ (one move of $p_{II}$ in 2009) and $r=2$ (six small moves of labor and other-capital prices).\label{fig:p1p2}}
+{}
+\end{figure}
+
+%% CORE: Table tab:agg with the placebo and the paragraph "Which prices move" (as an observation).
+\subsection{Aggregation of inputs}
+The three BEA slices are the same series at three levels of input aggregation, so they ask how much of the least correction is an artifact of aggregation. \Cref{tab:agg} gives $\OPT_1$ for the ten industries. At $d=8$ nine industries are solved to optimality with $\OPT_1$ between $0.005$ and $0.29$, that is, a total relative correction of at most $29\%$ spread over $320$ prices; one industry (BEA~6) is open with $\OPT_1\in[0.41,3.60]$. At $d=3$ and $d=2$ the corrections are between $0.13$ and $8.7$, ten to a hundred times larger, and several cells stop at the time limit with the bounds shown. A placebo controls for the mechanical effect of more coordinates: for every capital and labor type the deviation of its price from the aggregate price, in logarithms, is permuted over the years with a fixed seed, so that the size of the detail is kept and its link to the years is destroyed. The placebo slices do not come close to solvability: their lower bounds alone, $0.54$--$2.8$, exceed the true $d=8$ optima of the same industries by one to two orders of magnitude, so the drop from $d=3$ to $d=8$ is carried by the real detail. The upper bounds of the time-limited cells are the bound of \cref{lem:nonempty} (one coordinate aligned) and carry no information; in these cells the comparison rests on the lower bounds.
+
+\begin{table}[t]
+\TABLE{Least relative $\ell_1$ perturbation of the same BEA series at three levels of input aggregation, $T=40$, $\eta=10^{-4}$. A single number is $\OPT_1$ to the tolerance; an interval is $[\LB,\UB]$ at the time limit (600 s, or 1800 s for the cells marked $^\dagger$). Placebo: detail prices permuted over years, two seeds, $d=8$.\label{tab:agg}}
+{\small\begin{tabular}{llrrrrr}
+\toprule
+BEA & Industry & $d=2$ & $d=3$ & $d=8$ & placebo 1 & placebo 2 \\
+\midrule
+1 & Farms & 3.3760 & 4.1521 & 0.2880 & [2.10, 5.10] & [2.81, 5.10] \\
+6 & Utilities & 5.5906 & [0.63, 3.95] & [0.41, 3.60] & & \\
+12 & Machinery & [0.53, 0.72] & [0.55, 1.16] & 0.0408 & & \\
+15 & Motor vehicles & [2.74, 2.99]$^\dagger$ & [1.39, 1.72]$^\dagger$ & 0.0156 & [0.54, 1.72] & [0.64, 1.72] \\
+24 & Petroleum and coal & 8.6897 & 2.1876 & 0.1026 & [1.80, 2.86] & [1.32, 2.86] \\
+27 & Wholesale trade & [0.86, 1.99] & [1.83, 1.89]$^\dagger$ & 0.0598 & & \\
+31 & Water transportation & 0.7698$^\dagger$ & 1.6216 & [0.64, 1.82] & & \\
+46 & Rental and leasing & 0.2142 & [0.1333, 0.1338]$^\dagger$ & 0.0051 & & \\
+49 & Misc.\ professional services & [0.28, 0.79] & [0.04, 0.09] & 0.0150 & & \\
+63 & State and local & [2.09, 3.75] & 0 & 0 & & \\
+\bottomrule
+\end{tabular}}
+{}
+\end{table}
+
+\paragraph{Which prices move.} The solutions localize the violation. At $d=8$ the optimal correction moves between two and seven of the $320$ prices, and in six of the seven industries solved to optimality the price of intermediate inputs $p_{II}$, the one coordinate of the slice that is still an aggregate, is among them: it is the only moved coordinate in BEA~24 (seven years), BEA~1 (seven years) and BEA~27 (2007 and 2009), and it is moved together with one detailed type in BEA~15, 46 and 49; only BEA~12 is corrected through a detailed labor price alone. At $d=3$ the correction is spread over $31$--$39$ of the $120$ prices, and in the industries whose $d=8$ correction is pure $p_{II}$ it falls on $p_{II}$ as well: 29 of 34 moves in BEA~24 and 35 of 39 in BEA~1; in BEA~31 it is split between $p_L$ and $p_{II}$, and in BEA~27 the near-optimal solution moves the aggregate capital price $p_K$ in 33 of 36 cases. At $d=2$ the denominator is $p_{II}$ itself, so the moves cannot be attributed to a coordinate. Disaggregating capital and labor thus does two things: it lowers the least correction by one to two orders of magnitude, and it concentrates what remains on the aggregate that was not disaggregated.
+
+%% SECONDARY (candidate for cutting at proofreading): the two controls below.
+\Cref{tab:controls} asks how much of this concentration is a property of the data and how much a preference of the $\ell_1$ norm, which rewards putting a correction into one coordinate. Making a move of $p_{II}$ a hundred times as expensive as any other move raises the least correction by a factor between $2.5$ and $5.4$ in BEA~1, 15, 46 and 49, by at least $7.6$ in BEA~24, where no repair avoiding $p_{II}$ was found within the limit, and by $3\%$ or nothing in BEA~27 and~12; the alternative repairs move labor prices. Dropping the coordinate altogether ($d=7$) gives the same values where the weighted repair avoided $p_{II}$ and larger ones elsewhere. So in five of the seven industries the violation is attached to the intermediate-input price in the sense that every repair around it costs several times more, and in two it is not: there several repairs of nearly equal cost exist, and the $\ell_1$ solution is one of them, as the comparison of norms in \cref{tab:p1p2} already suggested. We do not claim more than this; which published series is in error is not identified by the model, only the cost of each repair is.
+
+\begin{table}[t]
+\TABLE{Controls for the location of the correction, $d=8$ industries solved to optimality. Columns: $\OPT_1$; the same with the move of $p_{II}$ weighted $100$ (coordinates moved in the solution); the seven detailed prices without $p_{II}$ ($d=7$, divided by $p_{GO}$). Intervals are $[\LB,\UB]$ at the limit of 900 s.\label{tab:controls}}
+{\small\begin{tabular}{llrlr}
+\toprule
+BEA & Industry & $d=8$ & $d=8$, $c^{II}=100$ & $d=7$, no $p_{II}$ \\
+\midrule
+24 & Petroleum and coal & 0.1026 & [0.78, 3.96] & [2.53, 3.11] \\
+46 & Rental and leasing & 0.0051 & 0.0279 ($p_{Ln}$, $p_{Kit}$) & 0.0279 \\
+15 & Motor vehicles & 0.0156 & 0.0446 ($p_{Lcol}$, $p_{Ln}$) & [0.12, 0.27] \\
+1 & Farms & 0.2880 & 0.7157 ($p_{Krd}$, $p_{Kart}$, $p_{Ln}$) & 0.8848 \\
+49 & Misc.\ professional services & 0.0150 & 0.0369 ($p_{Lcol}$, $p_{Ln}$) & 0.0369 \\
+27 & Wholesale trade & 0.0598 & 0.0615 ($p_{Ln}$) & 0.0615 \\
+12 & Machinery & 0.0408 & 0.0408 ($p_{Lcol}$) & 0.0666 \\
+\bottomrule
+\end{tabular}}
+{}
+\end{table}

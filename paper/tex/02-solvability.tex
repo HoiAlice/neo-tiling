@@ -2,13 +2,13 @@
 %% Lean: NeoTiling.Core.{Neoclassical,Spectrum,Reachable,Solvability}.
 \section{Solvability}\label{sec:solvability}
 
-\todo{Introduction: the data $(P,y)$, the model, what is new, outline. Literature: Houthakker--Johansen, Shananin (moment problem), Henkin--Shananin, Molchanov; Afriat, Varian; Kuosmanen--Post--Scholtes. Write after the mathematical chapters are stable.}
-
-Throughout, $d\in\N$, $d\ge2$. For $p,x\in\R^d$ we write $p\circ x:=(p^1x^1,\dots,p^dx^d)$ for the coordinatewise product, $\e:=(1,\dots,1)\in\R^d$, and $\ind S\in\R^T$ for the indicator of $S\subset[T]$. Inequalities between vectors are coordinatewise.
+Throughout, $d\in\N$, $d\ge2$. For $p,x\in\R^d$ we write $p\circ x:=(p^1x^1,\dots,p^dx^d)$ for the coordinatewise product, $\e:=(1,\dots,1)\in\R^d$, and $\ind S\in\R^T$ for the indicator of $S\subset[T]$. Inequalities between vectors are coordinatewise. Prices $p_t\in\Rpp[d]$ are input prices divided by the output price of the same period, as in \cref{sec:intro}.
 
 \begin{definition}[neoclassical functions]\label{def:neoclassical}
 A function $f\colon\Rp[d]\to\R_+$ is \emph{neoclassical} if it is continuous, concave and positively homogeneous of degree one. The class of neoclassical functions of $d$ variables is denoted $\Phi_d$.
 \end{definition}
+
+A neoclassical function is nondecreasing on $\Rp[d]$ (see the proof of \cref{lem:necessity}). The class $\Phi_d$ is the class of unit cost functions of the generalized Houthakker--Johansen model, that is, of Young transforms of neoclassical production functions \citep{Shananin1997a}. It also contains functions that vanish on part of the orthant or have unbounded level sets, which \citet{Shananin1999} and \citet{Agaltsov2016} exclude; the criteria below are unaffected, since the function constructed in \cref{lem:patch} is positive on $\Rpp[d]$ with bounded level sets.
 
 \begin{definition}[neoclassical solvability]\label{def:neo-solvability}
 Let $\set{\hat p_t\in\Rpp[d]}_{t\in[T]}$ be a finite set of prices. An output vector $y\in\Rp[T]$ is \emph{neoclassically solvable} at these prices if there exist $h\in\Phi_d$ and neighborhoods $U_t\ni\hat p_t$, $U_t\subset\Rpp[d]$, such that for every choice $\set{p_t\in U_t}_{t\in[T]}$ there is a nonnegative absolutely continuous measure $\mu$ on $\Rp[d]$ with
@@ -27,6 +27,8 @@ R_S:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1\text{ for }t\in S,\ h(p_s\circ x)>1\te
 The \emph{spectrum} of the pair $(h,P)$ is the family of spectra of nonempty chambers, $\Sp(h,P):=\set{S\subset[T]\mid R_S\ne\varnothing}$.
 \end{definition}
 
+The spectrum of a chamber lists the periods in which its technologies are profitable; this is the code of a cell in \citet{Shananin1999}.
+
 \begin{proposition}\label{prop:null}
 Let $h\in\Phi_d$. For every $p\in\Rpp[d]$ the set $\set{x\in\Rpp[d]\mid h(p\circ x)=1}$ has Lebesgue measure zero. Hence $\mathcal L^d\bigl(A_t\mathbin{\triangle}\bigsqcup_{S\ni t}R_S\bigr)=0$ for every $t\in[T]$.
 \end{proposition}
@@ -35,6 +37,8 @@ Let $h\in\Phi_d$. For every $p\in\Rpp[d]$ the set $\set{x\in\Rpp[d]\mid h(p\circ
 The set $K:=\set{x\in\Rp[d]\mid h(p\circ x)\ge1}$ is convex since $h$ is concave. If $h(p\circ x)=1$, then $h(p\circ\lambda x)=\lambda<1$ for $0<\lambda<1$ by homogeneity, so $\lambda x\notin K$ and $\lambda x\to x$ as $\lambda\to1$. Hence the level set is contained in the boundary of the convex set $K$, and the boundary of a convex set has Lebesgue measure zero \citep{Lang1986}. The symmetric difference $A_t\mathbin{\triangle}\bigsqcup_{S\ni t}R_S$ is contained in the union of the level sets $\set{x\mid h(p_s\circ x)=1}$, $s\in[T]$.
 \end{proof}
 
+The following lemma is the solvability criterion of the moment problem for a fixed unit cost function \citep[Prop.~3.1]{Shananin1999}; we include the short proof because the measure it produces is used again in \cref{thm:solvability}.
+
 \begin{lemma}[signature]\label{lem:signature}
 Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $y\in\Rp[T]$ lies in $\cone\set{\ind S\mid S\in\Sp(h,P)}$ if and only if there is an absolutely continuous measure $\mu$ on $\Rp[d]$ with $\mu(A_t)=y_t$ for all $t\in[T]$, where $A_t:=\set{x\in\Rpp[d]\mid h(p_t\circ x)<1}$.
 \end{lemma}
@@ -42,6 +46,10 @@ Let $h\in\Phi_d$ and $P:=\set{p_t\in\Rpp[d]}_{t\in[T]}$. Then $y\in\Rp[T]$ lies 
 \begin{proof}
 By \cref{prop:null} the level sets are null, so $\mu(A_t)=\sum_{S\ni t}\mu(R_S)$, and the conditions $\mu(A_t)=y_t$ read $y=\sum_S\mu(R_S)\ind S$ with $\mu(R_S)=0$ for $S\notin\Sp(h,P)$. Conversely, for $S\in\Sp(h,P)$ the chamber $R_S$ is a nonempty open set, the uniform probability measure on a ball inside $R_S$ realizes $\ind S$, and sums and nonnegative multiples of measures realize sums and multiples of vectors.
 \end{proof}
+
+\begin{remark}[the sampled Radon transform]\label{rem:radon}
+In the notation of \cref{sec:intro}, $\mu(A_t)=\partial_{p_0}\Pi(1,p_t)$ is the value at $p_t$ of the generalized Radon transform of $\mu$ \citep{Agaltsov2016}, and \cref{lem:signature} says that its values at finitely many points form the cone generated by the sampled indicators $\ind S$. With complete data the same cone is described by complete monotonicity after division by the Mellin symbol of $e^{-h}$ \citep{Agaltsov2015}; the measure constructed in the proof above, a finite sum of uniform measures on balls, shows that nothing of that analytic structure survives finite sampling: any solvable $y$ is realized by a compactly supported measure with a bounded density.
+\end{remark}
 
 \begin{lemma}[stability]\label{lem:stability}
 Let $h\in\Phi_d$ and $P\in\Rpp[d\times T]$. There is a neighborhood $V\subset\Rpp[d\times T]$ of $P$ such that $\Sp(h,Q)\supseteq\Sp(h,P)$ for every $Q\in V$.
@@ -116,4 +124,8 @@ Let $P\in\Rpp[d\times T]$. There is a neighborhood $V\subset\Rpp[d\times T]$ of 
 \begin{proof}
 Take $h\in\Phi_d$ with $\Sp(P)\subseteq\Sp(h,P)$ by \cref{lem:patch} and the neighborhood $V$ of \cref{lem:stability}. For $Q\in V$, \cref{lem:necessity} gives $\Sp(P)\subseteq\Sp(h,P)\subseteq\Sp(h,Q)\subseteq\Sp(Q)$.
 \end{proof}
+
+\begin{remark}[stability in place of uniqueness]
+With complete data the profit function on an open cone of prices determines the distribution of capacities \citep[Thm.~2.1]{AgaltsovMolchanovShananin2018}, and the distribution is unique under a condition on the zeros of $\mathcal M[e^{-h}]$ \citep{Agaltsov2016}. With finite data neither $\mu$ nor the masses $\mu(R_S)$ are determined by $y$. \Cref{lem:open} is what remains: the set of prices at which a given $y$ is solvable is open, so the conclusion of \cref{thm:solvability} is insensitive to small errors in the prices, and \cref{def:neo-solvability} builds this in. Prices on the boundary of the openness are the subject of \cref{sec:weak}, and the distance of the data from this set is the subject of \cref{sec:lp}.
+\end{remark}
 
